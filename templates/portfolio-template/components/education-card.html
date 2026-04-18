@@ -1,0 +1,39 @@
+<!-- ============================================
+     education-card.html — Education Card Template Reference
+     (Actual rendering happens via main.js → renderEducation())
+     ============================================ -->
+
+<!--
+  USAGE:
+  This template documents the canonical education card structure.
+  Cards are dynamically rendered by renderEducation() in main.js.
+
+  Structure:
+  .card
+    └── .edu-card
+          ├── .edu-icon         (emoji icon with gradient bg)
+          └── .edu-body
+                ├── .edu-institution
+                ├── .edu-degree
+                └── .edu-meta   (year, CGPA, location badges)
+-->
+
+<div class="card" aria-label="Education card template">
+  <div class="edu-card">
+
+    <!-- Icon -->
+    <div class="edu-icon">🏫</div>
+
+    <!-- Body -->
+    <div class="edu-body">
+      <div class="edu-institution">Institution Name</div>
+      <div class="edu-degree">Bachelor of Technology in Computer Science</div>
+      <div class="edu-meta">
+        <span class="edu-badge">📅 2021 – 2025</span>
+        <span class="edu-badge edu-cgpa">⭐ 9.24 / 10</span>
+        <span class="edu-badge">📍 Mumbai, India</span>
+      </div>
+    </div>
+
+  </div>
+</div>

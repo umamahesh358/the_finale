@@ -6,6 +6,7 @@ from django.views import View
 from django.utils import timezone
 from django.http import Http404, JsonResponse
 from django.db.models import Avg
+from collections import Counter
 from urllib.parse import urlparse
 from urllib.request import Request, urlopen
 from django.conf import settings
@@ -26,6 +27,118 @@ from apps.students.permissions import IsStudentOwnerOrReadOnly
 
 
 EXAM_CELL_ROLES = ['Director', 'HOD', 'Faculty', 'Examcell']
+
+
+def _split_full_name(full_name):
+    full_name = (full_name or '').strip()
+    name_parts = full_name.split(None, 1)
+    first_name = name_parts[0] if name_parts else ''
+    last_name = name_parts[1] if len(name_parts) > 1 else ''
+    return first_name, last_name
+
+
+def _split_tech_stack(value):
+    if not value:
+        return []
+    parts = re.split(r'[,;/|]+', str(value))
+    return [part.strip() for part in parts if part.strip()]
+
+
+def _build_portfolio_context(profile, request=None):
+    education = list(profile.education.all().order_by('year_of_passing', 'created_at'))
+    certifications = list(profile.certifications.all().order_by('-issued_date', '-created_at'))
+    projects = list(profile.projects.all().order_by('-created_at'))
+    internships = list(profile.internships.all().order_by('-start_date', '-created_at'))
+    events = list(profile.events.all().order_by('-event_date', '-created_at'))
+    courses = list(profile.courses.all().order_by('-created_at'))
+    research = list(profile.research.all().order_by('-published_date', '-created_at'))
+
+    tech_counter = Counter()
+    for project in projects:
+        project.tech_list = _split_tech_stack(project.tech_stack)
+        tech_counter.update(project.tech_list)
+    for internship in internships:
+        internship.tech_list = _split_tech_stack(internship.technologies)
+        tech_counter.update(internship.tech_list)
+    for course in courses:
+        tech_counter.update(_split_tech_stack(course.platform))
+
+    portfolio_skills = [
+        {'name': name, 'count': count}
+        for name, count in tech_counter.most_common(8)
+    ]
+    if not portfolio_skills:
+        portfolio_skills = [
+            {'name': 'Python', 'count': 1},
+            {'name': 'Django', 'count': 1},
+            {'name': 'HTML', 'count': 1},
+            {'name': 'CSS', 'count': 1},
+            {'name': 'JavaScript', 'count': 1},
+        ]
+
+    verified_certifications = sum(1 for cert in certifications if cert.is_verified)
+    verified_education = sum(1 for item in education if item.is_verified)
+
+    full_name = (profile.user.full_name or '').strip()
+    name_parts = full_name.split(None, 1)
+    first_name = name_parts[0] if name_parts else 'Student'
+    last_name = name_parts[1] if len(name_parts) > 1 else ''
+
+    portfolio_highlights = [
+        {
+            'icon': '📁',
+            'title': 'Projects added',
+            'sub': f'{len(projects)} portfolio items currently tracked',
+            'date': f'Updated {timezone.now().year}',
+        },
+        {
+            'icon': '🏆',
+            'title': 'Verified certifications',
+            'sub': f'{verified_certifications} credential(s) approved by staff',
+            'date': 'Live status',
+        },
+        {
+            'icon': '🎓',
+            'title': 'Education records',
+            'sub': f'{len(education)} academic entry/entries in the profile',
+            'date': f'{profile.batch or "Current batch"}',
+        },
+        {
+            'icon': '⚙️',
+            'title': 'Skills inferred',
+            'sub': f'{len(portfolio_skills)} technology tags derived from portfolio data',
+            'date': 'Backend-synced',
+        },
+    ]
+
+    share_url = request.build_absolute_uri() if request is not None else ''
+
+    return {
+        'profile': profile,
+        'education': education,
+        'certifications': certifications,
+        'projects': projects,
+        'internships': internships,
+        'events': events,
+        'courses': courses,
+        'research': research,
+        'portfolio_skills': portfolio_skills,
+        'portfolio_highlights': portfolio_highlights,
+        'portfolio_stats': {
+            'projects': len(projects),
+            'certifications': len(certifications),
+            'internships': len(internships),
+            'education': len(education),
+            'cgpa': profile.cgpa or 0,
+        },
+        'share_url': share_url,
+        'is_owner': request.user == profile.user if request is not None and request.user.is_authenticated else False,
+        'current_year': timezone.now().year,
+        'verified_education': verified_education,
+        'verified_certifications': verified_certifications,
+        'first_name': first_name,
+        'last_name': last_name,
+    }
 
 
 def _extract_cert_metadata(cert_url):
@@ -180,19 +293,38 @@ class StudentProfileEditView(LoginRequiredMixin, View):
             return redirect('dashboard')
         profile = get_object_or_404(StudentProfile, user=request.user)
         education = EducationBackground.objects.filter(student=profile)
+        first_name, last_name = _split_full_name(profile.user.full_name)
         return render(request, 'student_portal/profile_edit.html', {
             'profile': profile,
             'education': education,
+            'first_name': first_name,
+            'last_name': last_name,
         })
 
     def post(self, request):
         profile = get_object_or_404(StudentProfile, user=request.user)
         # Personal info
-        profile.user.full_name = request.POST.get('full_name', profile.user.full_name)
+        first_name = request.POST.get('first_name', '').strip()
+        last_name = request.POST.get('last_name', '').strip()
+        combined_name = ' '.join(part for part in [first_name, last_name] if part).strip()
+        if combined_name:
+            profile.user.full_name = combined_name
         profile.user.save()
+
+        visibility_flags = {
+            'show_email_on_profile': 'show_email_on_profile' in request.POST,
+            'show_resume_on_profile': 'show_resume_on_profile' in request.POST,
+            'show_linkedin_on_profile': 'show_linkedin_on_profile' in request.POST,
+            'show_github_on_profile': 'show_github_on_profile' in request.POST,
+            'show_leetcode_on_profile': 'show_leetcode_on_profile' in request.POST,
+            'show_hackerrank_on_profile': 'show_hackerrank_on_profile' in request.POST,
+            'show_codechef_on_profile': 'show_codechef_on_profile' in request.POST,
+            'show_codeforces_on_profile': 'show_codeforces_on_profile' in request.POST,
+        }
+
         linkedin_url = request.POST.get('linkedin_url', '').strip()
-        if not linkedin_url:
-            messages.error(request, 'LinkedIn profile is required.')
+        if visibility_flags['show_linkedin_on_profile'] and not linkedin_url:
+            messages.error(request, 'LinkedIn profile URL is required when LinkedIn display is enabled.')
             return redirect('student-profile-edit')
 
         personal_email = request.POST.get('personal_email', '').strip()
@@ -209,6 +341,10 @@ class StudentProfileEditView(LoginRequiredMixin, View):
         for field in ['linkedin_url', 'github_url', 'leetcode_url',
                       'hackerrank_url', 'codechef_url', 'codeforces_url']:
             setattr(profile, field, request.POST.get(field, '').strip())
+
+        for flag, value in visibility_flags.items():
+            setattr(profile, flag, value)
+
         if 'photo' in request.FILES:
             profile.photo = request.FILES['photo']
         if 'resume' in request.FILES:
@@ -530,16 +666,18 @@ class PublicStudentProfileView(View):
     """Public shareable profile view — /student/p/<slug>/"""
     def get(self, request, slug):
         profile = get_object_or_404(StudentProfile, slug=slug, is_public=True)
-        return render(request, 'student_portal/public_profile.html', {
-            'profile': profile,
-            'education': EducationBackground.objects.filter(student=profile),
-            'certifications': Certification.objects.filter(student=profile, is_verified=True),
-            'projects': Project.objects.filter(student=profile),
-            'internships': Internship.objects.filter(student=profile),
-            'events': Event.objects.filter(student=profile),
-            'courses': Course.objects.filter(student=profile),
-            'research': Research.objects.filter(student=profile),
-        })
+        context = _build_portfolio_context(profile, request)
+        return render(request, 'student_portal/portfolio_profile.html', context)
+
+
+class StudentPortfolioView(LoginRequiredMixin, View):
+    """Private portfolio page for the logged-in student."""
+    def get(self, request):
+        if request.user.role != 'Student':
+            return redirect('dashboard')
+        profile = get_object_or_404(StudentProfile, user=request.user)
+        context = _build_portfolio_context(profile, request)
+        return render(request, 'student_portal/portfolio_profile.html', context)
 
 
 class TogglePublicProfileView(LoginRequiredMixin, View):

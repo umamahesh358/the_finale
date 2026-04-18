@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en" class="">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Education — Aryan Sharma | Academic Background</title>
+  <meta name="description" content="Academic background of Aryan Sharma — B.Tech CS at IIT Bombay with 9.24 CGPA, Dean's List for 5 semesters, and certifications." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'sans-serif'] },
+          colors: {
+            primary: '#AF0C3E', secondary: '#8F0830', accent: '#22D3EE',
+            base: '#FFFFFF', card: '#F8FAFC', border: '#E2E8F0',
+            darkbase: '#0F172A', darkcard: '#1E293B', darkborder: '#334155',
+            textprimary: '#0F172A', textsecondary: '#475569',
+            darktextprimary: '#F8FAFC', darktextsecondary: '#94A3B8',
+          }
+        }
+      }
+    };
+  </script>
+
+  <link rel="stylesheet" href="./css/styles.css" />
+  <script src="./js/theme.js"></script>
+</head>
+<body data-page="education">
+
+  <div id="loading-screen" aria-hidden="true"><div class="loader-ring"></div></div>
+  <div class="bg-blob bg-blob-1" aria-hidden="true"></div>
+  <div class="bg-blob bg-blob-2" aria-hidden="true"></div>
+
+  <div data-component="navbar"></div>
+
+  <main id="main-content">
+
+    <!-- Page Header -->
+    <div class="page-header">
+      <div class="page-header-inner">
+        <span class="section-label">Academics</span>
+        <h1 class="section-title" id="edu-page-title">Academic <span>Background</span></h1>
+        <p style="color: var(--textsecondary); max-width: 55ch; line-height: 1.7;">
+          My formal education journey, from schooling to university —
+          including achievements and relevant coursework.
+        </p>
+      </div>
+    </div>
+
+    <div class="section" style="padding-top: 3rem;">
+
+      <!-- Education Cards -->
+      <div class="reveal" style="margin-bottom: 1.5rem;">
+        <span class="section-label">Qualifications</span>
+        <h2 style="font-size: 1.25rem; font-weight: 700; color: var(--textprimary); margin-bottom: 0.25rem;" id="edu-qualifications-heading">
+          Education History
+        </h2>
+      </div>
+
+      <div class="education-list" id="education-list" style="margin-bottom: 3.5rem;" role="list" aria-label="Education history">
+        <!-- Populated by main.js → renderEducation() -->
+      </div>
+
+      <!-- Relevant Coursework -->
+      <div class="reveal" style="margin-bottom: 1.5rem;">
+        <span class="section-label">Coursework</span>
+        <h2 style="font-size: 1.25rem; font-weight: 700; color: var(--textprimary);" id="coursework-heading">
+          Relevant Courses
+        </h2>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1rem; margin-bottom: 3.5rem;" id="coursework-grid">
+        <!-- Courses populated below via JS -->
+      </div>
+
+      <!-- Certifications -->
+      <div class="reveal" style="margin-bottom: 1.5rem;">
+        <span class="section-label">Certificates</span>
+        <h2 style="font-size: 1.25rem; font-weight: 700; color: var(--textprimary);" id="certs-heading">
+          Certifications
+        </h2>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1rem; margin-bottom: 3.5rem;" id="certs-grid">
+        <!-- Certifications populated below via JS -->
+      </div>
+
+      <!-- Skills Section -->
+      <div class="reveal">
+        <span class="section-label">Technical Profile</span>
+        <h2 style="font-size: 1.25rem; font-weight: 700; color: var(--textprimary); margin-bottom: 1.5rem;" id="edu-skills-heading">
+          Skills Assessment
+        </h2>
+        <div class="skills-grid" id="skills-grid" aria-label="Skills by category">
+          <!-- Populated by main.js -->
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <div data-component="footer"></div>
+
+  <script src="./js/theme.js"></script>
+  <script src="./js/projects.js"></script>
+  <script src="./js/experience.js"></script>
+  <script src="./js/main.js"></script>
+
+  <script>
+    // ── Coursework Data & Render ──
+    const COURSES = [
+      { icon: '🧮', name: 'Data Structures & Algorithms', code: 'CS201', grade: 'A+' },
+      { icon: '🧠', name: 'Machine Learning', code: 'CS480', grade: 'A+' },
+      { icon: '🌐', name: 'Computer Networks', code: 'CS344', grade: 'A' },
+      { icon: '🗄️', name: 'Database Management Systems', code: 'CS317', grade: 'A+' },
+      { icon: '⚙️', name: 'Operating Systems', code: 'CS333', grade: 'A' },
+      { icon: '🔐', name: 'Information Security', code: 'CS406', grade: 'A' },
+      { icon: '📊', name: 'Probability & Statistics', code: 'MA214', grade: 'A+' },
+      { icon: '🤖', name: 'Deep Learning', code: 'CS726', grade: 'A' },
+      { icon: '☁️', name: 'Cloud Computing', code: 'CS695', grade: 'A' },
+      { icon: '🧩', name: 'Software Engineering', code: 'CS305', grade: 'A+' },
+      { icon: '🔗', name: 'Distributed Systems', code: 'CS677', grade: 'A' },
+      { icon: '📐', name: 'Theory of Computation', code: 'CS310', grade: 'A' },
+    ];
+
+    const CERTIFICATIONS = [
+      {
+        icon: '☁️',
+        name: 'AWS Certified Solutions Architect',
+        issuer: 'Amazon Web Services',
+        date: 'March 2024',
+        badge: 'Associate',
+        color: '#FF9900',
+        link: '#',
+      },
+      {
+        icon: '🔗',
+        name: 'Google Cloud Professional Developer',
+        issuer: 'Google Cloud',
+        date: 'January 2024',
+        badge: 'Professional',
+        color: '#4285F4',
+        link: '#',
+      },
+      {
+        icon: '⛓️',
+        name: 'Certified Blockchain Developer',
+        issuer: 'Blockchain Council',
+        date: 'November 2023',
+        badge: 'Expert',
+        color: '#627EEA',
+        link: '#',
+      },
+      {
+        icon: '🤖',
+        name: 'TensorFlow Developer Certificate',
+        issuer: 'Google / TensorFlow',
+        date: 'August 2023',
+        badge: 'Developer',
+        color: '#FF6F00',
+        link: '#',
+      },
+    ];
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // Render coursework
+      const courseGrid = document.getElementById('coursework-grid');
+      if (courseGrid) {
+        COURSES.forEach((c, i) => {
+          const el = document.createElement('div');
+          el.className = 'card reveal';
+          el.style.transitionDelay = `${i * 0.05}s`;
+          el.innerHTML = `
+            <div style="display:flex; align-items:center; gap:0.75rem;">
+              <div style="width:40px; height:40px; border-radius:0.5rem; background: rgba(175,12,62,0.08); display:flex; align-items:center; justify-content:center; font-size:1.25rem; flex-shrink:0;">${c.icon}</div>
+              <div style="flex:1; min-width:0;">
+                <div style="font-size:0.875rem; font-weight:700; color:var(--textprimary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${c.name}</div>
+                <div style="font-size:0.75rem; color:var(--textsecondary);">${c.code}</div>
+              </div>
+              <span style="font-size:0.75rem; font-weight:800; color:var(--primary); background:rgba(175,12,62,0.08); padding:0.2rem 0.5rem; border-radius:99px; flex-shrink:0;">${c.grade}</span>
+            </div>
+          `;
+          courseGrid.appendChild(el);
+        });
+      }
+
+      // Render certifications
+      const certsGrid = document.getElementById('certs-grid');
+      if (certsGrid) {
+        CERTIFICATIONS.forEach((cert, i) => {
+          const el = document.createElement('div');
+          el.className = 'card reveal';
+          el.style.transitionDelay = `${i * 0.1}s`;
+          el.innerHTML = `
+            <div style="display:flex; gap:1rem; align-items:flex-start;">
+              <div style="width:48px; height:48px; border-radius:0.625rem; background: ${cert.color}18; display:flex; align-items:center; justify-content:center; font-size:1.5rem; flex-shrink:0; border: 1px solid ${cert.color}30;">${cert.icon}</div>
+              <div style="flex:1; min-width:0;">
+                <div style="font-size:0.9375rem; font-weight:700; color:var(--textprimary); margin-bottom:0.25rem;">${cert.name}</div>
+                <div style="font-size:0.8rem; color:var(--textsecondary); margin-bottom:0.5rem;">${cert.issuer}</div>
+                <div style="display:flex; gap:0.5rem; flex-wrap:wrap; align-items:center;">
+                  <span style="font-size:0.7rem; font-weight:700; padding:0.2rem 0.55rem; border-radius:99px; background:${cert.color}15; color:${cert.color}; border:1px solid ${cert.color}30;">${cert.badge}</span>
+                  <span style="font-size:0.75rem; color:var(--textsecondary);">📅 ${cert.date}</span>
+                </div>
+                <a href="${cert.link}" class="btn btn-ghost btn-sm" style="margin-top:0.875rem; width:fit-content;" target="_blank" rel="noopener">View Certificate ↗</a>
+              </div>
+            </div>
+          `;
+          certsGrid.appendChild(el);
+        });
+      }
+    });
+  </script>
+
+</body>
+</html>

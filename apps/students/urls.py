@@ -9,6 +9,7 @@ router.register(r'profiles', views.StudentProfileViewSet, basename='student-prof
 # ── UI URLs (under /student/) ──────────────────────────────
 ui_urlpatterns = [
     path('portal/',               views.StudentPortalView.as_view(),        name='student-portal'),
+    path('portal/portfolio/',     views.StudentPortfolioView.as_view(),     name='student-portfolio'),
     path('portal/profile/',       views.StudentProfileEditView.as_view(),   name='student-profile-edit'),
     path('portal/academics/',     views.StudentAcademicsView.as_view(),     name='student-academics'),
     path('portal/certifications/', views.StudentCertificationsView.as_view(), name='student-certifications'),

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en" class="">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Projects - Aryan Sharma | Product Engineering Portfolio</title>
+  <meta name="description" content="Selected software projects by Aryan Sharma across AI, full-stack engineering, and open source.">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'sans-serif'] },
+          colors: {
+            primary: '#AF0C3E', secondary: '#8F0830', accent: '#22D3EE',
+            base: '#FFFFFF', card: '#F8FAFC', border: '#E2E8F0',
+            darkbase: '#0F172A', darkcard: '#1E293B', darkborder: '#334155',
+            textprimary: '#0F172A', textsecondary: '#475569',
+            darktextprimary: '#F8FAFC', darktextsecondary: '#94A3B8',
+          }
+        }
+      }
+    };
+  </script>
+
+  <link rel="stylesheet" href="./css/styles.css" />
+  <script src="./js/theme.js"></script>
+</head>
+<body data-page="projects">
+
+  <div id="loading-screen" aria-hidden="true"><div class="loader-ring"></div></div>
+  <div class="bg-blob bg-blob-1" aria-hidden="true"></div>
+  <div class="bg-blob bg-blob-2" aria-hidden="true"></div>
+
+  <div data-component="navbar"></div>
+
+  <main id="main-content">
+    <div class="page-header page-header-advanced">
+      <div class="page-header-inner">
+        <span class="section-label">Portfolio Projects</span>
+        <h1 class="section-title" id="projects-page-title">Products, Platforms & <span>Experiments</span></h1>
+        <p style="color: var(--textsecondary); max-width: 65ch; line-height: 1.75;">
+          A project gallery with outcome-focused case studies. Each entry highlights what was built,
+          the technical stack, and measurable product or engineering impact.
+        </p>
+
+        <div class="project-overview-strip reveal" aria-label="Projects summary">
+          <div class="overview-chip"><strong>6+</strong><span>Shipped projects</span></div>
+          <div class="overview-chip"><strong>5</strong><span>Domains explored</span></div>
+          <div class="overview-chip"><strong>800+</strong><span>Open-source stars</span></div>
+          <div class="overview-chip"><strong>3</strong><span>Active in 2025</span></div>
+        </div>
+      </div>
+    </div>
+
+    <section class="section" style="padding-top: 2.5rem;" aria-labelledby="projects-grid-title">
+      <div class="reveal" style="margin-bottom: 1rem;">
+        <h2 style="font-size: 1.1rem; font-weight: 700; letter-spacing: -0.01em; color: var(--textprimary);" id="projects-grid-title">
+          Browse by Category
+        </h2>
+      </div>
+
+      <div class="filter-pills reveal" id="project-filters" role="toolbar" aria-label="Project category filters">
+        <!-- Populated by projects.js -->
+      </div>
+
+      <div class="projects-grid projects-grid-advanced" id="projects-grid" aria-live="polite" aria-label="All projects">
+        <!-- Populated by projects.js -->
+      </div>
+    </section>
+  </main>
+
+  <div data-component="footer"></div>
+
+  <script src="./js/theme.js"></script>
+  <script src="./js/projects.js"></script>
+  <script src="./js/experience.js"></script>
+  <script src="./js/main.js"></script>
+</body>
+</html>

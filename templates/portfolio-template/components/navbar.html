@@ -1,0 +1,64 @@
+<!-- ============================================
+     navbar.html — Reusable Navbar Component
+     Injected via data-component="navbar"
+     ============================================ -->
+
+<nav id="navbar" role="navigation" aria-label="Main navigation">
+  <div class="nav-container">
+
+    <!-- Logo -->
+    <a href="./index.html" class="nav-logo" id="nav-logo">
+            <span> <img src="./assets/ciet-logo.svg" alt="Ciet Logo" class="nav-logo" id="nav-logo-img" /></span>
+    </a>
+
+    <!-- Desktop Navigation Links -->
+    <ul class="nav-links" id="desktop-nav">
+      <li><a href="./index.html" class="nav-link" id="nav-home" data-page="home">Home</a></li>
+      <li><a href="./projects.html" class="nav-link" id="nav-projects" data-page="projects">Projects</a></li>
+      <li><a href="./experience.html" class="nav-link" id="nav-experience" data-page="experience">Experience</a></li>
+      <li><a href="./education.html" class="nav-link" id="nav-education" data-page="education">Education</a></li>
+    </ul>
+
+    <!-- Right Controls -->
+    <div class="nav-right">
+      
+      <!-- Dark Mode Toggle -->
+      <button
+        class="theme-toggle"
+        id="theme-toggle-btn"
+        aria-label="Toggle dark mode"
+        title="Toggle dark mode"
+      >
+        <span data-icon style="font-size: 1.1rem; line-height: 1;">🌙</span>
+      </button>
+      <!-- Resume Download -->
+      <a href="#" class="btn btn-primary btn-sm" id="nav-resume-btn" download>
+        📄 Resume
+      </a>
+
+      <!-- Hamburger (mobile) -->
+      <button
+        class="hamburger"
+        id="hamburger"
+        aria-label="Open navigation menu"
+        aria-expanded="false"
+        aria-controls="mobile-nav"
+      >
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+
+  </div>
+</nav>
+
+<!-- Mobile Nav Drawer -->
+<div class="mobile-nav" id="mobile-nav" role="dialog" aria-label="Mobile navigation">
+  <ul class="nav-links">
+    <li><a href="./index.html" class="nav-link" id="mnav-home">🏠 Home</a></li>
+    <li><a href="./projects.html" class="nav-link" id="mnav-projects">🛠️ Projects</a></li>
+    <li><a href="./experience.html" class="nav-link" id="mnav-experience">💼 Experience</a></li>
+    <li><a href="./education.html" class="nav-link" id="mnav-education">🎓 Education</a></li>
+  </ul>
+</div>

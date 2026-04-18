@@ -83,7 +83,10 @@
                     </label>
                 </div>
 
-                <h4 class="text-xl font-bold text-slate-900 mb-1 leading-tight">{{ profile.user.full_name }}</h4>
+                <h4 class="text-xl font-bold text-slate-900 mb-1 leading-tight">
+                    {{ first_name|default:profile.user.full_name|default:"Student" }}
+                    {% if last_name %}<span class="bg-gradient-to-r from-slate-900 to-[#800000] bg-clip-text text-transparent">{{ last_name }}</span>{% endif %}
+                </h4>
                 <p class="text-sm font-semibold text-slate-400 mb-6">{{ profile.roll_no }} &bull; {{ profile.department.code }}</p>
 
                 <div class="space-y-4 pt-6 border-t border-slate-50">
@@ -108,6 +111,11 @@
                             <input type="file" name="resume" class="absolute inset-0 opacity-0 cursor-pointer"
                                 accept=".pdf">
                         </div>
+                        <label class="mt-3 inline-flex items-center gap-2 text-[11px] font-semibold text-slate-600">
+                            <input type="checkbox" name="show_resume_on_profile" class="rounded border-slate-300"
+                                {% if profile.show_resume_on_profile %}checked{% endif %}>
+                            Show resume link on public profile
+                        </label>
                     </div>
                 </div>
             </div>
@@ -136,16 +144,21 @@
                     Identity Verification
                 </h5>
                 <div class="space-y-6">
-                    <div>
-                        <label
-                            class="text-[11px] font-bold text-slate-400 uppercase tracking-widest block mb-2">Preferred
-                            Display Name</label>
-                        <input type="text" name="full_name"
-                            class="w-full bg-slate-50 border-none rounded-2xl p-4 text-sm font-semibold focus:ring-2 focus:ring-[#800000]/20 transition-all"
-                            value="{{ profile.user.full_name }}" placeholder="Your legal name">
-                        <p class="text-[10px] text-slate-400 mt-2 font-medium">This name will be visible to mentors and
-                            on your public profile link.</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest block mb-2">First Name</label>
+                            <input type="text" name="first_name"
+                                class="w-full bg-slate-50 border-none rounded-2xl p-4 text-sm font-semibold focus:ring-2 focus:ring-[#800000]/20 transition-all"
+                                value="{{ first_name }}" placeholder="First name">
+                        </div>
+                        <div>
+                            <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest block mb-2">Last Name</label>
+                            <input type="text" name="last_name"
+                                class="w-full bg-slate-50 border-none rounded-2xl p-4 text-sm font-semibold focus:ring-2 focus:ring-[#800000]/20 transition-all"
+                                value="{{ last_name }}" placeholder="Last name">
+                        </div>
                     </div>
+                    <p class="text-[10px] text-slate-400 mt-2 font-medium">First name is shown in black; last name is shown with a gradient on the portfolio page.</p>
                     <div>
                         <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest block mb-2">College Roll No</label>
                         <input type="text"
@@ -175,6 +188,11 @@
                                 <span class="text-[11px] font-bold text-orange-600">Not Verified</span>
                                 {% endif %}
                             </div>
+                            <label class="mt-2 inline-flex items-center gap-2 text-[11px] font-semibold text-slate-600">
+                                <input type="checkbox" name="show_email_on_profile" class="rounded border-slate-300"
+                                    {% if profile.show_email_on_profile %}checked{% endif %}>
+                                Show college email icon on public profile
+                            </label>
                         </div>
                         <div>
                             <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest block mb-2">Personal Phone</label>
@@ -208,8 +226,13 @@
                                 class="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
                             <input type="url" name="linkedin_url"
                                 class="w-full bg-slate-50 border-none rounded-2xl pl-12 pr-4 py-4 text-sm font-semibold focus:ring-2 focus:ring-[#800000]/20 transition-all"
-                                value="{{ profile.linkedin_url }}" placeholder="https://linkedin.com/in/..." required>
+                                value="{{ profile.linkedin_url }}" placeholder="https://linkedin.com/in/...">
                         </div>
+                        <label class="mt-2 inline-flex items-center gap-2 text-[11px] font-semibold text-slate-600">
+                            <input type="checkbox" name="show_linkedin_on_profile" class="rounded border-slate-300"
+                                {% if profile.show_linkedin_on_profile %}checked{% endif %}>
+                            Show on public profile
+                        </label>
                     </div>
                     <div>
                         <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest block mb-2">GitHub
@@ -221,6 +244,11 @@
                                 class="w-full bg-slate-50 border-none rounded-2xl pl-12 pr-4 py-4 text-sm font-semibold focus:ring-2 focus:ring-[#800000]/20 transition-all"
                                 value="{{ profile.github_url }}" placeholder="https://github.com/...">
                         </div>
+                        <label class="mt-2 inline-flex items-center gap-2 text-[11px] font-semibold text-slate-600">
+                            <input type="checkbox" name="show_github_on_profile" class="rounded border-slate-300"
+                                {% if profile.show_github_on_profile %}checked{% endif %}>
+                            Show on public profile
+                        </label>
                     </div>
                     <div>
                         <label
@@ -229,6 +257,11 @@
                         <input type="url" name="leetcode_url"
                             class="w-full bg-slate-50 border-none rounded-2xl p-4 text-sm font-semibold focus:ring-2 focus:ring-[#800000]/20 transition-all"
                             value="{{ profile.leetcode_url }}" placeholder="URL">
+                        <label class="mt-2 inline-flex items-center gap-2 text-[11px] font-semibold text-slate-600">
+                            <input type="checkbox" name="show_leetcode_on_profile" class="rounded border-slate-300"
+                                {% if profile.show_leetcode_on_profile %}checked{% endif %}>
+                            Show on public profile
+                        </label>
                     </div>
                     <div>
                         <label
@@ -237,6 +270,11 @@
                         <input type="url" name="hackerrank_url"
                             class="w-full bg-slate-50 border-none rounded-2xl p-4 text-sm font-semibold focus:ring-2 focus:ring-[#800000]/20 transition-all"
                             value="{{ profile.hackerrank_url }}" placeholder="URL">
+                        <label class="mt-2 inline-flex items-center gap-2 text-[11px] font-semibold text-slate-600">
+                            <input type="checkbox" name="show_hackerrank_on_profile" class="rounded border-slate-300"
+                                {% if profile.show_hackerrank_on_profile %}checked{% endif %}>
+                            Show on public profile
+                        </label>
                     </div>
                     <div>
                         <label
@@ -245,6 +283,11 @@
                         <input type="url" name="codechef_url"
                             class="w-full bg-slate-50 border-none rounded-2xl p-4 text-sm font-semibold focus:ring-2 focus:ring-[#800000]/20 transition-all"
                             value="{{ profile.codechef_url }}" placeholder="URL">
+                        <label class="mt-2 inline-flex items-center gap-2 text-[11px] font-semibold text-slate-600">
+                            <input type="checkbox" name="show_codechef_on_profile" class="rounded border-slate-300"
+                                {% if profile.show_codechef_on_profile %}checked{% endif %}>
+                            Show on public profile
+                        </label>
                     </div>
                     <div>
                         <label
@@ -253,6 +296,11 @@
                         <input type="url" name="codeforces_url"
                             class="w-full bg-slate-50 border-none rounded-2xl p-4 text-sm font-semibold focus:ring-2 focus:ring-[#800000]/20 transition-all"
                             value="{{ profile.codeforces_url }}" placeholder="URL">
+                        <label class="mt-2 inline-flex items-center gap-2 text-[11px] font-semibold text-slate-600">
+                            <input type="checkbox" name="show_codeforces_on_profile" class="rounded border-slate-300"
+                                {% if profile.show_codeforces_on_profile %}checked{% endif %}>
+                            Show on public profile
+                        </label>
                     </div>
                 </div>
             </div>

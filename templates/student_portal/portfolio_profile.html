@@ -1,0 +1,590 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" class="">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{ profile.user.full_name }} - Student Portfolio | CIET ERP</title>
+  <meta name="description" content="Portfolio of {{ profile.user.full_name }}{% if profile.department %} - {{ profile.department.name }}{% endif %}{% if profile.batch %}, Batch {{ profile.batch }}{% endif %}." />
+  <meta property="og:title" content="{{ profile.user.full_name }} - Student Portfolio" />
+  <meta property="og:description" content="Backend-powered student portfolio generated from ERP profile data." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="{{ share_url }}" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'sans-serif'] },
+          colors: {
+            primary: '#AF0C3E',
+            secondary: '#8F0830',
+            accent: '#22D3EE',
+            base: '#FFFFFF',
+            card: '#F8FAFC',
+            border: '#E2E8F0',
+            darkbase: '#0F172A',
+            darkcard: '#1E293B',
+            darkborder: '#334155',
+            textprimary: '#0F172A',
+            textsecondary: '#475569',
+            darktextprimary: '#F8FAFC',
+            darktextsecondary: '#94A3B8',
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    /* Font Awesome free may miss some coding-platform brands; use favicon fallback. */
+    .fa-brands.fa-leetcode::before,
+    .fa-brands.fa-codechef::before,
+    .fa-brands.fa-codeforces::before {
+      content: '';
+      display: inline-block;
+      width: 18px;
+      height: 18px;
+      vertical-align: middle;
+      background-position: center center;
+      background-size: contain;
+      background-repeat: no-repeat;
+    }
+
+    .fa-brands.fa-leetcode::before {
+      background-image: url('https://leetcode.com/favicon.ico');
+    }
+
+    .fa-brands.fa-codechef::before {
+      background-image: url('https://www.codechef.com/favicon.ico');
+    }
+
+    .fa-brands.fa-codeforces::before {
+      background-image: url('https://codeforces.org/s/0/favicon-32x32.png');
+    }
+
+    /* If Font Awesome fails to load, still show icons for common links. */
+    .fa-brands.fa-linkedin::before,
+    .fa-brands.fa-github::before,
+    .fa-brands.fa-hackerrank::before,
+    .fa-solid.fa-envelope::before {
+      content: '';
+      display: inline-block;
+      width: 18px;
+      height: 18px;
+      vertical-align: middle;
+      background-position: center center;
+      background-size: contain;
+      background-repeat: no-repeat;
+    }
+
+    .fa-brands.fa-linkedin::before {
+      background-image: url('https://www.linkedin.com/favicon.ico');
+    }
+
+    .fa-brands.fa-github::before {
+      background-image: url('https://github.com/favicon.ico');
+    }
+
+    .fa-brands.fa-hackerrank::before {
+      background-image: url('https://www.hackerrank.com/favicon.ico');
+    }
+
+    .fa-solid.fa-envelope::before {
+      content: '@';
+      width: auto;
+      height: auto;
+      font-size: 16px;
+      font-weight: 700;
+      line-height: 1;
+      background-image: none;
+    }
+
+    .hero-social i {
+      font-size: 18px;
+      vertical-align: middle;
+    }
+  </style>
+
+  <link rel="stylesheet" href="{% static 'css/styles.css' %}" />
+  <script src="{% static 'js/theme.js' %}"></script>
+</head>
+<body data-page="portfolio" data-share-url="{{ share_url|escapejs }}">
+  <div id="loading-screen" aria-hidden="true">
+    <div class="loader-ring"></div>
+  </div>
+
+  <div class="bg-blob bg-blob-1" aria-hidden="true"></div>
+  <div class="bg-blob bg-blob-2" aria-hidden="true"></div>
+
+  <nav id="navbar" role="navigation" aria-label="Main navigation">
+    <div class="nav-container">
+      <a href="{% url 'dashboard' %}" class="nav-logo" id="nav-logo">
+        <span><img src="{% static 'assets/ciet-logo.svg' %}" alt="CIET Logo" class="nav-logo" id="nav-logo-img" /></span>
+      </a>
+
+      <ul class="nav-links" id="desktop-nav">
+        <li><a href="#top" class="nav-link" id="nav-home" data-page="home">Home</a></li>
+        <li><a href="#projects-section" class="nav-link" id="nav-projects" data-page="projects">Projects</a></li>
+        <li><a href="#experience-section" class="nav-link" id="nav-experience" data-page="experience">Experience</a></li>
+        <li><a href="#education-section" class="nav-link" id="nav-education" data-page="education">Education</a></li>
+      </ul>
+
+      <div class="nav-right">
+        <button onclick="window.print()" class="btn btn-ghost btn-sm" type="button">
+          Print
+        </button>
+        <button onclick="copyLink()" class="btn btn-ghost btn-sm" type="button">
+          Copy link
+        </button>
+        <button class="theme-toggle" id="theme-toggle-btn" aria-label="Toggle dark mode" title="Toggle dark mode">
+          <span data-icon style="font-size: 1.1rem; line-height: 1;">&#9789;</span>
+        </button>
+        {% if profile.show_resume_on_profile %}
+          {% if profile.resume %}
+          <a href="{{ profile.resume.url }}" class="btn btn-primary btn-sm" id="nav-resume-btn" download>
+            Download Resume
+          </a>
+          {% else %}
+          <span class="btn btn-primary btn-sm opacity-60 cursor-not-allowed" id="nav-resume-missing" aria-disabled="true">
+            Download Resume
+          </span>
+          {% endif %}
+        {% endif %}
+        <button class="hamburger" id="hamburger" aria-label="Open navigation menu" aria-expanded="false" aria-controls="mobile-nav">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="mobile-nav" id="mobile-nav" role="dialog" aria-label="Mobile navigation">
+    <ul class="nav-links">
+      <li><a href="#top" class="nav-link" id="mnav-home">Home</a></li>
+      <li><a href="#projects-section" class="nav-link" id="mnav-projects">Projects</a></li>
+      <li><a href="#experience-section" class="nav-link" id="mnav-experience">Experience</a></li>
+      <li><a href="#education-section" class="nav-link" id="mnav-education">Education</a></li>
+    </ul>
+  </div>
+
+  <main id="main-content">
+    <section class="hero" id="top" aria-labelledby="hero-name">
+      <div class="hero-content">
+        <div class="hero-greeting reveal">
+          <span>Backend-powered portfolio</span>
+        </div>
+
+        <h1 class="hero-name reveal reveal-delay-1" id="hero-name">
+          <span class="text-slate-900">{{ first_name }}</span>{% if last_name %} <span class="gradient-text">{{ last_name }}</span>{% endif %}
+        </h1>
+
+        <p class="hero-title reveal reveal-delay-2">
+          <span id="typed-text" aria-live="polite">{{ profile.department.name|default:"Student" }}</span><span class="typed-cursor" aria-hidden="true">|</span>
+        </p>
+
+        <p class="hero-bio reveal reveal-delay-2">
+          {% if profile.department %}
+          {{ first_name }}{% if last_name %} {{ last_name }}{% endif %} is a {{ profile.department.name }} student{% if profile.batch %} from batch {{ profile.batch }}{% endif %} at Chalapathi Institute of Engineering and Technology.
+          {% else %}
+          {{ first_name }}{% if last_name %} {{ last_name }}{% endif %}'s student portfolio is connected to the ERP backend and updated from live profile data.
+          {% endif %}
+        </p>
+
+        <div class="hero-stats reveal reveal-delay-3">
+          <div class="hero-stat">
+            <div class="hero-stat-num" data-count="{{ portfolio_stats.projects }}">0</div>
+            <div class="hero-stat-label">Projects</div>
+          </div>
+          <div class="hero-stat">
+            <div class="hero-stat-num" data-count="{{ portfolio_stats.internships }}">0</div>
+            <div class="hero-stat-label">Experience</div>
+          </div>
+          <div class="hero-stat">
+            <div class="hero-stat-num" data-count="{{ portfolio_stats.certifications }}">0</div>
+            <div class="hero-stat-label">Certifications</div>
+          </div>
+          <div class="hero-stat">
+            <div class="hero-stat-num">{{ portfolio_stats.cgpa|default:"0.0" }}</div>
+            <div class="hero-stat-label">CGPA</div>
+          </div>
+        </div>
+
+        <div class="hero-actions reveal reveal-delay-4">
+          <a href="#projects-section" class="btn btn-primary btn-lg" id="hero-view-projects">
+            View Projects
+          </a>
+          {% if profile.show_resume_on_profile %}
+            {% if profile.resume %}
+            <a href="{{ profile.resume.url }}" class="btn btn-ghost btn-lg" id="hero-download-resume" download>
+              Download Resume
+            </a>
+            {% else %}
+            <span class="btn btn-ghost btn-lg opacity-60 cursor-not-allowed" id="hero-download-resume-missing" aria-disabled="true">
+              Download Resume
+            </span>
+            {% endif %}
+          {% endif %}
+        </div>
+
+        <div class="hero-social reveal reveal-delay-4">
+          {% if profile.linkedin_url and profile.show_linkedin_on_profile %}
+          <a href="{{ profile.linkedin_url }}" class="social-link" id="hero-linkedin" target="_blank" rel="noopener" aria-label="LinkedIn" title="LinkedIn">
+            <i class="fa-brands fa-linkedin" aria-hidden="true"></i>
+            <span class="sr-only">LinkedIn</span>
+          </a>
+          {% endif %}
+          {% if profile.github_url and profile.show_github_on_profile %}
+          <a href="{{ profile.github_url }}" class="social-link" id="hero-github" target="_blank" rel="noopener" aria-label="GitHub" title="GitHub">
+            <i class="fa-brands fa-github" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span>
+          </a>
+          {% endif %}
+          {% if profile.leetcode_url and profile.show_leetcode_on_profile %}
+          <a href="{{ profile.leetcode_url }}" class="social-link" id="hero-leetcode" target="_blank" rel="noopener" aria-label="LeetCode" title="LeetCode">
+            <i class="fa-brands fa-leetcode" aria-hidden="true"></i>
+            <span class="sr-only">LeetCode</span>
+          </a>
+          {% endif %}
+          {% if profile.hackerrank_url and profile.show_hackerrank_on_profile %}
+          <a href="{{ profile.hackerrank_url }}" class="social-link" id="hero-hackerrank" target="_blank" rel="noopener" aria-label="HackerRank" title="HackerRank">
+            <i class="fa-brands fa-hackerrank" aria-hidden="true"></i>
+            <span class="sr-only">HackerRank</span>
+          </a>
+          {% endif %}
+          {% if profile.codechef_url and profile.show_codechef_on_profile %}
+          <a href="{{ profile.codechef_url }}" class="social-link" id="hero-codechef" target="_blank" rel="noopener" aria-label="CodeChef" title="CodeChef">
+            <i class="fa-brands fa-codechef" aria-hidden="true"></i>
+            <span class="sr-only">CodeChef</span>
+          </a>
+          {% endif %}
+          {% if profile.codeforces_url and profile.show_codeforces_on_profile %}
+          <a href="{{ profile.codeforces_url }}" class="social-link" id="hero-codeforces" target="_blank" rel="noopener" aria-label="Codeforces" title="Codeforces">
+            <i class="fa-brands fa-codeforces" aria-hidden="true"></i>
+            <span class="sr-only">Codeforces</span>
+          </a>
+          {% endif %}
+          {% if profile.show_email_on_profile %}
+          <a href="mailto:{{ profile.user.email }}" class="social-link" id="hero-email" aria-label="Email" title="Email">
+            <i class="fa-solid fa-envelope" aria-hidden="true"></i>
+            <span class="sr-only">Email</span>
+          </a>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="hero-visual">
+        <div class="avatar-wrapper">
+          <div class="avatar-ring"></div>
+          <div class="avatar-ring-inner"></div>
+          <div class="avatar-placeholder" role="img" aria-label="{{ profile.user.full_name }} profile photo">
+            {% if profile.photo %}
+            <img src="{{ profile.photo.url }}" alt="{{ profile.user.full_name }}" class="profile-photo" />
+            {% else %}
+            <div class="profile-photo" style="display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--primary),var(--secondary));color:#fff;font-size:3rem;font-weight:800;">{{ profile.user.full_name|first|upper }}</div>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="availability-badge" role="status" aria-live="polite">
+          <div class="availability-dot"></div>
+          Verified by CIET
+        </div>
+
+        <div class="float-card" style="top: 20%; right: -60px;" aria-hidden="true">
+          <span>{{ profile.department.code|default:"ERP" }}</span>
+        </div>
+        <div class="float-card" style="bottom: 20%; left: -60px;" aria-hidden="true">
+          <span>{{ current_year }}</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="portfolio-contact-title">
+      <div class="reveal">
+        <span class="section-label">Profile Snapshot</span>
+        <h2 class="section-title" id="portfolio-contact-title">Contact <span>& Academic Details</span></h2>
+        <p class="section-sub">The student profile is sourced directly from the ERP backend.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 reveal">
+        {% if profile.show_email_on_profile %}
+        <div class="card p-5">
+          <div class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">Email</div>
+          <div class="font-semibold text-slate-900 break-all">{{ profile.user.email }}</div>
+        </div>
+        {% endif %}
+        <div class="card p-5">
+          <div class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">Department</div>
+          <div class="font-semibold text-slate-900">{{ profile.department.name|default:"Not set" }}</div>
+        </div>
+        <div class="card p-5">
+          <div class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">Batch</div>
+          <div class="font-semibold text-slate-900">{{ profile.batch|default:"Not set" }}</div>
+        </div>
+        <div class="card p-5">
+          <div class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">Roll No</div>
+          <div class="font-semibold text-slate-900">{{ profile.roll_no|default:"Not set" }}</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section-surface" id="projects-section" aria-labelledby="projects-title">
+      <div class="reveal">
+        <span class="section-label">Featured Work</span>
+        <h2 class="section-title" id="projects-title">Projects <span>& Portfolio</span></h2>
+        <p class="section-sub">Projects are pulled from the student profile and stay in sync with the backend.</p>
+      </div>
+
+      <div class="projects-grid projects-grid-advanced" aria-live="polite" aria-label="Portfolio projects">
+        {% for project in projects %}
+        <article class="card project-card reveal">
+          <div class="project-card-image" style="background: linear-gradient(135deg, #667eea, #764ba2);">
+            {% if project.cover_image %}
+            <img src="{{ project.cover_image.url }}" alt="{{ project.title }}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;" />
+            {% else %}
+            <span style="color: white; font-size: 3rem;">P</span>
+            {% endif %}
+            {% if project.is_verified %}
+            <span class="project-featured-badge">Verified</span>
+            {% endif %}
+          </div>
+          <div class="project-meta-row">
+            <span class="project-category">{{ project.get_project_type_display }}</span>
+            <span class="project-year">{{ project.created_at|date:"Y" }}</span>
+          </div>
+          <h3 class="project-card-title">{{ project.title }}</h3>
+          <p class="project-card-desc">{{ project.description|default:"Project details will appear here once the student adds them." }}</p>
+          {% if project.tech_list %}
+          <div class="tech-stack">
+            {% for tech in project.tech_list %}
+            <span class="tech-badge">{{ tech }}</span>
+            {% endfor %}
+          </div>
+          {% endif %}
+          <div class="project-links">
+            {% if project.repo_url %}
+            <a href="{{ project.repo_url }}" class="btn btn-primary btn-sm" target="_blank" rel="noopener">Repository</a>
+            {% endif %}
+          </div>
+        </article>
+        {% empty %}
+        <div class="card p-8 text-slate-500 reveal" style="grid-column: 1 / -1;">
+          No projects have been added yet.
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="section" id="experience-section" aria-labelledby="experience-title">
+      <div class="reveal">
+        <span class="section-label">Industry Experience</span>
+        <h2 class="section-title" id="experience-title">Internships <span>& Roles</span></h2>
+        <p class="section-sub">Experience entries are rendered from the backend internship records.</p>
+      </div>
+
+      <div class="timeline" aria-live="polite" aria-label="Portfolio experience timeline">
+        {% for internship in internships %}
+        <div class="timeline-item timeline-item-{% if forloop.counter|divisibleby:2 %}right{% else %}left{% endif %} reveal">
+          <div class="timeline-dot"></div>
+          <div class="timeline-connector" aria-hidden="true"></div>
+          <div class="timeline-card timeline-card-advanced">
+            <div class="exp-content">
+              <div class="exp-header-advanced">
+                <div>
+                  <h3 class="exp-role-main">{{ internship.role }}</h3>
+                  <p class="exp-company-sub">{{ internship.organization }}</p>
+                </div>
+                <div class="exp-header-actions">
+                  <span style="background:rgba(175,12,62,0.10);color:var(--primary);border:1px solid rgba(175,12,62,0.2);font-size:0.7rem;font-weight:700;padding:0.2rem 0.55rem;border-radius:99px;letter-spacing:0.06em;">Experience</span>
+                </div>
+              </div>
+              <p class="exp-desc">{{ internship.description|default:"Experience details will appear here once the student adds them." }}</p>
+              {% if internship.tech_list %}
+              <div class="exp-footer">
+                <div class="exp-skills">
+                  {% for tech in internship.tech_list %}
+                  <span class="exp-skill">{{ tech }}</span>
+                  {% endfor %}
+                </div>
+              </div>
+              {% endif %}
+              <div class="exp-meta-footer">
+                <span>{{ internship.start_date|date:"M Y" }}{% if internship.end_date %} - {{ internship.end_date|date:"M Y" }}{% else %} - Present{% endif %}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% empty %}
+        <div class="card p-8 text-slate-500 reveal">No internship or work experience has been added yet.</div>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="section section-surface" id="skills-section" aria-labelledby="skills-title">
+      <div class="reveal">
+        <span class="section-label">Technical Stack</span>
+        <h2 class="section-title" id="skills-title">Skills & <span>Technologies</span></h2>
+        <p class="section-sub">Derived from projects, internships, and course metadata stored in the ERP backend.</p>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+        {% for skill in portfolio_skills %}
+        <div class="card p-5 reveal">
+          <div class="flex items-center justify-between gap-3">
+            <div>
+              <div class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">Skill</div>
+              <div class="font-semibold text-slate-900">{{ skill.name }}</div>
+            </div>
+            <span class="text-xs font-bold text-slate-500">{{ skill.count }}</span>
+          </div>
+        </div>
+        {% empty %}
+        <div class="card p-8 text-slate-500 reveal" style="grid-column: 1 / -1;">No technologies have been inferred yet.</div>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="section" id="education-section" aria-labelledby="education-title">
+      <div class="reveal">
+        <span class="section-label">Academic History</span>
+        <h2 class="section-title" id="education-title">Education <span>& Verification</span></h2>
+        <p class="section-sub">Academic entries, scores, and verification state are managed by the ERP backend.</p>
+      </div>
+
+      <div class="space-y-4">
+        {% for edu in education %}
+        <article class="card p-6 reveal">
+          <div class="flex items-start justify-between gap-4 flex-wrap">
+            <div>
+              <div class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">{{ edu.get_edu_type_display }}</div>
+              <h3 class="text-lg font-bold text-slate-900 mb-1">{{ edu.institution|default:"Institution not set" }}</h3>
+              <p class="text-sm text-slate-500">{{ edu.board_university|default:"Board / university not set" }}</p>
+              {% if edu.year_of_passing %}
+              <p class="text-xs text-slate-400 font-semibold mt-2">Year of passing: {{ edu.year_of_passing }}</p>
+              {% endif %}
+            </div>
+            <div class="text-right">
+              {% if edu.score %}
+              <div class="text-sm font-bold text-slate-900">{{ edu.score }} {{ edu.get_score_type_display }}</div>
+              {% endif %}
+              {% if edu.is_verified %}
+              <span class="text-[10px] font-bold uppercase px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 inline-block mt-2">Verified</span>
+              {% endif %}
+            </div>
+          </div>
+        </article>
+        {% empty %}
+        <div class="card p-8 text-slate-500 reveal">No education records have been added yet.</div>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="section section-surface" id="certifications-section" aria-labelledby="certifications-title">
+      <div class="reveal">
+        <span class="section-label">Credentials</span>
+        <h2 class="section-title" id="certifications-title">Certifications <span>& Proof</span></h2>
+        <p class="section-sub">Verified and self-reported certifications are both available to the student profile.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        {% for cert in certifications %}
+        <article class="card p-5 reveal">
+          <div class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">{{ cert.cert_type|default:"Certification" }}</div>
+          <h3 class="text-base font-bold text-slate-900 mb-1">{{ cert.title }}</h3>
+          <p class="text-sm text-slate-500">{{ cert.issuer }}{% if cert.issued_date %} | {{ cert.issued_date|date:"M Y" }}{% endif %}</p>
+          <div class="mt-3 flex items-center gap-2 flex-wrap">
+            {% if cert.is_verified %}
+            <span class="text-[10px] font-bold uppercase px-3 py-1 rounded-full bg-emerald-50 text-emerald-700">Verified</span>
+            {% endif %}
+            {% if cert.cert_url %}
+            <a href="{{ cert.cert_url }}" target="_blank" rel="noopener" class="text-xs font-bold text-[#000000] no-underline">Open link</a>
+            {% endif %}
+          </div>
+        </article>
+        {% empty %}
+        <div class="card p-8 text-slate-500 reveal" style="grid-column: 1 / -1;">No certifications have been added yet.</div>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="highlights-title">
+      <div class="reveal">
+        <span class="section-label">Highlights</span>
+        <h2 class="section-title" id="highlights-title">Portfolio <span>Summary</span></h2>
+        <p class="section-sub">A quick backend-generated view of what is currently live in the student profile.</p>
+      </div>
+
+      <div class="achievements-grid" aria-label="Portfolio highlights">
+        {% for item in portfolio_highlights %}
+        <div class="card reveal">
+          <div class="achievement-card">
+            <div class="achievement-icon gold">{{ item.icon }}</div>
+            <div>
+              <div class="achievement-title">{{ item.title }}</div>
+              <div class="achievement-sub">{{ item.sub }}</div>
+              <div class="achievement-date">{{ item.date }}</div>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section style="background: linear-gradient(135deg, var(--primary), var(--secondary)); padding: 5rem 1.5rem; text-align: center;" aria-labelledby="cta-title">
+      <div style="max-width: 640px; margin: 0 auto;">
+        <h2 style="font-size: clamp(1.75rem, 4vw, 2.25rem); font-weight: 800; color: white; margin-bottom: 1rem; letter-spacing: -0.03em;" id="cta-title">
+          {% if is_owner %}Manage your portfolio{% else %}Share this portfolio{% endif %}
+        </h2>
+        <p style="color: rgba(255,255,255,0.8); margin-bottom: 2rem; font-size: 1rem; line-height: 1.7;">
+          {% if is_owner %}
+          Update profile data, add projects, and keep the portfolio in sync with the ERP backend.
+          {% else %}
+          This portfolio is rendered from live ERP profile data and can be shared directly with recruiters or faculty.
+          {% endif %}
+        </p>
+        <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+          {% if profile.show_email_on_profile %}
+          <a href="mailto:{{ profile.user.email }}" class="btn btn-md" style="background: white; color: var(--primary); font-weight: 700;">
+            Email
+          </a>
+          {% endif %}
+          {% if profile.show_resume_on_profile %}
+            {% if profile.resume %}
+            <a href="{{ profile.resume.url }}" class="btn btn-md" style="background: rgba(255,255,255,0.12); color: white; font-weight: 700; border: 1px solid rgba(255,255,255,0.25);" download>
+              Download Resume
+            </a>
+            {% else %}
+            <span class="btn btn-md opacity-60 cursor-not-allowed" style="background: rgba(255,255,255,0.12); color: white; font-weight: 700; border: 1px solid rgba(255,255,255,0.25);" aria-disabled="true">
+              Download Resume
+            </span>
+            {% endif %}
+          {% endif %}
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer role="contentinfo" style="padding: 2rem 1.5rem; text-align: center; color: var(--textsecondary);">
+    <p style="margin: 0;">&copy; {{ current_year }} CIET ERP. Portfolio data rendered from the student backend.</p>
+  </footer>
+
+  <script src="{% static 'js/main.js' %}"></script>
+  <script>
+    function copyLink() {
+      const link = document.body.dataset.shareUrl || window.location.href;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(link);
+      }
+    }
+  </script>
+</body>
+</html>

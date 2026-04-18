@@ -1,0 +1,62 @@
+<!-- ============================================
+     experience-card.html — Experience Card Template Reference
+     (Actual rendering happens via experience.js)
+     ============================================ -->
+
+<!--
+  USAGE:
+  This template documents the canonical experience card structure.
+  Cards are dynamically rendered by createExperienceItem() in experience.js.
+
+  Structure (Timeline Item):
+  .timeline-item
+    ├── .timeline-dot
+    └── .timeline-card
+          ├── .exp-company + type badge
+          ├── .exp-role
+          ├── .exp-meta (duration + location)
+          ├── .exp-desc
+          └── .exp-skills (skill pills)
+-->
+
+<div class="timeline-item" aria-label="Experience card template">
+  <div class="timeline-dot"></div>
+  <div class="timeline-card">
+
+    <!-- Company + Type Badge -->
+    <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.5rem;">
+      <span class="exp-company">Company Name</span>
+      <span style="background:rgba(175,12,62,0.10); color:var(--primary); border: 1px solid rgba(175,12,62,0.2); font-size:0.7rem; font-weight:700; padding:0.2rem 0.55rem; border-radius:99px;">
+        Internship
+      </span>
+    </div>
+
+    <!-- Role -->
+    <div class="exp-role">Software Engineering Intern</div>
+
+    <!-- Meta -->
+    <div class="exp-meta">
+      <span>📅 Jun 2024 – Aug 2024</span>
+      <span>📍 Bangalore, India</span>
+    </div>
+
+    <!-- Description -->
+    <p class="exp-desc">
+      Brief description of responsibilities, achievements, and impact delivered
+      during this role. Quantified results are preferred.
+    </p>
+
+    <!-- Skills Used -->
+    <div class="exp-skills">
+      <span class="exp-skill">React</span>
+      <span class="exp-skill">Node.js</span>
+      <span class="exp-skill">PostgreSQL</span>
+    </div>
+
+    <!-- Optional link -->
+    <a href="#" class="btn btn-ghost btn-sm" style="margin-top:0.875rem; width:fit-content;">
+      View Company ↗
+    </a>
+
+  </div>
+</div>

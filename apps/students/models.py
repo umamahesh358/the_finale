@@ -30,6 +30,16 @@ class StudentProfile(BaseModel):
     codechef_url   = models.URLField(blank=True, default='')
     codeforces_url = models.URLField(blank=True, default='')
 
+    # Per-link visibility controls for public portfolio
+    show_email_on_profile = models.BooleanField(default=True)
+    show_resume_on_profile = models.BooleanField(default=True)
+    show_linkedin_on_profile = models.BooleanField(default=True)
+    show_github_on_profile = models.BooleanField(default=True)
+    show_leetcode_on_profile = models.BooleanField(default=True)
+    show_hackerrank_on_profile = models.BooleanField(default=True)
+    show_codechef_on_profile = models.BooleanField(default=True)
+    show_codeforces_on_profile = models.BooleanField(default=True)
+
     class Meta:
         verbose_name = 'Student Profile'
         ordering = ['roll_no']
