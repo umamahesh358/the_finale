@@ -1,80 +1,40 @@
-{% extends 'base.html' %}
-{% block title %}Courses{% endblock %}
-{% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h1>Courses</h1>
-    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addCourseModal">+ Add Course</button>
+{% extends 'student_portal/base_portal.html' %}
+{% load static %}
+{% block portal_title %}Courses{% endblock %}
+{% block portal_tab_title %}Courses{% endblock %}
+
+{% block portal_content %}
+<div class="flex-between" style="margin-bottom:24px;">
+  <div>
+    <h1 class="section-title">Course Catalogue</h1>
+    <p class="section-sub">{{ profile.department.name|default:"B.Tech CSE" }} — Chalapathi Institute of Engineering and Technology</p>
+  </div>
 </div>
+
+{# If the backend sends semester-grouped courses as `courses_by_sem`, render them. Otherwise, fall back to the flat list. #}
 {% if courses %}
-<div class="row g-3">
-    {% for c in courses %}
-    <div class="col-md-6 col-lg-4">
-        <div class="card p-3 h-100">
-            <div class="d-flex justify-content-between align-items-start">
-                <span class="badge bg-{% if c.source == 'nptel' %}warning text-dark{% elif c.source == 'faculty' %}primary{% else %}secondary{% endif %}">{{ c.get_source_display }}</span>
-                {% if c.is_verified %}<span class="badge bg-success">Verified</span>{% endif %}
-            </div>
-            <h6 class="mt-2">{{ c.title }}</h6>
-            {% if c.platform %}<small class="text-muted">{{ c.platform }}</small><br>{% endif %}
-            <div class="mt-2">
-                <div class="progress" style="height:6px;">
-                    <div class="progress-bar" style="width:{{ c.completion_percentage }}%"></div>
-                </div>
-                <small class="text-muted">{{ c.completion_percentage }}% Complete</small>
-            </div>
-            {% if c.certificate_url %}<a href="{{ c.certificate_url }}" class="btn btn-sm btn-outline-primary mt-2" target="_blank">Certificate</a>{% endif %}
-        </div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;">
+  {% for c in courses %}
+  <div class="card course-card" style="padding:16px;display:flex;flex-direction:column;gap:8px;">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
+      <h3 style="font-size:14px;font-weight:700;margin:0;color:var(--text);">{{ c.title }}</h3>
+      {% if c.is_verified %}<span class="tag tag-green">Verified</span>{% endif %}
     </div>
-    {% endfor %}
+    {% if c.platform %}<div style="font-size:12px;color:var(--muted);">{{ c.platform }}</div>{% endif %}
+    {% if c.description %}<p style="font-size:13px;color:#334155;margin:4px 0 0;line-height:1.4;">{{ c.description }}</p>{% endif %}
+    <div style="display:flex;gap:8px;align-items:center;margin-top:4px;">
+      <span class="tag {% if c.source == 'nptel' %}tag-amber{% elif c.source == 'faculty' %}tag-blue{% else %}tag-green{% endif %}">{{ c.get_source_display }}</span>
+      {% if c.certificate_url %}
+      <a href="{{ c.certificate_url }}" target="_blank" class="btn-ghost" style="font-size:11px;padding:4px 10px;text-decoration:none;">Certificate</a>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
 </div>
 {% else %}
-<div class="card p-5 text-center text-muted">No courses assigned yet.</div>
-{% endif %}
-
-{% endblock %}
-
-{% block modals %}
-<div class="modal fade" id="addCourseModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Add Course</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <form method="post">
-                {% csrf_token %}
-                <div class="modal-body row g-3">
-                    <div class="col-md-6">
-                        <label class="form-label">Course Title *</label>
-                        <input type="text" name="title" class="form-control" required>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label">Source</label>
-                        <select name="source" class="form-select">
-                            <option value="external" selected>External (Udemy/Coursera etc.)</option>
-                            <option value="nptel">NPTEL</option>
-                            <option value="faculty">Faculty (College)</option>
-                        </select>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label">Platform</label>
-                        <input type="text" name="platform" class="form-control" placeholder="Coursera, Udemy, NPTEL...">
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label">Completion %</label>
-                        <input type="number" name="completion_percentage" min="0" max="100" value="100" class="form-control">
-                    </div>
-                    <div class="col-12">
-                        <label class="form-label">Certificate URL</label>
-                        <input type="url" name="certificate_url" class="form-control" placeholder="https://...">
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Save</button>
-                </div>
-            </form>
-        </div>
-    </div>
+<div class="card" style="padding:48px;text-align:center;">
+  <div style="font-size:14px;font-weight:600;color:var(--muted);">No courses assigned yet.</div>
+  <div style="font-size:12px;color:var(--muted);margin-top:8px;">Courses are assigned by the department admin.</div>
 </div>
+{% endif %}
 {% endblock %}

@@ -1,54 +1,88 @@
-{% extends 'base.html' %}
-{% block title %}Internships{% endblock %}
-{% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h1>Internships</h1>
-    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addInternModal">+ Add Internship</button>
+{% extends 'student_portal/base_portal.html' %}
+{% load static %}
+{% block portal_title %}Internships{% endblock %}
+{% block portal_tab_title %}Internships{% endblock %}
+
+{% block portal_content %}
+<div class="flex-between" style="margin-bottom:24px;">
+  <div>
+    <h1 class="section-title">Internship Experience</h1>
+    <p class="section-sub">Your industry training timeline and real-world roles.</p>
+  </div>
+  <button class="btn-primary" data-bs-toggle="modal" data-bs-target="#addInternModal">+ Add Internship</button>
 </div>
+
 {% if internships %}
-<div class="row g-3">
-    {% for i in internships %}
-    <div class="col-md-6">
-        <div class="card p-3">
-            <h6>{{ i.role }} at {{ i.organization }}</h6>
-            <small class="text-muted">{{ i.start_date }} to {% if i.end_date %}{{ i.end_date }}{% else %}Present{% endif %}</small>
-            {% if i.technologies %}<p class="small mt-2 mb-1"><strong>Technologies:</strong> {{ i.technologies }}</p>{% endif %}
-            {% if i.supervisor_name %}<p class="small mb-1"><strong>Supervisor:</strong> {{ i.supervisor_name }}{% if i.supervisor_email %} &lt;{{ i.supervisor_email }}&gt;{% endif %}</p>{% endif %}
-            {% if i.certificate %}<a href="{{ i.certificate.url }}" class="btn btn-sm btn-outline-primary mt-2" target="_blank">Certificate</a>{% endif %}
+<div style="display:flex;flex-direction:column;gap:16px;">
+  {% for i in internships %}
+  <div class="card intern-card" style="padding:20px;">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;">
+      <div>
+        <div class="intern-title" style="font-size:15px;font-weight:700;color:var(--text);">{{ i.role }}</div>
+        <div class="intern-company" style="font-size:13px;color:var(--primary);font-weight:600;margin-top:2px;">{{ i.organization }}</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:4px;">
+          {{ i.start_date }} — {% if i.end_date %}{{ i.end_date }}{% else %}Present{% endif %}
         </div>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <a href="?action=edit_intern&id={{ i.id }}" class="btn-ghost" data-action="edit" style="font-size:12px;padding:6px 12px;">Edit</a>
+        <form method="post" style="display:inline;" onsubmit="return confirm('Delete this internship?');">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="delete_intern">
+          <input type="hidden" name="intern_id" value="{{ i.id }}">
+          <button type="submit" data-action="delete" class="btn-ghost" style="font-size:12px;padding:6px 12px;color:#dc2626;">Delete</button>
+        </form>
+      </div>
     </div>
-    {% endfor %}
+    {% if i.technologies %}
+    <div style="margin-top:12px;font-size:12px;color:#475569;"><strong>Technologies:</strong> {{ i.technologies }}</div>
+    {% endif %}
+    {% if i.description %}
+    <div style="margin-top:6px;font-size:12px;color:#475569;">{{ i.description }}</div>
+    {% endif %}
+    {% if i.certificate %}
+    <div style="margin-top:12px;">
+      <a href="{{ i.certificate.url }}" target="_blank" class="btn-ghost" style="font-size:12px;padding:6px 12px;">View Certificate</a>
+    </div>
+    {% endif %}
+  </div>
+  {% endfor %}
 </div>
 {% else %}
-<div class="card p-5 text-center text-muted">No internships added yet.</div>
+<div class="card" style="padding:48px;text-align:center;">
+  <div style="font-size:14px;font-weight:600;color:var(--muted);">No internships added yet.</div>
+  <button class="btn-primary" style="margin-top:16px;" data-bs-toggle="modal" data-bs-target="#addInternModal">Add Your First Internship</button>
+</div>
 {% endif %}
-
 {% endblock %}
 
 {% block modals %}
 <div class="modal fade" id="addInternModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header"><h5 class="modal-title">Add Internship</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
-            <form method="post" enctype="multipart/form-data">
-                {% csrf_token %}
-                <div class="modal-body row g-3">
-                    <div class="col-md-6"><label class="form-label">Organization *</label><input type="text" name="organization" class="form-control" required></div>
-                    <div class="col-md-6"><label class="form-label">Your Role *</label><input type="text" name="role" class="form-control" required></div>
-                    <div class="col-md-6"><label class="form-label">Start Date *</label><input type="date" name="start_date" class="form-control" required></div>
-                    <div class="col-md-6"><label class="form-label">End Date</label><input type="date" name="end_date" class="form-control"></div>
-                    <div class="col-12"><label class="form-label">Technologies / Domain</label><input type="text" name="technologies" class="form-control" placeholder="Python, ML, Web Dev..."></div>
-                    <div class="col-12"><label class="form-label">Description</label><textarea name="description" class="form-control" rows="2"></textarea></div>
-                    <div class="col-md-6"><label class="form-label">Supervisor Name</label><input type="text" name="supervisor_name" class="form-control"></div>
-                    <div class="col-md-6"><label class="form-label">Supervisor Email</label><input type="email" name="supervisor_email" class="form-control"></div>
-                    <div class="col-12"><label class="form-label">Certificate (PDF/Image)</label><input type="file" name="certificate" class="form-control"></div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Save</button>
-                </div>
-            </form>
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content" style="border-radius:16px;border:1px solid var(--border);">
+      <div class="modal-header" style="padding:20px 24px;border-bottom:1px solid var(--border);">
+        <h5 class="modal-title" style="font-size:15px;font-weight:700;">Add Internship</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="modal-body" style="padding:24px;display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+          <div class="df-group"><label class="df-label">Organization *</label><input type="text" name="organization" class="df-input" required></div>
+          <div class="df-group"><label class="df-label">Your Role *</label><input type="text" name="role" class="df-input" required></div>
+          <div class="df-group"><label class="df-label">Start Date *</label><input type="date" name="start_date" class="df-input" required></div>
+          <div class="df-group"><label class="df-label">End Date</label><input type="date" name="end_date" class="df-input"></div>
+          <div class="df-group" style="grid-column:span 2;"><label class="df-label">Technologies / Domain</label><input type="text" name="technologies" class="df-input" placeholder="Python, ML, Web Dev..."></div>
+          <div class="df-group" style="grid-column:span 2;"><label class="df-label">Description</label><textarea name="description" class="df-input" rows="3" style="resize:vertical;"></textarea></div>
+          <div class="df-group"><label class="df-label">Supervisor Name</label><input type="text" name="supervisor_name" class="df-input"></div>
+          <div class="df-group"><label class="df-label">Supervisor Email</label><input type="email" name="supervisor_email" class="df-input"></div>
+          <div class="df-group" style="grid-column:span 2;"><label class="df-label">Certificate (PDF/Image)</label><input type="file" name="certificate" class="df-input"></div>
         </div>
+        <div class="modal-footer" style="padding:16px 24px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end;">
+          <button type="button" class="df-btn-outline" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="df-btn-primary">Save Internship</button>
+        </div>
+      </form>
     </div>
+  </div>
 </div>
 {% endblock %}

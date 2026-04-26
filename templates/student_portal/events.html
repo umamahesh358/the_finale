@@ -1,28 +1,40 @@
-﻿{% extends 'base.html' %}
-{% block title %}Events{% endblock %}
-{% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h1>Events &amp; Achievements</h1>
+{% extends 'student_portal/base_portal.html' %}
+{% load static %}
+{% block portal_title %}Events & Achievements{% endblock %}
+{% block portal_tab_title %}Events & Achievements{% endblock %}
+
+{% block portal_content %}
+<div class="flex-between" style="margin-bottom:24px;">
+  <div>
+    <h1 class="section-title">Campus Events</h1>
+    <p class="section-sub">Your attendance is your network. Every event is a potential connection.</p>
+  </div>
 </div>
+
 {% if events %}
-<div class="row g-3">
-    {% for e in events %}
-    <div class="col-md-6 col-lg-4">
-        <div class="card p-3">
-            <div class="d-flex justify-content-between">
-                <span class="badge bg-{% if e.scope == 'College' %}primary{% else %}warning text-dark{% endif %}">{{ e.scope }}</span>
-                <span class="badge bg-{% if e.role == 'Award' %}success{% elif e.role == 'Position' %}info{% else %}secondary{% endif %}">{{ e.role }}</span>
-            </div>
-            <h6 class="mt-2">{{ e.name }}</h6>
-            {% if e.position %}<small class="text-muted">Position: {{ e.position }}</small><br>{% endif %}
-            {% if e.organizer %}<small class="text-muted">By: {{ e.organizer }}</small><br>{% endif %}
-            {% if e.location %}<small class="text-muted">At: {{ e.location }}</small><br>{% endif %}
-            <small class="text-muted">{{ e.event_date }}</small>
-        </div>
+<div style="display:flex;flex-direction:column;gap:12px;">
+  {% for e in events %}
+  <div class="card event-card event-card-full" style="padding:18px 20px;">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;">
+      <div>
+        <div style="font-size:15px;font-weight:700;color:var(--text);">{{ e.name }}</div>
+        {% if e.organizer %}<div style="font-size:12px;color:var(--muted);margin-top:2px;">By {{ e.organizer }}</div>{% endif %}
+        {% if e.location %}<div style="font-size:12px;color:var(--muted);">At {{ e.location }}</div>{% endif %}
+        <div style="font-size:12px;color:var(--muted);margin-top:4px;">{{ e.event_date }}</div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-start;">
+        <span class="tag {% if e.scope == 'College' %}tag-blue{% else %}tag-amber{% endif %}">{{ e.scope }}</span>
+        <span class="tag {% if e.role == 'Award' %}tag-green{% else %}tag-blue{% endif %}">{{ e.role }}</span>
+        {% if e.position %}<span class="tag">{{ e.position }}</span>{% endif %}
+      </div>
     </div>
-    {% endfor %}
+  </div>
+  {% endfor %}
 </div>
 {% else %}
-<div class="card p-5 text-center text-muted">No events assigned yet.</div>
+<div class="card" style="padding:60px;text-align:center;">
+  <div style="font-size:14px;font-weight:600;color:var(--muted);">No events or achievements recorded yet.</div>
+  <div style="font-size:12px;color:var(--muted);margin-top:8px;">Events are added by the college admin — check back soon.</div>
+</div>
 {% endif %}
 {% endblock %}

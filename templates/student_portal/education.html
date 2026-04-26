@@ -1,50 +1,78 @@
-﻿{% extends 'base.html' %}
-{% block title %}Education Background{% endblock %}
-{% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h1>Education Background</h1>
-    <a href="{% url 'student-portal' %}" class="btn btn-sm btn-outline-secondary">&#8592; Back</a>
+{% extends 'student_portal/base_portal.html' %}
+{% load static %}
+{% block portal_title %}Education{% endblock %}
+{% block portal_tab_title %}Education{% endblock %}
+
+{% block portal_content %}
+<div class="flex-between" style="margin-bottom:24px;">
+  <div>
+    <h1 class="section-title">Academic Journey</h1>
+    <p class="section-sub">Your educational background — from schooling to your current degree.</p>
+  </div>
 </div>
-<div class="row g-4">
-    {% for edu_type_key, edu_type_label in edu_types %}
-    {% with entry=education|dictsort:"edu_type"|first %}
-    <div class="col-md-6">
-        <div class="card p-3">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-                <h6 class="mb-0">{{ edu_type_label }}</h6>
-                {% for e in education %}{% if e.edu_type == edu_type_key %}
-                    {% if e.is_verified %}<span class="badge bg-success">Verified</span>{% else %}<span class="badge bg-warning text-dark">Pending</span>{% endif %}
-                {% endif %}{% endfor %}
-            </div>
-            {% for e in education %}
-            {% if e.edu_type == edu_type_key %}
-            <p class="small mb-1"><strong>Institution:</strong> {{ e.institution }}</p>
-            <p class="small mb-1"><strong>Board/University:</strong> {{ e.board_university }}</p>
-            <p class="small mb-1"><strong>Year:</strong> {{ e.year_of_passing }}</p>
-            <p class="small mb-1"><strong>Score:</strong> {{ e.score }} {{ e.score_type }}</p>
-            {% endif %}
-            {% endfor %}
-            <form method="post" class="mt-2">
-                {% csrf_token %}
-                <input type="hidden" name="edu_type" value="{{ edu_type_key }}">
-                <div class="row g-2">
-                    <div class="col-12"><input type="text" name="institution" class="form-control form-control-sm" placeholder="Institution name" {% for e in education %}{% if e.edu_type == edu_type_key %}value="{{ e.institution }}"{% endif %}{% endfor %}></div>
-                    <div class="col-md-6"><input type="text" name="board_university" class="form-control form-control-sm" placeholder="Board/University" {% for e in education %}{% if e.edu_type == edu_type_key %}value="{{ e.board_university }}"{% endif %}{% endfor %}></div>
-                    <div class="col-md-6"><input type="number" name="year_of_passing" class="form-control form-control-sm" placeholder="Year" {% for e in education %}{% if e.edu_type == edu_type_key %}value="{{ e.year_of_passing }}"{% endif %}{% endfor %}></div>
-                    <div class="col-md-6"><input type="text" name="score" class="form-control form-control-sm" placeholder="Score / Rank" {% for e in education %}{% if e.edu_type == edu_type_key %}value="{{ e.score }}"{% endif %}{% endfor %}></div>
-                    <div class="col-md-6">
-                        <select name="score_type" class="form-select form-select-sm">
-                            <option value="%">Percentage</option>
-                            <option value="GPA">GPA</option>
-                            <option value="Rank">Rank</option>
-                        </select>
-                    </div>
-                    <div class="col-12"><button type="submit" class="btn btn-primary btn-sm w-100">Save {{ edu_type_label }}</button></div>
-                </div>
-            </form>
-        </div>
+
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;">
+  {% for edu_type_key, edu_type_label in edu_types %}
+  <div class="card edu-card" style="padding:20px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <div class="edu-degree" style="font-size:14px;font-weight:700;color:var(--text);">{{ edu_type_label }}</div>
+      {% for e in education %}{% if e.edu_type == edu_type_key %}
+        {% if e.is_verified %}
+        <span class="tag tag-green">Verified</span>
+        {% else %}
+        <span class="tag tag-amber">Pending</span>
+        {% endif %}
+      {% endif %}{% endfor %}
     </div>
-    {% endwith %}
-    {% endfor %}
+
+    {% for e in education %}{% if e.edu_type == edu_type_key %}
+    <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px;">
+      <div class="edu-inst" style="font-size:13px;font-weight:600;color:#334155;">{{ e.institution }}</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <span class="tag edu-chip">{{ e.year_of_passing }}</span>
+        <span class="tag edu-chip">{{ e.board_university }}</span>
+      </div>
+      <span class="edu-badge" style="font-size:13px;font-weight:700;color:var(--primary);">{{ e.score }} {{ e.score_type }}</span>
+    </div>
+    {% endif %}{% endfor %}
+
+    <!-- Inline Edit Form -->
+    <form method="post" style="display:flex;flex-direction:column;gap:10px;">
+      {% csrf_token %}
+      <input type="hidden" name="edu_type" value="{{ edu_type_key }}">
+      <div class="df-group">
+        <label class="df-label">Institution *</label>
+        <input type="text" name="institution" class="df-input" placeholder="Institution name"
+          {% for e in education %}{% if e.edu_type == edu_type_key %}value="{{ e.institution }}"{% endif %}{% endfor %}>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div class="df-group">
+          <label class="df-label">Board / University</label>
+          <input type="text" name="board_university" class="df-input" placeholder="JNTUA / CBSE"
+            {% for e in education %}{% if e.edu_type == edu_type_key %}value="{{ e.board_university }}"{% endif %}{% endfor %}>
+        </div>
+        <div class="df-group">
+          <label class="df-label">Year</label>
+          <input type="number" name="year_of_passing" class="df-input" placeholder="2022"
+            {% for e in education %}{% if e.edu_type == edu_type_key %}value="{{ e.year_of_passing }}"{% endif %}{% endfor %}>
+        </div>
+        <div class="df-group">
+          <label class="df-label">Score / Rank</label>
+          <input type="text" name="score" class="df-input" placeholder="9.2 or 96%"
+            {% for e in education %}{% if e.edu_type == edu_type_key %}value="{{ e.score }}"{% endif %}{% endfor %}>
+        </div>
+        <div class="df-group">
+          <label class="df-label">Score Type</label>
+          <select name="score_type" class="df-input">
+            <option value="%">Percentage</option>
+            <option value="GPA">GPA</option>
+            <option value="Rank">Rank</option>
+          </select>
+        </div>
+      </div>
+      <button type="submit" class="df-btn-primary" style="margin-top:4px;">Save {{ edu_type_label }}</button>
+    </form>
+  </div>
+  {% endfor %}
 </div>
 {% endblock %}

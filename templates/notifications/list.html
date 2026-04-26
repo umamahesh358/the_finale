@@ -1,143 +1,147 @@
-{% extends 'base.html' %}
+{% extends 'student_portal/base_portal.html' %}
+{% load static %}
 
-{% block title %}Notifications{% endblock %}
+{% block portal_title %}Notifications{% endblock %}
+{% block portal_tab_title %}Notifications{% endblock %}
 
-{% block content %}
-<div class="container-fluid p-0">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h3 class="fw-bold text-dark m-0">
-            <i class="bi bi-bell-fill text-maroon me-2"></i> Communications & Alerts
-        </h3>
-        {% if request.user.is_superuser or request.user.role == 'Director' or request.user.role == 'HOD' %}
-        <button class="btn-ciet btn-ciet-primary" data-bs-toggle="modal" data-bs-target="#notificationModal">
-            <i class="bi bi-plus-lg me-1"></i> Post New Alert
-        </button>
+{% block portal_content %}
+<div class="flex-between" style="margin-bottom:24px;">
+  <div>
+    <h1 class="section-title">Notifications</h1>
+    <p class="section-sub">Announcements, alerts and updates from the institution.</p>
+  </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 280px;gap:24px;align-items:start;">
+
+  <!-- Notification Feed -->
+  <div style="display:flex;flex-direction:column;gap:12px;">
+    {% for n in notifications %}
+    {% if n.is_global %}
+    <div class="card" style="padding:20px;border-left:4px solid #dc2626;">
+    {% else %}
+    <div class="card" style="padding:20px;border-left:4px solid var(--primary);">
+    {% endif %}
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;">
+        <div style="flex:1;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+            {% if n.is_global %}
+            <span class="tag" style="background:#fef2f2;color:#dc2626;border-color:#fecaca;">🔴 URGENT</span>
+            {% else %}
+            <span class="tag">📢 ANNOUNCEMENT</span>
+            {% endif %}
+            <span style="font-size:11px;color:var(--muted);">{{ n.created_at|date:"M d, Y · H:i" }}</span>
+            {% if n.target_department %}
+            <span class="tag tag-blue">{{ n.target_department.code }}</span>
+            {% endif %}
+          </div>
+          <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px;">{{ n.title }}</div>
+          <p style="font-size:13px;color:#475569;line-height:1.6;margin:0;">{{ n.message|linebreaksbr }}</p>
+        </div>
+        <div style="text-align:right;flex-shrink:0;">
+          <div style="font-size:12px;font-weight:700;color:var(--primary);">{{ n.sender.full_name }}</div>
+          <div style="font-size:11px;color:var(--muted);">{{ n.sender.role }}</div>
+        </div>
+      </div>
+    </div>
+    {% empty %}
+    <div class="card" style="padding:48px;text-align:center;">
+      <div style="font-size:32px;margin-bottom:12px;">🔔</div>
+      <div style="font-size:14px;font-weight:600;color:var(--text);">No notifications yet</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:4px;">You're all caught up!</div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Sidebar Info -->
+  <div style="display:flex;flex-direction:column;gap:16px;">
+    <div class="card" style="padding:20px;">
+      <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:12px;">You Receive</div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);">
+          <span style="color:#16a34a;">✓</span> Global Announcements
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);">
+          <span style="color:#16a34a;">✓</span> Role: {{ request.user.role }}
+        </div>
+        {% if user_departments %}
+        <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);">
+          <span style="color:#16a34a;">✓</span>
+          Dept:&nbsp;{% for d in user_departments %}{{ d.code }}{% if not forloop.last %}, {% endif %}{% endfor %}
+        </div>
         {% endif %}
+      </div>
     </div>
 
-    <div class="row">
-        <div class="col-lg-8">
-            {% for n in notifications %}
-            <div class="card-linkedin p-4 mb-3 position-relative {% if n.is_global %}border-urgent{% else %}border-standard{% endif %}">
-                <div class="d-flex justify-content-between align-items-start">
-                    <div>
-                        <div class="d-flex align-items-center gap-2 mb-1">
-                            <span class="badge {% if n.is_global %}bg-warning text-dark{% else %}bg-light text-dark border{% endif %} smaller">
-                                {% if n.is_global %}URGENT{% else %}ANNOUNCEMENT{% endif %}
-                            </span>
-                            <span class="text-muted smaller"><i class="bi bi-calendar3"></i> {{ n.created_at|date:"M d, Y" }}</span>
-                        </div>
-                        <h5 class="fw-bold mb-2">{{ n.title }}</h5>
-                        <p class="mb-0 text-secondary">{{ n.message|linebreaksbr }}</p>
-                    </div>
-                    <div class="text-end">
-                        <div class="smaller fw-bold text-maroon">{{ n.sender.full_name }}</div>
-                        <div class="smaller text-muted">
-                            {{ n.sender.role }}
-                            {% if n.target_department %} - {{ n.target_department.code }}{% endif %}
-                        </div>
-                    </div>
-                </div>
-            </div>
-            {% empty %}
-            <div class="glass-panel p-5 text-center">
-                <i class="bi bi-bell-slash text-muted display-4 mb-3"></i>
-                <h5>No notifications yet</h5>
-                <p class="text-muted">You're all caught up!</p>
-            </div>
-            {% endfor %}
+    {% if notifications %}
+    <div class="card" style="padding:20px;">
+      <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:12px;">Recent Senders</div>
+      {% for n in notifications|slice:":4" %}
+      <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);">
+        <div style="width:32px;height:32px;border-radius:50%;background:var(--primary-light);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:var(--primary);flex-shrink:0;">
+          {{ n.sender.full_name|first|upper }}
         </div>
-
-        <div class="col-lg-4">
-            <div class="glass-panel p-4">
-                <h6 class="fw-bold mb-3">Targeting Info</h6>
-                <div class="smaller mb-3">
-                    <p class="mb-1 text-muted">You are receiving these based on:</p>
-                    <ul class="list-unstyled">
-                        <li><i class="bi bi-check-circle-fill text-success"></i> Global Announcements</li>
-                        <li><i class="bi bi-check-circle-fill text-success"></i> Role: {{ request.user.role }}</li>
-                        {% if user_departments %}
-                        <li><i class="bi bi-check-circle-fill text-success"></i> Depts:
-                            {% for d in user_departments %}{{ d.code }}{% if not forloop.last %}, {% endif %}{% endfor %}
-                        </li>
-                        {% endif %}
-                    </ul>
-                </div>
-                <hr>
-                <div class="smaller">
-                    <p class="mb-1 fw-bold">Recent Senders</p>
-                    {% for n in notifications|slice:":3" %}
-                    <div class="d-flex align-items-center gap-2 mb-2">
-                        <div class="rounded-circle bg-maroon-subtle p-1" style="width: 24px; height: 24px;">
-                            <i class="bi bi-person text-maroon" style="font-size: 10px;"></i>
-                        </div>
-                        <span>{{ n.sender.full_name }}</span>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
+        <div>
+          <div style="font-size:12px;font-weight:700;color:var(--text);">{{ n.sender.full_name }}</div>
+          <div style="font-size:11px;color:var(--muted);">{{ n.sender.role }}</div>
         </div>
+      </div>
+      {% endfor %}
     </div>
+    {% endif %}
+  </div>
+
 </div>
 
-{% endblock %}
-
-{% block modals %}
 {% if request.user.is_superuser or request.user.role == 'Director' or request.user.role == 'HOD' %}
+{% block modals %}
 <div class="modal fade" id="notificationModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content glass-panel border-0">
-            <div class="modal-header border-0">
-                <h5 class="modal-title fw-bold">Post New Notification</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" style="border-radius:16px;border:1px solid var(--border);">
+      <div class="modal-header" style="padding:20px 24px;border-bottom:1px solid var(--border);">
+        <h5 class="modal-title" style="font-size:15px;font-weight:700;">Post New Notification</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form action="{% url 'notification-create' %}" method="post">
+        {% csrf_token %}
+        <div class="modal-body" style="padding:24px;display:flex;flex-direction:column;gap:16px;">
+          <div class="df-group"><label class="df-label">Title *</label><input type="text" name="title" class="df-input" required placeholder="e.g. Exam Schedule Update"></div>
+          <div class="df-group"><label class="df-label">Message *</label><textarea name="message" class="df-input" rows="4" required></textarea></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div class="df-group">
+              <label class="df-label">Audience</label>
+              <select name="target_role" class="df-input">
+                <option value="All">All Campus</option>
+                <option value="Student">Students Only</option>
+                <option value="Faculty">Faculty & Staff</option>
+              </select>
             </div>
-            <form action="{% url 'notification-create' %}" method="post">
-                {% csrf_token %}
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="smaller fw-bold mb-1">Title</label>
-                        <input type="text" name="title" class="form-control rounded-3" required placeholder="e.g. Exam Schedule Update">
-                    </div>
-                    <div class="mb-3">
-                        <label class="smaller fw-bold mb-1">Message</label>
-                        <textarea name="message" class="form-control rounded-3" rows="4" required placeholder="Details of the announcement..."></textarea>
-                    </div>
-                    <div class="row g-3">
-                        <div class="col-md-6 mb-3">
-                            <label class="smaller fw-bold mb-1">Audience</label>
-                            <select name="target_role" class="form-select rounded-3">
-                                <option value="All">Global Campus</option>
-                                <option value="Student">Students Only</option>
-                                <option value="Faculty">Faculty & Staff</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="smaller fw-bold mb-1">Urgency</label>
-                            <div class="form-check mt-2">
-                                <input class="form-check-input" type="checkbox" name="is_global" id="is_global" {% if not request.user.is_superuser %}disabled{% endif %}>
-                                <label class="form-check-label smaller fw-bold text-slate-600" for="is_global">Mark as Global</label>
-                            </div>
-                        </div>
-                    </div>
-                    {% if request.user.is_superuser %}
-                    <div class="mb-3">
-                        <label class="smaller fw-bold mb-1">Target Department (Optional)</label>
-                        <select name="department" class="form-select rounded-3">
-                            <option value="">All Departments</option>
-                            {% for dept in departments %}
-                            <option value="{{ dept.id }}">{{ dept.name }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    {% endif %}
-                </div>
-                <div class="modal-footer border-0">
-                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn-ciet btn-ciet-primary px-5">Publish Now</button>
-                </div>
-            </form>
+            {% if request.user.is_superuser %}
+            <div class="df-group">
+              <label class="df-label">Department</label>
+              <select name="department" class="df-input">
+                <option value="">All Departments</option>
+                {% for dept in departments %}
+                <option value="{{ dept.id }}">{{ dept.name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            {% endif %}
+          </div>
+          {% if request.user.is_superuser %}
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;cursor:pointer;">
+            <input type="checkbox" name="is_global"> Mark as Urgent / Global
+          </label>
+          {% endif %}
         </div>
+        <div class="modal-footer" style="padding:16px 24px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end;">
+          <button type="button" class="df-btn-outline" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="df-btn-primary">Publish Now</button>
+        </div>
+      </form>
     </div>
+  </div>
 </div>
+{% endblock %}
 {% endif %}
 {% endblock %}
