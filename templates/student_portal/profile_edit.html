@@ -1,369 +1,262 @@
-﻿{% extends 'student_portal/base_portal.html' %}
+{% extends 'student_portal/base_portal.html' %}
 {% load static %}
 
 {% block portal_title %}Profile Settings{% endblock %}
+{% block portal_tab_title %}Profile Settings{% endblock %}
 
 {% block portal_content %}
-<div class="space-y-8 portal-fade-in">
-    <!-- Header -->
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-            <nav class="flex text-xs font-bold uppercase tracking-widest text-slate-400 mb-2 gap-2">
-                <a href="{% url 'student-portal' %}" class="hover:text-[#800000] no-underline">Dashboard</a>
-                <span>/</span>
-                <span class="text-slate-900">Settings</span>
-            </nav>
-            <h2 class="text-3xl font-bold text-slate-900">Manage Profile</h2>
-        </div>
-
-        <form method="post" action="{% url 'student-toggle-public' %}" class="flex items-center gap-2">
-            {% csrf_token %}
-            <span
-                class="text-xs font-bold uppercase tracking-wider {% if profile.is_public %}text-green-600{% else %}text-slate-400{% endif %}">
-                {% if profile.is_public %}Public Profile Active{% else %}Private Profile{% endif %}
-            </span>
-            <button
-                class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ring-2 ring-slate-100 {% if profile.is_public %}bg-green-500{% else %}bg-slate-200{% endif %}">
-                <span
-                    class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform {% if profile.is_public %}translate-x-6{% else %}translate-x-1{% endif %}"></span>
-            </button>
-        </form>
-    </div>
-
-    <!-- Public Link Alert -->
-    {% if profile.is_public %}
-    <div
-        class="bg-indigo-950 rounded-[2rem] p-8 text-white relative overflow-hidden group shadow-2xl shadow-indigo-900/20">
-        <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-            <div class="space-y-2">
-                <div class="flex items-center gap-2 text-indigo-300">
-                    <i data-lucide="globe" class="w-4 h-4"></i>
-                    <span class="text-[10px] font-bold uppercase tracking-[2px]">Your Public Identity is Live</span>
-                </div>
-                <h4 class="text-xl font-bold tracking-tight">Digital Professional Profile</h4>
-                <div
-                    class="flex items-center gap-3 bg-white/5 backdrop-blur-md p-2 pl-4 rounded-xl border border-white/10 group-hover:bg-white/10 transition-all">
-                    <code id="publicLink" class="text-indigo-100 text-xs font-medium truncate max-w-[300px]">
-                        {{ request.scheme }}://{{ request.get_host }}{% url 'student-public-profile' profile.slug %}
-                    </code>
-                    <button onclick="copyProfileLink()"
-                        class="bg-indigo-500 hover:bg-indigo-400 text-white px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all">
-                        <span id="copyText">Copy Link</span>
-                    </button>
-                </div>
-            </div>
-            <a href="{% url 'student-public-profile' profile.slug %}" target="_blank"
-                class="bg-white text-indigo-950 px-6 py-3 rounded-xl font-bold text-xs no-underline hover:bg-slate-100 transition-all">
-                Preview Profile
-            </a>
-        </div>
-        <div class="absolute -right-20 -bottom-20 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl"></div>
-    </div>
-    {% endif %}
-
-    <form method="post" enctype="multipart/form-data" class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {% csrf_token %}
-
-        <!-- Left: Branding & Meta -->
-        <div class="lg:col-span-4 space-y-6">
-            <div class="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm text-center">
-                <div class="relative w-32 h-32 mx-auto mb-6 group">
-                    <div
-                        class="w-full h-full rounded-[2rem] bg-slate-100 flex items-center justify-center overflow-hidden ring-4 ring-slate-50 transition-all group-hover:ring-[#800000]/10">
-                        {% if profile.photo %}
-                        <img src="{{ profile.photo.url }}" class="w-full h-full object-cover" alt="Profile">
-                        {% else %}
-                        <span class="text-4xl font-bold text-slate-300 uppercase">{{ profile.user.full_name|first }}</span>
-                        {% endif %}
-                    </div>
-                    <label
-                        class="absolute -bottom-2 -right-2 w-10 h-10 bg-[#800000] text-white rounded-xl flex items-center justify-center shadow-lg cursor-pointer hover:scale-110 transition-all">
-                        <i data-lucide="camera" class="w-5 h-5"></i>
-                        <input type="file" name="photo" class="hidden" accept="image/*">
-                    </label>
-                </div>
-
-                <h4 class="text-xl font-bold text-slate-900 mb-1 leading-tight">
-                    {{ first_name|default:profile.user.full_name|default:"Student" }}
-                    {% if last_name %}<span class="bg-gradient-to-r from-slate-900 to-[#800000] bg-clip-text text-transparent">{{ last_name }}</span>{% endif %}
-                </h4>
-                <p class="text-sm font-semibold text-slate-400 mb-6">{{ profile.roll_no }} &bull; {{ profile.department.code }}</p>
-
-                <div class="space-y-4 pt-6 border-t border-slate-50">
-                    <div class="text-left">
-                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">Resume
-                            (Digital CV)</label>
-                        {% if profile.resume %}
-                        <a href="{{ profile.resume.url }}" target="_blank"
-                            class="flex items-center justify-between bg-slate-50 p-3 rounded-xl no-underline group hover:bg-[#800000]/5 transition-all mb-2">
-                            <div class="flex items-center gap-2">
-                                <i data-lucide="file-text"
-                                    class="w-4 h-4 text-slate-400 group-hover:text-[#800000]"></i>
-                                <span class="text-[11px] font-bold text-slate-600 group-hover:text-[#800000]">Curriculum
-                                    Vitae</span>
-                            </div>
-                            <i data-lucide="external-link" class="w-3 h-3 text-slate-300"></i>
-                        </a>
-                        {% endif %}
-                        <div
-                            class="relative bg-slate-900 text-white rounded-xl py-2 px-4 text-center cursor-pointer hover:bg-black transition-all">
-                            <span class="text-[10px] font-bold uppercase tracking-wider">Upload New PDF</span>
-                            <input type="file" name="resume" class="absolute inset-0 opacity-0 cursor-pointer"
-                                accept=".pdf">
-                        </div>
-                        <label class="mt-3 inline-flex items-center gap-2 text-[11px] font-semibold text-slate-600">
-                            <input type="checkbox" name="show_resume_on_profile" class="rounded border-slate-300"
-                                {% if profile.show_resume_on_profile %}checked{% endif %}>
-                            Show resume link on public profile
-                        </label>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Read-only stats -->
-            <div class="bg-slate-50 p-6 rounded-[2rem] border border-slate-100 space-y-4">
-                <h6 class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Academic Identity</h6>
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="bg-white p-4 rounded-2xl border border-slate-100">
-                        <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Batch</p>
-                        <p class="text-sm font-bold text-slate-900">{{ profile.batch }}</p>
-                    </div>
-                    <div class="bg-white p-4 rounded-2xl border border-slate-100">
-                        <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Section</p>
-                        <p class="text-sm font-bold text-slate-900">A</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Right: Information Form -->
-        <div class="lg:col-span-8 space-y-8">
-            <div class="bg-white p-10 rounded-[2.5rem] border border-slate-100 shadow-sm">
-                <h5 class="text-xl font-bold text-slate-900 mb-8 flex items-center gap-3">
-                    <i data-lucide="user-check" class="text-[#800000]"></i>
-                    Identity Verification
-                </h5>
-                <div class="space-y-6">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest block mb-2">First Name</label>
-                            <input type="text" name="first_name"
-                                class="w-full bg-slate-50 border-none rounded-2xl p-4 text-sm font-semibold focus:ring-2 focus:ring-[#800000]/20 transition-all"
-                                value="{{ first_name }}" placeholder="First name">
-                        </div>
-                        <div>
-                            <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest block mb-2">Last Name</label>
-                            <input type="text" name="last_name"
-                                class="w-full bg-slate-50 border-none rounded-2xl p-4 text-sm font-semibold focus:ring-2 focus:ring-[#800000]/20 transition-all"
-                                value="{{ last_name }}" placeholder="Last name">
-                        </div>
-                    </div>
-                    <p class="text-[10px] text-slate-400 mt-2 font-medium">First name is shown in black; last name is shown with a gradient on the portfolio page.</p>
-                    <div>
-                        <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest block mb-2">College Roll No</label>
-                        <input type="text"
-                            class="w-full bg-slate-100 border-none rounded-2xl p-4 text-sm font-semibold text-slate-600 cursor-not-allowed"
-                            value="{{ profile.roll_no }}" readonly>
-                        <p class="text-[10px] text-slate-400 mt-2 font-medium">Set by admin. Contact exam cell for corrections.</p>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest block mb-2">Personal Email (OTP)</label>
-                            <div class="flex gap-2">
-                                <input type="email" name="personal_email"
-                                    id="personalEmailInput"
-                                    class="flex-1 bg-slate-50 border-none rounded-2xl p-4 text-sm font-semibold focus:ring-2 focus:ring-[#800000]/20 transition-all"
-                                    value="{{ profile.personal_email }}" placeholder="name@example.com">
-                                <button type="button" onclick="sendOtp('email')"
-                                    class="px-4 rounded-xl bg-slate-900 text-white text-[11px] font-bold">Send OTP</button>
-                            </div>
-                            <div class="flex items-center gap-2 mt-2">
-                                <input type="text" id="emailOtp" maxlength="6" placeholder="Enter OTP"
-                                    class="bg-slate-50 border-none rounded-xl px-3 py-2 text-xs font-semibold">
-                                <button type="button" onclick="verifyOtp('email')"
-                                    class="px-3 py-2 rounded-xl bg-emerald-600 text-white text-[11px] font-bold">Verify</button>
-                                {% if profile.personal_email_verified %}
-                                <span class="text-[11px] font-bold text-emerald-600">Verified</span>
-                                {% else %}
-                                <span class="text-[11px] font-bold text-orange-600">Not Verified</span>
-                                {% endif %}
-                            </div>
-                            <label class="mt-2 inline-flex items-center gap-2 text-[11px] font-semibold text-slate-600">
-                                <input type="checkbox" name="show_email_on_profile" class="rounded border-slate-300"
-                                    {% if profile.show_email_on_profile %}checked{% endif %}>
-                                Show college email icon on public profile
-                            </label>
-                        </div>
-                        <div>
-                            <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest block mb-2">Personal Phone</label>
-                            <div class="flex gap-2">
-                                <input type="text" name="personal_phone"
-                                    id="personalPhoneInput"
-                                    class="flex-1 bg-slate-50 border-none rounded-2xl p-4 text-sm font-semibold focus:ring-2 focus:ring-[#800000]/20 transition-all"
-                                    value="{{ profile.personal_phone }}" placeholder="10-digit mobile">
-                            </div>
-                            <p class="text-[10px] text-slate-400 mt-2 font-medium">SMS verification is disabled.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="bg-white p-10 rounded-[2.5rem] border border-slate-100 shadow-sm">
-                <h5 class="text-xl font-bold text-slate-900 mb-2 flex items-center gap-3">
-                    <i data-lucide="link" class="text-[#800000]"></i>
-                    Professional Ecosystem
-                </h5>
-                <p class="text-sm font-semibold text-slate-400 mb-8">Connect your external profiles for better
-                    internship visibility.</p>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label
-                            class="text-[11px] font-bold text-slate-400 uppercase tracking-widest block mb-2">LinkedIn
-                            Authority</label>
-                        <div class="relative">
-                            <i data-lucide="linkedin"
-                                class="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                            <input type="url" name="linkedin_url"
-                                class="w-full bg-slate-50 border-none rounded-2xl pl-12 pr-4 py-4 text-sm font-semibold focus:ring-2 focus:ring-[#800000]/20 transition-all"
-                                value="{{ profile.linkedin_url }}" placeholder="https://linkedin.com/in/...">
-                        </div>
-                        <label class="mt-2 inline-flex items-center gap-2 text-[11px] font-semibold text-slate-600">
-                            <input type="checkbox" name="show_linkedin_on_profile" class="rounded border-slate-300"
-                                {% if profile.show_linkedin_on_profile %}checked{% endif %}>
-                            Show on public profile
-                        </label>
-                    </div>
-                    <div>
-                        <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest block mb-2">GitHub
-                            Repository</label>
-                        <div class="relative">
-                            <i data-lucide="github"
-                                class="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                            <input type="url" name="github_url"
-                                class="w-full bg-slate-50 border-none rounded-2xl pl-12 pr-4 py-4 text-sm font-semibold focus:ring-2 focus:ring-[#800000]/20 transition-all"
-                                value="{{ profile.github_url }}" placeholder="https://github.com/...">
-                        </div>
-                        <label class="mt-2 inline-flex items-center gap-2 text-[11px] font-semibold text-slate-600">
-                            <input type="checkbox" name="show_github_on_profile" class="rounded border-slate-300"
-                                {% if profile.show_github_on_profile %}checked{% endif %}>
-                            Show on public profile
-                        </label>
-                    </div>
-                    <div>
-                        <label
-                            class="text-[11px] font-bold text-slate-400 uppercase tracking-widest block mb-2">LeetCode
-                            Profile</label>
-                        <input type="url" name="leetcode_url"
-                            class="w-full bg-slate-50 border-none rounded-2xl p-4 text-sm font-semibold focus:ring-2 focus:ring-[#800000]/20 transition-all"
-                            value="{{ profile.leetcode_url }}" placeholder="URL">
-                        <label class="mt-2 inline-flex items-center gap-2 text-[11px] font-semibold text-slate-600">
-                            <input type="checkbox" name="show_leetcode_on_profile" class="rounded border-slate-300"
-                                {% if profile.show_leetcode_on_profile %}checked{% endif %}>
-                            Show on public profile
-                        </label>
-                    </div>
-                    <div>
-                        <label
-                            class="text-[11px] font-bold text-slate-400 uppercase tracking-widest block mb-2">HackerRank
-                            Profile</label>
-                        <input type="url" name="hackerrank_url"
-                            class="w-full bg-slate-50 border-none rounded-2xl p-4 text-sm font-semibold focus:ring-2 focus:ring-[#800000]/20 transition-all"
-                            value="{{ profile.hackerrank_url }}" placeholder="URL">
-                        <label class="mt-2 inline-flex items-center gap-2 text-[11px] font-semibold text-slate-600">
-                            <input type="checkbox" name="show_hackerrank_on_profile" class="rounded border-slate-300"
-                                {% if profile.show_hackerrank_on_profile %}checked{% endif %}>
-                            Show on public profile
-                        </label>
-                    </div>
-                    <div>
-                        <label
-                            class="text-[11px] font-bold text-slate-400 uppercase tracking-widest block mb-2">CodeChef
-                            Profile</label>
-                        <input type="url" name="codechef_url"
-                            class="w-full bg-slate-50 border-none rounded-2xl p-4 text-sm font-semibold focus:ring-2 focus:ring-[#800000]/20 transition-all"
-                            value="{{ profile.codechef_url }}" placeholder="URL">
-                        <label class="mt-2 inline-flex items-center gap-2 text-[11px] font-semibold text-slate-600">
-                            <input type="checkbox" name="show_codechef_on_profile" class="rounded border-slate-300"
-                                {% if profile.show_codechef_on_profile %}checked{% endif %}>
-                            Show on public profile
-                        </label>
-                    </div>
-                    <div>
-                        <label
-                            class="text-[11px] font-bold text-slate-400 uppercase tracking-widest block mb-2">Codeforces
-                            ID</label>
-                        <input type="url" name="codeforces_url"
-                            class="w-full bg-slate-50 border-none rounded-2xl p-4 text-sm font-semibold focus:ring-2 focus:ring-[#800000]/20 transition-all"
-                            value="{{ profile.codeforces_url }}" placeholder="URL">
-                        <label class="mt-2 inline-flex items-center gap-2 text-[11px] font-semibold text-slate-600">
-                            <input type="checkbox" name="show_codeforces_on_profile" class="rounded border-slate-300"
-                                {% if profile.show_codeforces_on_profile %}checked{% endif %}>
-                            Show on public profile
-                        </label>
-                    </div>
-                </div>
-            </div>
-
-            <div class="flex items-center gap-4 pt-4">
-                <button type="submit"
-                    class="bg-[#800000] text-white px-10 py-4 rounded-2xl font-bold text-sm shadow-xl shadow-maroon/20 hover:scale-105 transition-all">
-                    Commit Changes
-                </button>
-                <a href="{% url 'student-portal' %}"
-                    class="bg-slate-100 text-slate-600 px-10 py-4 rounded-2xl font-bold text-sm hover:bg-slate-200 no-underline transition-all">
-                    Discard
-                </a>
-            </div>
-        </div>
-    </form>
+<div class="flex-between" style="margin-bottom:24px;">
+  <div>
+    <h1 class="section-title">Profile Settings</h1>
+    <p class="section-sub">Manage your personal info, links, and portfolio visibility.</p>
+  </div>
+  <form method="post" action="{% url 'student-toggle-public' %}">
+    {% csrf_token %}
+    <button type="submit" class="btn-primary" id="togglePublicBtn">
+      {% if profile.is_public %}🌐 Public Profile ON{% else %}🔒 Profile Private{% endif %}
+    </button>
+  </form>
 </div>
 
+{% if profile.is_public %}
+<script>document.getElementById('togglePublicBtn').style.background='#16a34a';</script>
+<div class="card" style="margin-bottom:24px;padding:20px;background:var(--primary);color:#fff;border:none;">
+  <div style="font-size:11px;font-weight:700;color:#a5b4fc;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:4px;">Your Public Portfolio is Live</div>
+  <div style="font-size:14px;font-weight:700;margin-bottom:10px;">Share your profile with recruiters and employers:</div>
+  <div style="display:flex;align-items:center;gap:12px;">
+    <code id="publicLink" style="font-size:12px;color:#c7d2fe;background:rgba(255,255,255,0.1);padding:8px 14px;border-radius:8px;flex:1;">
+      {{ request.scheme }}://{{ request.get_host }}{% url 'student-public-profile' profile.slug %}
+    </code>
+    <button type="button" onclick="copyProfileLink()" class="btn-primary" style="background:#6366f1;border:none;">
+      <span id="copyText">Copy Link</span>
+    </button>
+    <a href="{% url 'student-public-profile' profile.slug %}" target="_blank" class="btn-ghost" style="color:#fff;border-color:rgba(255,255,255,0.3);">Preview →</a>
+  </div>
+</div>
+{% endif %}
+
+<form method="post" enctype="multipart/form-data">
+  {% csrf_token %}
+  <div style="display:grid;grid-template-columns:300px 1fr;gap:24px;align-items:start;">
+
+    <!-- Left Card: Photo + Resume + Stats -->
+    <div style="display:flex;flex-direction:column;gap:16px;">
+      <div class="card" style="padding:24px;text-align:center;">
+        <!-- Avatar -->
+        <div style="position:relative;width:100px;height:100px;margin:0 auto 16px;">
+          <div style="width:100px;height:100px;border-radius:50%;background:var(--primary-light);display:flex;align-items:center;justify-content:center;overflow:hidden;border:3px solid var(--border);">
+            {% if profile.photo %}
+            <img src="{{ profile.photo.url }}" style="width:100%;height:100%;object-fit:cover;" alt="Photo">
+            {% else %}
+            <span style="font-size:36px;font-weight:800;color:var(--primary);">{{ profile.user.full_name|first|upper }}</span>
+            {% endif %}
+          </div>
+          <label style="position:absolute;bottom:0;right:0;width:28px;height:28px;background:var(--primary);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#fff;font-size:13px;" title="Change photo">
+            📷<input type="file" name="photo" style="display:none;" accept="image/*">
+          </label>
+        </div>
+        <div style="font-size:16px;font-weight:800;color:var(--text);">
+          {{ first_name|default:profile.user.full_name }} {{ last_name }}
+        </div>
+        <div style="font-size:12px;color:var(--muted);margin-top:4px;">
+          {{ profile.roll_no }} · {{ profile.department.code }}
+        </div>
+        <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);">
+          <a href="{% url 'student-public-profile' profile.slug %}" target="_blank" class="btn-primary" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:10px;background:var(--primary);color:#fff;border-radius:8px;font-size:13px;font-weight:700;text-decoration:none;margin-bottom:16px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+            View Public Page
+          </a>
+          <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;">Resume / CV</div>
+          {% if profile.resume %}
+          <a href="{{ profile.resume.url }}" target="_blank" class="btn-ghost" style="font-size:12px;display:block;margin-bottom:8px;text-decoration:none;">📄 View Current CV</a>
+          {% endif %}
+          <label style="display:block;padding:8px 16px;background:#1e293b;color:#fff;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;text-align:center;">
+            Upload New PDF<input type="file" name="resume" style="display:none;" accept=".pdf">
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:12px;margin-top:10px;cursor:pointer;">
+            <input type="checkbox" name="show_resume_on_profile" {% if profile.show_resume_on_profile %}checked{% endif %}>
+            Show on public profile
+          </label>
+        </div>
+      </div>
+
+      <!-- Academic Info (read-only) -->
+      <div class="card" style="padding:20px;">
+        <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:12px;">Academic Identity</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div style="padding:12px;background:var(--bg);border-radius:8px;border:1px solid var(--border);">
+            <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;">Batch</div>
+            <div style="font-size:13px;font-weight:700;color:var(--text);margin-top:2px;">{{ profile.batch }}</div>
+          </div>
+          <div style="padding:12px;background:var(--bg);border-radius:8px;border:1px solid var(--border);">
+            <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;">Section</div>
+            <div style="font-size:13px;font-weight:700;color:var(--text);margin-top:2px;">{{ profile.section.name|default:"A" }}</div>
+          </div>
+          <div style="padding:12px;background:var(--bg);border-radius:8px;border:1px solid var(--border);grid-column:span 2;">
+            <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;">CGPA</div>
+            <div style="font-size:13px;font-weight:700;color:var(--text);margin-top:2px;">{{ profile.cgpa|default:"—" }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Form -->
+    <div style="display:flex;flex-direction:column;gap:20px;">
+
+      <!-- Identity -->
+      <div class="card" style="padding:24px;">
+        <h2 style="font-size:14px;font-weight:700;margin-bottom:20px;color:var(--text);">Identity</h2>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+          <div class="df-group">
+            <label class="df-label">First Name</label>
+            <input type="text" name="first_name" class="df-input" value="{{ first_name }}" placeholder="First name">
+          </div>
+          <div class="df-group">
+            <label class="df-label">Last Name</label>
+            <input type="text" name="last_name" class="df-input" value="{{ last_name }}" placeholder="Last name">
+          </div>
+          <div class="df-group" style="grid-column:span 2;">
+            <label class="df-label">College Roll No (Read-only)</label>
+            <input type="text" class="df-input" value="{{ profile.roll_no }}" readonly style="background:#f1f5f9;cursor:not-allowed;">
+          </div>
+        </div>
+      </div>
+
+      <!-- Contact & Verification -->
+      <div class="card" style="padding:24px;">
+        <h2 style="font-size:14px;font-weight:700;margin-bottom:20px;color:var(--text);">Contact & Verification</h2>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+          <div class="df-group">
+            <label class="df-label">
+              Personal Email
+              {% if profile.personal_email_verified %}
+              <span style="color:#16a34a;font-size:11px;"> ✓ Verified</span>
+              {% else %}
+              <span style="color:#d97706;font-size:11px;"> ⚠ Not Verified</span>
+              {% endif %}
+            </label>
+            <input type="email" name="personal_email" id="personalEmailInput" class="df-input" value="{{ profile.personal_email }}" placeholder="your@email.com">
+            <div style="display:flex;gap:8px;margin-top:8px;">
+              <input type="text" id="emailOtp" maxlength="6" placeholder="Enter OTP" class="df-input" style="width:120px;padding:8px;">
+              <button type="button" onclick="sendOtp('email')" class="btn-primary" style="font-size:12px;padding:8px 14px;">Send OTP</button>
+              <button type="button" onclick="verifyOtp('email')" class="btn-primary" style="font-size:12px;padding:8px 14px;background:#16a34a;">Verify</button>
+            </div>
+            <label style="display:flex;align-items:center;gap:6px;font-size:12px;margin-top:8px;cursor:pointer;">
+              <input type="checkbox" name="show_email_on_profile" {% if profile.show_email_on_profile %}checked{% endif %}> Show on public profile
+            </label>
+          </div>
+          <div class="df-group">
+            <label class="df-label">Personal Phone</label>
+            <input type="text" name="personal_phone" class="df-input" value="{{ profile.personal_phone }}" placeholder="10-digit mobile">
+            <p style="font-size:11px;color:var(--muted);margin-top:4px;">SMS verification is disabled.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Professional Links -->
+      <div class="card" style="padding:24px;">
+        <h2 style="font-size:14px;font-weight:700;margin-bottom:20px;color:var(--text);">Professional Links</h2>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+          {% comment %}Links are hardcoded below{% endcomment %}
+          <div class="df-group">
+            <label class="df-label">LinkedIn</label>
+            <input type="url" name="linkedin_url" class="df-input" value="{{ profile.linkedin_url }}" placeholder="https://linkedin.com/in/...">
+            <label style="display:flex;align-items:center;gap:6px;font-size:12px;margin-top:6px;cursor:pointer;">
+              <input type="checkbox" name="show_linkedin_on_profile" {% if profile.show_linkedin_on_profile %}checked{% endif %}> Show on profile
+            </label>
+          </div>
+          <div class="df-group">
+            <label class="df-label">GitHub</label>
+            <input type="url" name="github_url" class="df-input" value="{{ profile.github_url }}" placeholder="https://github.com/...">
+            <label style="display:flex;align-items:center;gap:6px;font-size:12px;margin-top:6px;cursor:pointer;">
+              <input type="checkbox" name="show_github_on_profile" {% if profile.show_github_on_profile %}checked{% endif %}> Show on profile
+            </label>
+          </div>
+          <div class="df-group">
+            <label class="df-label">LeetCode</label>
+            <input type="url" name="leetcode_url" class="df-input" value="{{ profile.leetcode_url }}" placeholder="https://leetcode.com/...">
+            <label style="display:flex;align-items:center;gap:6px;font-size:12px;margin-top:6px;cursor:pointer;">
+              <input type="checkbox" name="show_leetcode_on_profile" {% if profile.show_leetcode_on_profile %}checked{% endif %}> Show on profile
+            </label>
+          </div>
+          <div class="df-group">
+            <label class="df-label">HackerRank</label>
+            <input type="url" name="hackerrank_url" class="df-input" value="{{ profile.hackerrank_url }}" placeholder="https://hackerrank.com/...">
+            <label style="display:flex;align-items:center;gap:6px;font-size:12px;margin-top:6px;cursor:pointer;">
+              <input type="checkbox" name="show_hackerrank_on_profile" {% if profile.show_hackerrank_on_profile %}checked{% endif %}> Show on profile
+            </label>
+          </div>
+          <div class="df-group">
+            <label class="df-label">CodeChef</label>
+            <input type="url" name="codechef_url" class="df-input" value="{{ profile.codechef_url }}" placeholder="https://codechef.com/...">
+            <label style="display:flex;align-items:center;gap:6px;font-size:12px;margin-top:6px;cursor:pointer;">
+              <input type="checkbox" name="show_codechef_on_profile" {% if profile.show_codechef_on_profile %}checked{% endif %}> Show on profile
+            </label>
+          </div>
+          <div class="df-group">
+            <label class="df-label">Codeforces</label>
+            <input type="url" name="codeforces_url" class="df-input" value="{{ profile.codeforces_url }}" placeholder="https://codeforces.com/...">
+            <label style="display:flex;align-items:center;gap:6px;font-size:12px;margin-top:6px;cursor:pointer;">
+              <input type="checkbox" name="show_codeforces_on_profile" {% if profile.show_codeforces_on_profile %}checked{% endif %}> Show on profile
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Save -->
+      <div style="display:flex;gap:12px;padding-bottom:12px;">
+        <button type="submit" class="btn-primary" style="padding:12px 32px;font-size:14px;">Save Changes</button>
+        <a href="{% url 'student-portal' %}" class="btn-ghost" style="padding:12px 32px;font-size:14px;text-decoration:none;">Discard</a>
+      </div>
+
+    </div>
+  </div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
 <script>
-    function getCookie(name) {
-        const value = `; ${document.cookie}`;
-        const parts = value.split(`; ${name}=`);
-        if (parts.length === 2) return parts.pop().split(';').shift();
-    }
-
-    async function sendOtp(target) {
-        const destination = (document.getElementById('personalEmailInput')?.value || '').trim();
-        const data = new URLSearchParams();
-        data.append('target', target);
-        data.append('otp_action', 'send');
-        data.append('destination', destination);
-        const res = await fetch("{% url 'student-contact-otp' %}", {
-            method: 'POST',
-            headers: { 'X-CSRFToken': getCookie('csrftoken') || '' },
-            body: data
-        });
-        const out = await res.json();
-        alert(out.message || out.error || 'Done');
-    }
-
-    async function verifyOtp(target) {
-        const otp = document.getElementById(target + 'Otp').value.trim();
-        const data = new URLSearchParams();
-        data.append('target', target);
-        data.append('otp_action', 'verify');
-        data.append('otp', otp);
-        const res = await fetch("{% url 'student-contact-otp' %}", {
-            method: 'POST',
-            headers: { 'X-CSRFToken': getCookie('csrftoken') || '' },
-            body: data
-        });
-        const out = await res.json();
-        alert(out.message || out.error || 'Done');
-        if (out.ok) window.location.reload();
-    }
-
-    function copyProfileLink() {
-        var link = document.getElementById('publicLink').textContent.trim();
-        navigator.clipboard.writeText(link).then(function () {
-            var btn = document.getElementById('copyText');
-            btn.textContent = 'Link Copied!';
-            setTimeout(function () { btn.textContent = 'Copy Link'; }, 2000);
-        });
-    }
+function getCookie(name) {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(';').shift();
+}
+async function sendOtp(target) {
+  const destination = (document.getElementById('personalEmailInput')?.value || '').trim();
+  const data = new URLSearchParams();
+  data.append('target', target);
+  data.append('otp_action', 'send');
+  data.append('destination', destination);
+  const res = await fetch("{% url 'student-contact-otp' %}", {
+    method: 'POST',
+    headers: { 'X-CSRFToken': getCookie('csrftoken') || '' },
+    body: data
+  });
+  const out = await res.json();
+  alert(out.message || out.error || 'Done');
+}
+async function verifyOtp(target) {
+  const otp = document.getElementById(target + 'Otp').value.trim();
+  const data = new URLSearchParams();
+  data.append('target', target);
+  data.append('otp_action', 'verify');
+  data.append('otp', otp);
+  const res = await fetch("{% url 'student-contact-otp' %}", {
+    method: 'POST',
+    headers: { 'X-CSRFToken': getCookie('csrftoken') || '' },
+    body: data
+  });
+  const out = await res.json();
+  alert(out.message || out.error || 'Done');
+  if (out.ok) window.location.reload();
+}
+function copyProfileLink() {
+  const link = document.getElementById('publicLink').textContent.trim();
+  navigator.clipboard.writeText(link).then(() => {
+    const btn = document.getElementById('copyText');
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = 'Copy Link', 2000);
+  });
+}
 </script>
 {% endblock %}

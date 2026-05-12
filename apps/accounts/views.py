@@ -195,6 +195,9 @@ class VerifyOTPView(View):
                     del request.session['pending_user_role']
                 
                 login(request, user)
+                # Route students directly to their portal
+                if user.role == 'Student':
+                    return redirect('student-portal')
                 return redirect('dashboard')
             else:
                 form.add_error('otp', 'Invalid or expired OTP code.')

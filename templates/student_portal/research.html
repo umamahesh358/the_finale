@@ -1,61 +1,80 @@
-{% extends 'base.html' %}
-{% block title %}Research{% endblock %}
-{% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h1>Research</h1>
-    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addResearchModal">+ Add Research</button>
+{% extends 'student_portal/base_portal.html' %}
+{% load static %}
+{% block portal_title %}Research{% endblock %}
+{% block portal_tab_title %}Research{% endblock %}
+
+{% block portal_content %}
+<div class="flex-between" style="margin-bottom:24px;">
+  <div>
+    <h1 class="section-title">Research & Publications</h1>
+    <p class="section-sub">Papers, books, and collaborative research projects.</p>
+  </div>
+  <button class="btn-primary" data-bs-toggle="modal" data-bs-target="#addResearchModal">+ Add Research</button>
 </div>
+
 {% if research_list %}
-<div class="row g-3">
-    {% for r in research_list %}
-    <div class="col-md-6">
-        <div class="card p-3 h-100">
-            <div class="d-flex justify-content-between">
-                <span class="badge bg-{{ r.research_type|yesno:'success,secondary,info' }}">{{ r.get_research_type_display }}</span>
-                <span class="badge bg-primary">{{ r.get_outcome_display }}</span>
-            </div>
-            <h6 class="mt-2">{{ r.title }}</h6>
-            {% if r.advisor_name %}<small class="text-muted">Advisor: {{ r.advisor_name }}</small><br>{% endif %}
-            {% if r.publisher %}<small class="text-muted">Publisher: {{ r.publisher }}</small><br>{% endif %}
-            {% if r.published_date %}<small class="text-muted">Published: {{ r.published_date }}</small><br>{% endif %}
-            {% if r.publication_url %}<a href="{{ r.publication_url }}" class="btn btn-sm btn-outline-primary mt-2" target="_blank">View Paper</a>{% endif %}
-        </div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;">
+  {% for r in research_list %}
+  <div class="card" style="padding:20px;display:flex;flex-direction:column;gap:10px;">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
+      <span class="tag tag-green">{{ r.get_research_type_display }}</span>
+      <span class="tag tag-blue">{{ r.get_outcome_display }}</span>
     </div>
-    {% endfor %}
+    <div style="font-size:14px;font-weight:700;color:var(--text);">{{ r.title }}</div>
+    {% if r.advisor_name %}<div style="font-size:12px;color:var(--muted);">Advisor: {{ r.advisor_name }}</div>{% endif %}
+    {% if r.publisher %}<div style="font-size:12px;color:var(--muted);">Publisher: {{ r.publisher }}</div>{% endif %}
+    {% if r.published_date %}<div style="font-size:12px;color:var(--muted);">Published: {{ r.published_date }}</div>{% endif %}
+    {% if r.publication_url %}
+    <a href="{{ r.publication_url }}" target="_blank" class="btn-ghost" style="font-size:12px;padding:7px 14px;margin-top:4px;text-decoration:none;display:inline-block;">View Paper →</a>
+    {% endif %}
+  </div>
+  {% endfor %}
 </div>
 {% else %}
-<div class="card p-5 text-center text-muted">No research added yet.</div>
+<div class="card" style="padding:48px;text-align:center;">
+  <div style="font-size:14px;font-weight:600;color:var(--muted);">No research added yet.</div>
+  <button class="btn-primary" style="margin-top:16px;" data-bs-toggle="modal" data-bs-target="#addResearchModal">Add Your First Paper</button>
+</div>
 {% endif %}
-
 {% endblock %}
 
 {% block modals %}
 <div class="modal fade" id="addResearchModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header"><h5 class="modal-title">Add Research</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
-            <form method="post">
-                {% csrf_token %}
-                <div class="modal-body row g-3">
-                    <div class="col-12"><label class="form-label">Title *</label><input type="text" name="title" class="form-control" required></div>
-                    <div class="col-md-6"><label class="form-label">Type</label>
-                        <select name="research_type" class="form-select"><option value="college">College Collaborated</option><option value="external">External</option></select>
-                    </div>
-                    <div class="col-md-6"><label class="form-label">Outcome</label>
-                        <select name="outcome" class="form-select"><option value="paper">Research Paper</option><option value="book">Book</option><option value="other">Other</option></select>
-                    </div>
-                    <div class="col-md-6"><label class="form-label">Advisor Name</label><input type="text" name="advisor_name" class="form-control"></div>
-                    <div class="col-md-6"><label class="form-label">Advisor Email</label><input type="email" name="advisor_email" class="form-control"></div>
-                    <div class="col-md-8"><label class="form-label">Publisher</label><input type="text" name="publisher" class="form-control"></div>
-                    <div class="col-md-4"><label class="form-label">Published Date</label><input type="date" name="published_date" class="form-control"></div>
-                    <div class="col-12"><label class="form-label">Publication URL</label><input type="url" name="publication_url" class="form-control"></div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Save</button>
-                </div>
-            </form>
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content" style="border-radius:16px;border:1px solid var(--border);">
+      <div class="modal-header" style="padding:20px 24px;border-bottom:1px solid var(--border);">
+        <h5 class="modal-title" style="font-size:15px;font-weight:700;">Add Research</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form method="post">
+        {% csrf_token %}
+        <div class="modal-body" style="padding:24px;display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+          <div class="df-group" style="grid-column:span 2;"><label class="df-label">Title *</label><input type="text" name="title" class="df-input" required></div>
+          <div class="df-group"><label class="df-label">Type</label>
+            <select name="research_type" class="df-input">
+              <option value="college">College Collaborated</option>
+              <option value="external">External</option>
+            </select>
+          </div>
+          <div class="df-group"><label class="df-label">Outcome</label>
+            <select name="outcome" class="df-input">
+              <option value="paper">Research Paper</option>
+              <option value="book">Book</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div class="df-group"><label class="df-label">Advisor Name</label><input type="text" name="advisor_name" class="df-input"></div>
+          <div class="df-group"><label class="df-label">Advisor Email</label><input type="email" name="advisor_email" class="df-input"></div>
+          <div class="df-group"><label class="df-label">Publisher</label><input type="text" name="publisher" class="df-input"></div>
+          <div class="df-group"><label class="df-label">Published Date</label><input type="date" name="published_date" class="df-input"></div>
+          <div class="df-group" style="grid-column:span 2;"><label class="df-label">Publication URL</label><input type="url" name="publication_url" class="df-input"></div>
         </div>
+        <div class="modal-footer" style="padding:16px 24px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end;">
+          <button type="button" class="df-btn-outline" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="df-btn-primary">Save Research</button>
+        </div>
+      </form>
     </div>
+  </div>
 </div>
 {% endblock %}

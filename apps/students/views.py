@@ -278,11 +278,21 @@ class StudentPortalView(LoginRequiredMixin, View):
         activity_posts = sorted(activity_posts, key=lambda x: x['created_at'], reverse=True)[:12]
 
         cohorts = profile.cohorts.filter(is_active=True).select_related('department', 'created_by')
+
+        portfolio_stats = {
+            'projects': profile.projects.count(),
+            'certifications': profile.certifications.count(),
+            'internships': profile.internships.count(),
+            'education': profile.education.count(),
+            'cgpa': profile.cgpa or 0,
+        }
+
         return render(request, 'student_portal/dashboard.html', {
             'profile': profile,
             'subject_stats': subject_stats,
             'activity_posts': activity_posts,
             'cohorts': cohorts,
+            'portfolio_stats': portfolio_stats,
         })
 
 
@@ -384,6 +394,21 @@ class StudentAcademicsView(LoginRequiredMixin, View):
             'marks': marks,
             'subject_stats': subject_stats,
         })
+
+
+class StudentCohortsView(LoginRequiredMixin, View):
+    def get(self, request):
+        if request.user.role != 'Student':
+            return redirect('dashboard')
+        profile = request.user.student_profile
+        portfolio_stats = _build_portfolio_context(profile)
+        cohorts = profile.cohorts.filter(is_active=True).select_related('department', 'created_by')
+        return render(request, 'student_portal/cohorts.html', {
+            'profile': profile,
+            'cohorts': cohorts,
+            'portfolio_stats': portfolio_stats,
+        })
+
 
 
 class StudentCertificationsView(LoginRequiredMixin, View):
@@ -492,6 +517,15 @@ class StudentInternshipsView(LoginRequiredMixin, View):
 
     def post(self, request):
         profile = get_object_or_404(StudentProfile, user=request.user)
+        action = request.POST.get('action', 'create')
+
+        if action == 'delete_intern':
+            intern_id = request.POST.get('intern_id')
+            intern = get_object_or_404(Internship, id=intern_id, student=profile)
+            intern.delete()
+            messages.success(request, 'Internship removed.')
+            return redirect('student-internships')
+
         intp = Internship(
             student=profile,
             organization=request.POST.get('organization', ''),
@@ -506,6 +540,7 @@ class StudentInternshipsView(LoginRequiredMixin, View):
         if 'certificate' in request.FILES:
             intp.certificate = request.FILES['certificate']
         intp.save()
+        messages.success(request, 'Internship added successfully.')
         return redirect('student-internships')
 
 
@@ -665,7 +700,10 @@ class StudentManagementDetailView(LoginRequiredMixin, View):
 class PublicStudentProfileView(View):
     """Public shareable profile view — /student/p/<slug>/"""
     def get(self, request, slug):
-        profile = get_object_or_404(StudentProfile, slug=slug, is_public=True)
+        profile = get_object_or_404(StudentProfile, slug=slug)
+        if not profile.is_public and request.user != profile.user:
+            from django.http import Http404
+            raise Http404("Profile is not public")
         context = _build_portfolio_context(profile, request)
         return render(request, 'student_portal/portfolio_profile.html', context)
 

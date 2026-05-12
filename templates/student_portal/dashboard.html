@@ -1,246 +1,161 @@
 {% extends 'student_portal/base_portal.html' %}
 {% load static %}
 
-{% block portal_title %}Dashboard{% endblock %}
+{% block portal_title %}Overview{% endblock %}
+{% block portal_tab_title %}Overview{% endblock %}
+{% block portal_title_display %}Overview{% endblock %}
 
 {% block portal_content %}
-<div class="space-y-8 portal-fade-in">
-  <section class="bg-[#1C1C1C] rounded-[2.5rem] p-10 text-white relative overflow-hidden shadow-2xl shadow-maroon/20">
-    <div class="relative z-10">
-      <div class="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md px-4 py-2 rounded-full text-xs font-bold tracking-widest uppercase mb-4">
-        <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
-        Student Portal
-      </div>
-      <h2 class="text-4xl lg:text-5xl font-bold tracking-tight">Welcome back, {{ profile.user.full_name }}!</h2>
-      
-    </div>
-    <div class="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-br from-white/10 to-transparent rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl"></div>
-  </section>
+<div style="margin-bottom:24px;">
+  <h1 class="section-title">Welcome back, {{ profile.user.full_name }}!</h1>
+  <p class="section-sub">{{ profile.department.name|default:"B.Tech CSE" }} · {{ profile.roll_no }} · Batch {{ profile.batch }}</p>
+</div>
 
-  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-    <div class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm">
-      <div class="flex items-center justify-between mb-4">
-        <div class="w-12 h-12 bg-purple-50 text-purple-600 rounded-2xl flex items-center justify-center">
-          <i data-lucide="layers" class="w-6 h-6"></i>
-        </div>
-        <span class="text-[11px] font-bold text-purple-600 bg-purple-50 px-3 py-1 rounded-full uppercase tracking-wider">Portfolio</span>
-      </div>
-      <h3 class="text-3xl font-bold text-slate-900 mb-1">{{ profile.projects.count }}</h3>
-      <p class="text-xs font-semibold text-slate-500">Projects Added</p>
+<!-- Stats Row -->
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:16px;margin-bottom:28px;">
+  <div class="card" style="padding:20px;display:flex;align-items:center;gap:14px;">
+    <div style="width:44px;height:44px;background:var(--primary-light);border-radius:10px;display:flex;align-items:center;justify-content:center;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
     </div>
-
-    <div class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm">
-      <div class="flex items-center justify-between mb-4">
-        <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center">
-          <i data-lucide="award" class="w-6 h-6"></i>
-        </div>
-        <span class="text-[11px] font-bold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full uppercase tracking-wider">Certifications</span>
-      </div>
-      <h3 class="text-3xl font-bold text-slate-900 mb-1">{{ profile.certifications.count }}</h3>
-      <p class="text-xs font-semibold text-slate-500">Credentials Added</p>
-    </div>
-
-    <div class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm">
-      <div class="flex items-center justify-between mb-4">
-        <div class="w-12 h-12 bg-green-50 text-green-600 rounded-2xl flex items-center justify-center">
-          <i data-lucide="trending-up" class="w-6 h-6"></i>
-        </div>
-        <span class="text-[11px] font-bold text-green-600 bg-green-50 px-3 py-1 rounded-full uppercase tracking-wider">Academic</span>
-      </div>
-      <h3 class="text-3xl font-bold text-slate-900 mb-1">{{ profile.cgpa|default:"0.0" }}</h3>
-      <p class="text-xs font-semibold text-slate-500">Overall CGPA</p>
+    <div>
+      <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;">Projects</div>
+      <div style="font-size:22px;font-weight:800;color:var(--text);">{{ portfolio_stats.projects }}</div>
     </div>
   </div>
-
-  <div class="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
-    <div class="p-8 border-b border-slate-100">
-      <h4 class="text-xl font-bold text-slate-900">Students</h4>
-      <p class="text-sm font-semibold text-slate-500">Edit and view the same student modules listed in the admin panel.</p>
+  <div class="card" style="padding:20px;display:flex;align-items:center;gap:14px;">
+    <div style="width:44px;height:44px;background:#f0fdf4;border-radius:10px;display:flex;align-items:center;justify-content:center;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
     </div>
-    <div class="p-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-      <a href="{% url 'student-certifications' %}" class="group border border-slate-100 rounded-2xl p-5 hover:shadow-md transition-all no-underline">
-        <div class="flex items-center justify-between mb-3">
-          <div class="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center">
-            <i data-lucide="award" class="w-5 h-5"></i>
-          </div>
-          <span class="text-xs font-bold text-emerald-600">{{ profile.certifications.count }}</span>
-        </div>
-        <h5 class="text-sm font-bold text-slate-900">Certifications</h5>
-        <p class="text-xs text-slate-500">Upload and verify credentials.</p>
-      </a>
-      <a href="{% url 'student-courses' %}" class="group border border-slate-100 rounded-2xl p-5 hover:shadow-md transition-all no-underline">
-        <div class="flex items-center justify-between mb-3">
-          <div class="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center">
-            <i data-lucide="book-open" class="w-5 h-5"></i>
-          </div>
-          <span class="text-xs font-bold text-blue-600">{{ profile.courses.count }}</span>
-        </div>
-        <h5 class="text-sm font-bold text-slate-900">Courses</h5>
-        <p class="text-xs text-slate-500">Track completed courses.</p>
-      </a>
-      <a href="{% url 'student-education' %}" class="group border border-slate-100 rounded-2xl p-5 hover:shadow-md transition-all no-underline">
-        <div class="flex items-center justify-between mb-3">
-          <div class="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center">
-            <i data-lucide="file-text" class="w-5 h-5"></i>
-          </div>
-          <span class="text-xs font-bold text-indigo-600">{{ profile.education.count }}</span>
-        </div>
-        <h5 class="text-sm font-bold text-slate-900">Education Backgrounds</h5>
-        <p class="text-xs text-slate-500">SSC, Intermediate, Diploma, etc.</p>
-      </a>
-      <a href="{% url 'student-events' %}" class="group border border-slate-100 rounded-2xl p-5 hover:shadow-md transition-all no-underline">
-        <div class="flex items-center justify-between mb-3">
-          <div class="w-10 h-10 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center">
-            <i data-lucide="calendar" class="w-5 h-5"></i>
-          </div>
-          <span class="text-xs font-bold text-amber-600">{{ profile.events.count }}</span>
-        </div>
-        <h5 class="text-sm font-bold text-slate-900">Events</h5>
-        <p class="text-xs text-slate-500">Conferences, hackathons, and awards.</p>
-      </a>
-      <a href="{% url 'student-internships' %}" class="group border border-slate-100 rounded-2xl p-5 hover:shadow-md transition-all no-underline">
-        <div class="flex items-center justify-between mb-3">
-          <div class="w-10 h-10 bg-slate-100 text-slate-700 rounded-xl flex items-center justify-center">
-            <i data-lucide="briefcase" class="w-5 h-5"></i>
-          </div>
-          <span class="text-xs font-bold text-slate-700">{{ profile.internships.count }}</span>
-        </div>
-        <h5 class="text-sm font-bold text-slate-900">Internships</h5>
-        <p class="text-xs text-slate-500">Industry training and roles.</p>
-      </a>
-      <a href="{% url 'student-portfolio' %}" class="group border border-slate-100 rounded-2xl p-5 hover:shadow-md transition-all no-underline">
-        <div class="flex items-center justify-between mb-3">
-          <div class="w-10 h-10 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center">
-            <i data-lucide="folder-kanban" class="w-5 h-5"></i>
-          </div>
-          <span class="text-xs font-bold text-purple-600">Portfolio</span>
-        </div>
-        <h5 class="text-sm font-bold text-slate-900">Student Portfolio</h5>
-        <p class="text-xs text-slate-500">Open the backend-powered portfolio layout.</p>
-      </a>
-      <a href="{% url 'student-research' %}" class="group border border-slate-100 rounded-2xl p-5 hover:shadow-md transition-all no-underline">
-        <div class="flex items-center justify-between mb-3">
-          <div class="w-10 h-10 bg-teal-50 text-teal-600 rounded-xl flex items-center justify-center">
-            <i data-lucide="microscope" class="w-5 h-5"></i>
-          </div>
-          <span class="text-xs font-bold text-teal-600">{{ profile.research.count }}</span>
-        </div>
-        <h5 class="text-sm font-bold text-slate-900">Researchs</h5>
-        <p class="text-xs text-slate-500">Papers, publications, and work.</p>
-      </a>
-      <a href="{% url 'student-academics' %}" class="group border border-slate-100 rounded-2xl p-5 hover:shadow-md transition-all no-underline">
-        <div class="flex items-center justify-between mb-3">
-          <div class="w-10 h-10 bg-rose-50 text-rose-600 rounded-xl flex items-center justify-center">
-            <i data-lucide="clipboard-check" class="w-5 h-5"></i>
-          </div>
-          <span class="text-xs font-bold text-rose-600">{{ profile.semester_results.count }}</span>
-        </div>
-        <h5 class="text-sm font-bold text-slate-900">Semester Results</h5>
-        <p class="text-xs text-slate-500">Exam cell published records.</p>
-      </a>
-      <a href="{% url 'student-profile-edit' %}" class="group border border-slate-100 rounded-2xl p-5 hover:shadow-md transition-all no-underline">
-        <div class="flex items-center justify-between mb-3">
-          <div class="w-10 h-10 bg-slate-50 text-slate-600 rounded-xl flex items-center justify-center">
-            <i data-lucide="user-circle" class="w-5 h-5"></i>
-          </div>
-          <span class="text-xs font-bold text-slate-600">Profile</span>
-        </div>
-        <h5 class="text-sm font-bold text-slate-900">Student Profiles</h5>
-        <p class="text-xs text-slate-500">Update personal & contact info.</p>
-      </a>
+    <div>
+      <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;">Certifications</div>
+      <div style="font-size:22px;font-weight:800;color:var(--text);">{{ portfolio_stats.certifications }}</div>
     </div>
   </div>
-
-  <div id="cohorts" class="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
-    <div class="p-8 border-b border-slate-100">
-      <h4 class="text-xl font-bold text-slate-900">Cohorts</h4>
-      <p class="text-sm font-semibold text-slate-500">Faculty-created cohorts you are part of.</p>
+  <div class="card" style="padding:20px;display:flex;align-items:center;gap:14px;">
+    <div style="width:44px;height:44px;background:#fefce8;border-radius:10px;display:flex;align-items:center;justify-content:center;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
     </div>
-    <div class="p-8">
-      {% if cohorts %}
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-        {% for cohort in cohorts %}
-        <div class="border border-slate-100 rounded-2xl p-5">
-          <div class="text-[11px] font-bold uppercase tracking-widest text-slate-400 mb-2">{{ cohort.get_cohort_type_display }}</div>
-          <h5 class="text-sm font-bold text-slate-900 mb-1">{{ cohort.name }}</h5>
-          <p class="text-xs text-slate-500 mb-2">{{ cohort.department.name }}{% if cohort.batch %} • {{ cohort.batch }}{% endif %}</p>
-          {% if cohort.description %}
-          <p class="text-xs text-slate-500">{{ cohort.description|truncatewords:18 }}</p>
-          {% endif %}
-        </div>
-        {% endfor %}
-      </div>
-      {% else %}
-      <div class="text-sm text-slate-500">No cohorts assigned yet.</div>
-      {% endif %}
+    <div>
+      <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;">CGPA</div>
+      <div style="font-size:22px;font-weight:800;color:var(--text);">{{ profile.cgpa|default:"—" }}</div>
     </div>
   </div>
-
-  <div class="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
-    <div class="p-8 border-b border-slate-100">
-      <h4 class="text-xl font-bold text-slate-900">Professional Activity Feed</h4>
-      <p class="text-sm font-semibold text-slate-500">Recent certifications, project posts, and resume updates.</p>
+  <div class="card" style="padding:20px;display:flex;align-items:center;gap:14px;">
+    <div style="width:44px;height:44px;background:#eff6ff;border-radius:10px;display:flex;align-items:center;justify-content:center;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
     </div>
-    <div class="p-8 space-y-6">
-      {% for post in activity_posts %}
-      <article class="border border-slate-100 rounded-3xl p-6">
-        <div class="flex items-center justify-between mb-4">
-          <div>
-            <p class="text-[11px] font-bold uppercase tracking-widest text-slate-400">{{ post.kind }}</p>
-            <h5 class="text-lg font-bold text-slate-900 mb-0">{{ post.title }}</h5>
-            <p class="text-sm text-slate-500">{{ post.subtitle }}</p>
-          </div>
-          <span class="text-xs text-slate-400 font-semibold">{{ post.created_at|date:"d M Y" }}</span>
+    <div>
+      <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;">Internships</div>
+      <div style="font-size:22px;font-weight:800;color:var(--text);">{{ portfolio_stats.internships }}</div>
+    </div>
+  </div>
+</div>
+
+<!-- Quick Nav Grid -->
+<div class="card" style="margin-bottom:28px;">
+  <div class="card-header-custom">
+    <h2 style="font-size:14px;font-weight:700;">Quick Access</h2>
+  </div>
+  <div class="card-body" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;padding:16px;">
+
+    <a href="{% url 'student-certifications' %}" style="text-decoration:none;padding:14px;background:var(--bg);border-radius:10px;border:1px solid var(--border);display:block;">
+      <div style="font-size:11px;font-weight:700;color:#16a34a;margin-bottom:4px;">CERTIFICATIONS</div>
+      <div style="font-size:13px;font-weight:600;color:var(--text);">{{ portfolio_stats.certifications }} Added</div>
+    </a>
+    <a href="{% url 'student-courses' %}" style="text-decoration:none;padding:14px;background:var(--bg);border-radius:10px;border:1px solid var(--border);display:block;">
+      <div style="font-size:11px;font-weight:700;color:var(--primary);margin-bottom:4px;">COURSES</div>
+      <div style="font-size:13px;font-weight:600;color:var(--text);">Semester Catalogue</div>
+    </a>
+    <a href="{% url 'student-education' %}" style="text-decoration:none;padding:14px;background:var(--bg);border-radius:10px;border:1px solid var(--border);display:block;">
+      <div style="font-size:11px;font-weight:700;color:#6366f1;margin-bottom:4px;">EDUCATION</div>
+      <div style="font-size:13px;font-weight:600;color:var(--text);">{{ portfolio_stats.education }} Records</div>
+    </a>
+    <a href="{% url 'student-events' %}" style="text-decoration:none;padding:14px;background:var(--bg);border-radius:10px;border:1px solid var(--border);display:block;">
+      <div style="font-size:11px;font-weight:700;color:#d97706;margin-bottom:4px;">EVENTS</div>
+      <div style="font-size:13px;font-weight:600;color:var(--text);">Campus Activity</div>
+    </a>
+    <a href="{% url 'student-internships' %}" style="text-decoration:none;padding:14px;background:var(--bg);border-radius:10px;border:1px solid var(--border);display:block;">
+      <div style="font-size:11px;font-weight:700;color:#475569;margin-bottom:4px;">INTERNSHIPS</div>
+      <div style="font-size:13px;font-weight:600;color:var(--text);">{{ portfolio_stats.internships }} Added</div>
+    </a>
+    <a href="{% url 'student-research' %}" style="text-decoration:none;padding:14px;background:var(--bg);border-radius:10px;border:1px solid var(--border);display:block;">
+      <div style="font-size:11px;font-weight:700;color:#0891b2;margin-bottom:4px;">RESEARCH</div>
+      <div style="font-size:13px;font-weight:600;color:var(--text);">Papers & Publications</div>
+    </a>
+    <a href="{% url 'student-academics' %}" style="text-decoration:none;padding:14px;background:var(--bg);border-radius:10px;border:1px solid var(--border);display:block;">
+      <div style="font-size:11px;font-weight:700;color:#dc2626;margin-bottom:4px;">RESULTS</div>
+      <div style="font-size:13px;font-weight:600;color:var(--text);">Semester Marks</div>
+    </a>
+    <a href="{% url 'student-projects' %}" style="text-decoration:none;padding:14px;background:var(--bg);border-radius:10px;border:1px solid var(--border);display:block;">
+      <div style="font-size:11px;font-weight:700;color:#7c3aed;margin-bottom:4px;">PROJECTS</div>
+      <div style="font-size:13px;font-weight:600;color:var(--text);">{{ portfolio_stats.projects }} Deployed</div>
+    </a>
+  </div>
+</div>
+
+<!-- Cohorts -->
+<div class="card" id="cohorts" style="margin-bottom:28px;">
+  <div class="card-header-custom">
+    <h2 style="font-size:14px;font-weight:700;">Your Cohorts</h2>
+  </div>
+  <div class="card-body">
+    {% if cohorts %}
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;padding:16px;">
+      {% for cohort in cohorts %}
+      <div style="padding:18px;background:var(--bg);border-radius:10px;border:1px solid var(--border);">
+        <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px;">
+          {{ cohort.get_cohort_type_display|default:"Cohort" }}
         </div>
-        {% if post.preview_image %}
-        <img src="{{ post.preview_image }}" alt="{{ post.title }}" class="w-full max-h-[360px] object-cover rounded-2xl border border-slate-100 mb-4">
-        {% elif post.kind == 'Resume' %}
-        <div class="w-full h-40 rounded-2xl border border-slate-100 bg-slate-50 flex items-center justify-center text-slate-400 font-bold mb-4">Resume Document</div>
+        <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:4px;">{{ cohort.name }}</div>
+        <div style="font-size:12px;color:var(--muted);">
+          {{ cohort.department.name }}{% if cohort.batch %} · {{ cohort.batch }}{% endif %}
+        </div>
+        {% if cohort.description %}
+        <div style="font-size:12px;color:#475569;margin-top:6px;line-height:1.4;">{{ cohort.description|truncatewords:15 }}</div>
         {% endif %}
-        <div class="flex items-center gap-3">
-          {% if post.file_url %}
-          <a href="{{ post.file_url }}" target="_blank" class="text-xs font-bold no-underline px-4 py-2 rounded-xl bg-slate-900 text-white">Open File</a>
-          {% endif %}
-          {% if post.external_url %}
-          <a href="{{ post.external_url }}" target="_blank" class="text-xs font-bold no-underline px-4 py-2 rounded-xl bg-slate-100 text-slate-700">Open Link</a>
-          {% endif %}
-          {% if post.verified %}
-          <span class="text-[10px] font-bold uppercase px-3 py-1 rounded-full bg-emerald-50 text-emerald-700">Verified</span>
-          {% endif %}
-        </div>
-      </article>
-      {% empty %}
-      <div class="text-sm text-slate-500">No activity yet. Add certifications, project cover images, and resume to build your feed.</div>
+      </div>
       {% endfor %}
     </div>
+    {% else %}
+    <div style="padding:32px;text-align:center;color:var(--muted);font-size:13px;">No cohorts assigned yet.</div>
+    {% endif %}
   </div>
+</div>
 
-  <div class="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
-    <div class="p-8 border-b border-slate-100 flex items-center justify-between">
-      <h4 class="text-xl font-bold text-slate-900">Semester Marks (Published by Exam Cell/Faculty)</h4>
-      <a href="{% url 'student-academics' %}" class="text-sm font-bold text-[#000000] no-underline">View Transcript</a>
-    </div>
-    <div class="overflow-x-auto">
-      <table class="w-full text-left">
-        <thead class="bg-slate-50">
-          <tr class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
-            <th class="px-8 py-5">Course Module</th>
-            <th class="px-8 py-5 text-center">Marks (Internal/External)</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-slate-50">
-          {% for sid, stat in subject_stats.items %}
-          <tr>
-            <td class="px-8 py-6">
-              <p class="font-bold text-slate-900 mb-0.5">{{ stat.subject_name }}</p>
-              <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{{ stat.subject_code }}</p>
-            </td>
-            <td class="px-8 py-6 text-center text-sm font-bold text-slate-900">{{ stat.internal }} / {{ stat.external }}</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
+<!-- Marks Summary -->
+<div class="card">
+  <div class="card-header-custom">
+    <h2 style="font-size:14px;font-weight:700;">Latest Marks (Published by Exam Cell)</h2>
+    <a href="{% url 'student-academics' %}" style="font-size:12px;font-weight:600;color:var(--primary);text-decoration:none;">Full Transcript →</a>
   </div>
+  {% if subject_stats %}
+  <div style="overflow-x:auto;">
+    <table style="width:100%;border-collapse:collapse;">
+      <thead>
+        <tr style="background:#f8fafc;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;">
+          <th style="padding:12px 20px;text-align:left;">Course</th>
+          <th style="padding:12px 20px;text-align:center;">Semester</th>
+          <th style="padding:12px 20px;text-align:center;">Internal</th>
+          <th style="padding:12px 20px;text-align:center;">External</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for sid, stat in subject_stats.items %}
+        <tr style="border-top:1px solid var(--border);">
+          <td style="padding:12px 20px;">
+            <div style="font-size:13px;font-weight:600;color:var(--text);">{{ stat.subject_name }}</div>
+            <div style="font-size:11px;color:var(--muted);">{{ stat.subject_code }}</div>
+          </td>
+          <td style="padding:12px 20px;text-align:center;"><span class="tag">Sem {{ stat.semester }}</span></td>
+          <td style="padding:12px 20px;text-align:center;font-size:13px;font-weight:700;color:var(--text);">{{ stat.internal }}</td>
+          <td style="padding:12px 20px;text-align:center;font-size:13px;font-weight:700;color:var(--text);">{{ stat.external }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div style="padding:32px;text-align:center;color:var(--muted);font-size:13px;">No marks published yet.</div>
+  {% endif %}
 </div>
 {% endblock %}

@@ -1,182 +1,112 @@
 {% extends 'student_portal/base_portal.html' %}
 {% load static %}
-
-{% block portal_title %}Academic Records{% endblock %}
+{% block portal_title %}Results & Transcript{% endblock %}
+{% block portal_tab_title %}Results & Transcript{% endblock %}
 
 {% block portal_content %}
-<div class="space-y-8 portal-fade-in">
-    <!-- Header with Breadcrumbs/Actions -->
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-            <nav class="flex text-xs font-bold uppercase tracking-widest text-slate-400 mb-2 gap-2">
-                <a href="{% url 'student-portal' %}"
-                    class="hover:text-[#800000] transition-colors no-underline">Dashboard</a>
-                <span>/</span>
-                <span class="text-slate-900">Academics</span>
-            </nav>
-            <h2 class="text-3xl font-bold text-slate-900 tracking-tight">Transcript & Progress</h2>
-        </div>
-    </div>
-
-    <!-- Stats -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div
-            class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm flex items-center gap-6 group hover:shadow-lg transition-all">
-            <div
-                class="w-14 h-14 bg-maroon/5 text-[#800000] rounded-2xl flex items-center justify-center group-hover:bg-[#800000] group-hover:text-white transition-all">
-                <i data-lucide="trending-up" class="w-7 h-7"></i>
-            </div>
-            <div>
-                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Current CGPA</p>
-                <h3 class="text-2xl font-bold text-slate-900">{{ profile.cgpa|default:"0.0" }}</h3>
-            </div>
-        </div>
-        <div
-            class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm flex items-center gap-6 group hover:shadow-lg transition-all">
-            <div
-                class="w-14 h-14 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-all">
-                <i data-lucide="book-open" class="w-7 h-7"></i>
-            </div>
-            <div>
-                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Total Credits</p>
-                <h3 class="text-2xl font-bold text-slate-900">124</h3>
-            </div>
-        </div>
-        <div
-            class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm flex items-center gap-6 group hover:shadow-lg transition-all">
-            <div
-                class="w-14 h-14 bg-green-50 text-green-600 rounded-2xl flex items-center justify-center group-hover:bg-green-600 group-hover:text-white transition-all">
-                <i data-lucide="check-circle" class="w-7 h-7"></i>
-            </div>
-            <div>
-                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Arrears Log</p>
-                <h3 class="text-2xl font-bold text-slate-900">0</h3>
-            </div>
-        </div>
-    </div>
-
-    <!-- Main Content Tabs -->
-    <div class="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden min-h-[500px]">
-        <div class="border-b border-slate-100 px-8 flex">
-            <button
-                class="py-6 border-b-2 border-[#800000] text-[#800000] font-bold text-sm tracking-tight transition-all active-tab-btn"
-                data-target="summary-section">
-                Semester Assessment
-            </button>
-            <button
-                class="py-6 border-b-2 border-transparent text-slate-400 hover:text-slate-600 px-8 font-bold text-sm tracking-tight transition-all tab-btn"
-                data-target="history-section">
-                Marks History
-            </button>
-        </div>
-
-        <div id="summary-section" class="tab-panel">
-            <div class="overflow-x-auto">
-                <table class="w-full text-left">
-                    <thead class="bg-slate-50">
-                        <tr class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
-                            <th class="px-8 py-5">Course Module</th>
-                            <th class="px-8 py-5 text-center">Semester</th>
-                            <th class="px-8 py-5 text-center">Internal (40)</th>
-                            <th class="px-8 py-5 text-center">External (60)</th>
-                            <th class="px-8 py-5 text-center">Final (100)</th>
-                            <th class="px-8 py-5 text-center">Grade</th>
-                            <th class="px-8 py-5 text-right">Credit Pts</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-100">
-                        {% for id, stats in subject_stats.items %}
-                        <tr class="hover:bg-slate-50/50 transition-all">
-                            <td class="px-8 py-6">
-                                <div>
-                                    <p class="font-bold text-slate-900 mb-0.5">{{ stats.subject_name }}</p>
-                                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{{ stats.subject_code }}</p>
-                                </div>
-                            </td>
-                            <td class="px-8 py-6 text-center">
-                                <span class="text-xs font-bold text-slate-600 bg-slate-100 px-2 py-1 rounded-lg">{{ stats.semester }}</span>
-                            </td>
-                            <td class="px-8 py-6 text-center text-sm font-bold text-slate-500">{{ stats.internal }}</td>
-                            <td class="px-8 py-6 text-center text-sm font-bold text-slate-500">{{ stats.external }}</td>
-                            <td class="px-8 py-6 text-center font-bold text-[#800000]">{{ stats.total }}</td>
-                            <td class="px-8 py-6 text-center">
-                                <span
-                                    class="inline-flex w-10 h-10 items-center justify-center rounded-xl bg-slate-900 text-white font-bold text-xs ring-4 ring-slate-100">
-                                    {{ stats.grade }}
-                                </span>
-                            </td>
-                            <td class="px-8 py-6 text-right">
-                                <span class="text-sm font-bold text-slate-900">{{ stats.credits }}</span>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <div id="history-section" class="tab-panel hidden p-8">
-            <div class="bg-indigo-50 border border-indigo-100 rounded-2xl p-6 flex gap-4 mb-8">
-                <i data-lucide="info" class="w-6 h-6 text-indigo-600 mt-1"></i>
-                <div class="text-sm text-indigo-900 leading-relaxed font-medium">
-                    This table shows the historical record of all marks awarded. Final grades on the transcript are
-                    computed based on the most recent validated assessment.
-                </div>
-            </div>
-            <div class="overflow-x-auto border border-slate-100 rounded-2xl">
-                <table class="w-full text-left">
-                    <thead class="bg-slate-50">
-                        <tr class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">
-                            <th class="px-8 py-4">Subject</th>
-                            <th class="px-8 py-4 text-center">Internal</th>
-                            <th class="px-8 py-4 text-center">External</th>
-                            <th class="px-8 py-4 text-center">Final</th>
-                            <th class="px-8 py-4 text-right">Date Recorded</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-100">
-                        {% for m in marks %}
-                        <tr class="hover:bg-slate-50/50">
-                            <td class="px-8 py-5 font-bold text-slate-900 text-sm">{{ m.subject.name }}</td>
-                            <td class="px-8 py-5 text-center text-sm font-semibold text-slate-500">{{ m.internal }}</td>
-                            <td class="px-8 py-5 text-center text-sm font-semibold text-slate-500">{{ m.external }}</td>
-                            <td class="px-8 py-5 text-center font-bold text-[#800000]">{{ m.total }}</td>
-                            <td class="px-8 py-5 text-right text-xs font-bold text-slate-400 uppercase">{{ m.created_at|date:"d M Y" }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-
-        </div>
-    </div>
+<div class="flex-between" style="margin-bottom:24px;">
+  <div>
+    <h1 class="section-title">Transcript & Progress</h1>
+    <p class="section-sub">Official marks published by the Exam Cell.</p>
+  </div>
 </div>
-{% endblock %}
 
-{% block extra_js %}
-{{ block.super }}
-<script>
-    const tabButtons = document.querySelectorAll('[data-target]');
-    const panels = document.querySelectorAll('.tab-panel');
+<!-- Stats -->
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;margin-bottom:24px;">
+  <div class="card" style="padding:20px;display:flex;align-items:center;gap:16px;">
+    <div style="width:44px;height:44px;background:var(--primary-light);border-radius:10px;display:flex;align-items:center;justify-content:center;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+    </div>
+    <div>
+      <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;">CGPA</div>
+      <div style="font-size:22px;font-weight:800;color:var(--text);">{{ profile.cgpa|default:"—" }}</div>
+    </div>
+  </div>
+  <div class="card" style="padding:20px;display:flex;align-items:center;gap:16px;">
+    <div style="width:44px;height:44px;background:#eff6ff;border-radius:10px;display:flex;align-items:center;justify-content:center;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+    </div>
+    <div>
+      <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;">Subjects</div>
+      <div style="font-size:22px;font-weight:800;color:var(--text);">{{ subject_stats|length }}</div>
+    </div>
+  </div>
+</div>
 
-    tabButtons.forEach(btn => {
-        btn.addEventListener('click', () => {
-            tabButtons.forEach(b => {
-                b.classList.remove('border-[#800000]', 'text-[#800000]');
-                b.classList.add('border-transparent', 'text-slate-400');
-            });
-            btn.classList.add('border-[#800000]', 'text-[#800000]');
-            btn.classList.remove('border-transparent', 'text-slate-400');
+<!-- Marks Table -->
+<div class="card">
+  <div class="card-header-custom">
+    <h2 style="font-size:14px;font-weight:700;">Semester Assessment</h2>
+  </div>
+  {% if subject_stats %}
+  <div style="overflow-x:auto;">
+    <table style="width:100%;border-collapse:collapse;">
+      <thead>
+        <tr style="background:#f8fafc;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;">
+          <th style="padding:12px 20px;text-align:left;">Course</th>
+          <th style="padding:12px 20px;text-align:center;">Semester</th>
+          <th style="padding:12px 20px;text-align:center;">Internal (40)</th>
+          <th style="padding:12px 20px;text-align:center;">External (60)</th>
+          <th style="padding:12px 20px;text-align:center;">Final (100)</th>
+          <th style="padding:12px 20px;text-align:center;">Grade</th>
+          <th style="padding:12px 20px;text-align:right;">Credits</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for id, stats in subject_stats.items %}
+        <tr style="border-top:1px solid var(--border);">
+          <td style="padding:14px 20px;">
+            <div style="font-size:13px;font-weight:700;color:var(--text);">{{ stats.subject_name }}</div>
+            <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">{{ stats.subject_code }}</div>
+          </td>
+          <td style="padding:14px 20px;text-align:center;"><span class="tag">Sem {{ stats.semester }}</span></td>
+          <td style="padding:14px 20px;text-align:center;font-size:13px;font-weight:600;color:var(--text);">{{ stats.internal }}</td>
+          <td style="padding:14px 20px;text-align:center;font-size:13px;font-weight:600;color:var(--text);">{{ stats.external }}</td>
+          <td style="padding:14px 20px;text-align:center;font-size:14px;font-weight:800;color:var(--primary);">{{ stats.total }}</td>
+          <td style="padding:14px 20px;text-align:center;">
+            <span style="display:inline-flex;width:36px;height:36px;align-items:center;justify-content:center;background:#1e293b;color:#fff;font-size:12px;font-weight:800;border-radius:8px;">{{ stats.grade }}</span>
+          </td>
+          <td style="padding:14px 20px;text-align:right;font-size:13px;font-weight:700;color:var(--text);">{{ stats.credits }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div style="padding:48px;text-align:center;color:var(--muted);font-size:13px;">No marks published yet. Check back after exams.</div>
+  {% endif %}
+</div>
 
-            const target = btn.getAttribute('data-target');
-            panels.forEach(p => {
-                if (p.id === target) {
-                    p.classList.remove('hidden');
-                } else {
-                    p.classList.add('hidden');
-                }
-            });
-        });
-    });
-</script>
+<!-- Marks History -->
+{% if marks %}
+<div class="card" style="margin-top:20px;">
+  <div class="card-header-custom">
+    <h2 style="font-size:14px;font-weight:700;">Full Marks History</h2>
+  </div>
+  <div style="overflow-x:auto;">
+    <table style="width:100%;border-collapse:collapse;">
+      <thead>
+        <tr style="background:#f8fafc;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;">
+          <th style="padding:12px 20px;text-align:left;">Subject</th>
+          <th style="padding:12px 20px;text-align:center;">Internal</th>
+          <th style="padding:12px 20px;text-align:center;">External</th>
+          <th style="padding:12px 20px;text-align:center;">Final</th>
+          <th style="padding:12px 20px;text-align:right;">Date Recorded</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for m in marks %}
+        <tr style="border-top:1px solid var(--border);">
+          <td style="padding:12px 20px;font-size:13px;font-weight:700;color:var(--text);">{{ m.subject.name }}</td>
+          <td style="padding:12px 20px;text-align:center;font-size:13px;font-weight:600;color:var(--muted);">{{ m.internal }}</td>
+          <td style="padding:12px 20px;text-align:center;font-size:13px;font-weight:600;color:var(--muted);">{{ m.external }}</td>
+          <td style="padding:12px 20px;text-align:center;font-size:14px;font-weight:800;color:var(--primary);">{{ m.total }}</td>
+          <td style="padding:12px 20px;text-align:right;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;">{{ m.created_at|date:"d M Y" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
 {% endblock %}
