@@ -962,33 +962,7 @@ function wireButtons() {
    NOTIFICATIONS
 ───────────────────────────────────── */
 function initNotifications() {
-  const notifBtns = document.querySelectorAll('.icon-btn');
-  notifBtns.forEach(btn => {
-    if (btn.innerHTML.includes('M18 8A6 6 0 0 0 6 8')) {
-      btn.addEventListener('click', () => {
-        const bodyHTML = `
-          <div style="display:flex;flex-direction:column;gap:16px;">
-            <div style="padding:16px;background:#f0fdf4;border-left:4px solid #16a34a;border-radius:8px;">
-              <div style="font-size:13px;font-weight:700;color:#16a34a;margin-bottom:4px;">Exam Results Announced</div>
-              <div style="font-size:13px;color:#0f172a;">Mid-Term 1 results for Semester 4 have been published.</div>
-              <div style="font-size:11px;color:#64748b;margin-top:8px;">2 hours ago</div>
-            </div>
-            <div style="padding:16px;background:#eff6ff;border-left:4px solid #2563eb;border-radius:8px;">
-              <div style="font-size:13px;font-weight:700;color:#2563eb;margin-bottom:4px;">New Event Registration</div>
-              <div style="font-size:13px;color:#0f172a;">Registration is now open for the Annual Tech Symposium 2026.</div>
-              <div style="font-size:11px;color:#64748b;margin-top:8px;">1 day ago</div>
-            </div>
-            <div style="padding:16px;background:#fef2f2;border-left:4px solid #dc2626;border-radius:8px;">
-              <div style="font-size:13px;font-weight:700;color:#dc2626;margin-bottom:4px;">Urgent: Fee Payment Due</div>
-              <div style="font-size:13px;color:#0f172a;">Please clear your semester fee dues by the end of this week to avoid late penalties.</div>
-              <div style="font-size:11px;color:#64748b;margin-top:8px;">3 days ago</div>
-            </div>
-          </div>
-        `;
-        openDrawer('Notifications', 'Your latest updates and alerts.', bodyHTML);
-      });
-    }
-  });
+  // Empty to prevent glitch with redirect.
 }
 
 /* ─────────────────────────────────────

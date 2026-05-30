@@ -34,11 +34,15 @@ class NotificationListView(LoginRequiredMixin, View):
             )
         ).distinct().order_by('-created_at')
 
-        return render(request, 'notifications/list.html', {
+        context = {
             'notifications': notifications,
             'departments': Department.objects.all(),
             'user_departments': user_departments,
-        })
+        }
+        if user.role == 'Student' and hasattr(user, 'student_profile'):
+            context['profile'] = user.student_profile
+            
+        return render(request, 'notifications/list.html', context)
 
 class MarkAsReadView(LoginRequiredMixin, View):
     def post(self, request, pk):

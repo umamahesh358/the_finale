@@ -9,70 +9,171 @@
     <h1 class="section-title">Academic Journey</h1>
     <p class="section-sub">Your educational background — from schooling to your current degree.</p>
   </div>
+  <button class="btn-primary" data-bs-toggle="modal" data-bs-target="#addEducationModal">+ Add Educational Details</button>
 </div>
 
-<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;">
-  {% for edu_type_key, edu_type_label in edu_types %}
-  <div class="card edu-card" style="padding:20px;">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-      <div class="edu-degree" style="font-size:14px;font-weight:700;color:var(--text);">{{ edu_type_label }}</div>
-      {% for e in education %}{% if e.edu_type == edu_type_key %}
+{% if education %}
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:24px;">
+  {% for e in education %}
+  <div class="card edu-card" style="padding:24px;border-radius:12px;position:relative;">
+    
+    <!-- DISPLAY COMPONENT -->
+    <div id="display-{{ e.edu_type }}" style="display:block;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+        <div class="edu-degree" style="font-size:16px;font-weight:800;color:var(--text);">{{ e.get_edu_type_display }}</div>
         {% if e.is_verified %}
         <span class="tag tag-green">Verified</span>
         {% else %}
         <span class="tag tag-amber">Pending</span>
         {% endif %}
-      {% endif %}{% endfor %}
-    </div>
-
-    {% for e in education %}{% if e.edu_type == edu_type_key %}
-    <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px;">
-      <div class="edu-inst" style="font-size:13px;font-weight:600;color:#334155;">{{ e.institution }}</div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        <span class="tag edu-chip">{{ e.year_of_passing }}</span>
-        <span class="tag edu-chip">{{ e.board_university }}</span>
       </div>
-      <span class="edu-badge" style="font-size:13px;font-weight:700;color:var(--primary);">{{ e.score }} {{ e.score_type }}</span>
-    </div>
-    {% endif %}{% endfor %}
 
-    <!-- Inline Edit Form -->
-    <form method="post" style="display:flex;flex-direction:column;gap:10px;">
+      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;">
+        <div class="edu-inst" style="font-size:15px;font-weight:700;color:#334155;line-height:1.4;">{{ e.institution }}</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;">
+          <span class="tag" style="background:#f1f5f9;color:#475569;border:none;">📅 {{ e.year_of_passing }}</span>
+          <span class="tag" style="background:#f1f5f9;color:#475569;border:none;">🏛️ {{ e.board_university }}</span>
+        </div>
+        <div style="font-size:14px;font-weight:800;color:var(--primary);margin-top:8px;">🎯 Score/Rank: {{ e.score }} {{ e.score_type }}</div>
+      </div>
+      
+      <div style="display:flex;gap:12px;margin-top:20px;padding-top:16px;border-top:1px dashed var(--border);">
+        <button type="button" class="btn-outline" style="flex:1;padding:8px 12px;font-size:13px;border-radius:8px;" onclick="document.getElementById('display-{{ e.edu_type }}').style.display='none'; document.getElementById('form-{{ e.edu_type }}').style.display='flex';">✏️ Edit</button>
+        <form method="post" style="flex:1;display:flex;" onsubmit="return confirm('Are you sure you want to remove this education record?');">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="delete">
+          <input type="hidden" name="edu_type" value="{{ e.edu_type }}">
+          <button type="submit" class="btn-danger" style="width:100%;padding:8px 12px;font-size:13px;border-radius:8px;">🗑️ Delete</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- INLINE EDIT FORM COMPONENT (Hidden by default) -->
+    <form id="form-{{ e.edu_type }}" method="post" style="display:none;flex-direction:column;gap:12px;">
       {% csrf_token %}
-      <input type="hidden" name="edu_type" value="{{ edu_type_key }}">
+      <input type="hidden" name="action" value="save">
+      <input type="hidden" name="edu_type" value="{{ e.edu_type }}">
+      
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <div class="edu-degree" style="font-size:16px;font-weight:800;color:var(--text);">Edit {{ e.get_edu_type_display }}</div>
+      </div>
+
       <div class="df-group">
         <label class="df-label">Institution *</label>
-        <input type="text" name="institution" class="df-input" placeholder="Institution name"
-          {% for e in education %}{% if e.edu_type == edu_type_key %}value="{{ e.institution }}"{% endif %}{% endfor %}>
+        <input type="text" name="institution" class="df-input" placeholder="Institution name" value="{{ e.institution }}" required>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
         <div class="df-group">
-          <label class="df-label">Board / University</label>
-          <input type="text" name="board_university" class="df-input" placeholder="JNTUA / CBSE"
-            {% for e in education %}{% if e.edu_type == edu_type_key %}value="{{ e.board_university }}"{% endif %}{% endfor %}>
+          <label class="df-label">Board / Univ</label>
+          <input type="text" name="board_university" class="df-input" placeholder="JNTUA / CBSE" value="{{ e.board_university }}" required>
         </div>
         <div class="df-group">
           <label class="df-label">Year</label>
-          <input type="number" name="year_of_passing" class="df-input" placeholder="2022"
-            {% for e in education %}{% if e.edu_type == edu_type_key %}value="{{ e.year_of_passing }}"{% endif %}{% endfor %}>
+          <input type="number" name="year_of_passing" class="df-input" placeholder="YYYY" value="{{ e.year_of_passing }}" required>
         </div>
+      </div>
+      
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
         <div class="df-group">
           <label class="df-label">Score / Rank</label>
-          <input type="text" name="score" class="df-input" placeholder="9.2 or 96%"
-            {% for e in education %}{% if e.edu_type == edu_type_key %}value="{{ e.score }}"{% endif %}{% endfor %}>
+          <input type="text" name="score" class="df-input" placeholder="9.2 or 96%" value="{{ e.score }}" required>
         </div>
         <div class="df-group">
           <label class="df-label">Score Type</label>
-          <select name="score_type" class="df-input">
-            <option value="%">Percentage</option>
-            <option value="GPA">GPA</option>
-            <option value="Rank">Rank</option>
+          <select name="score_type" class="df-input" required>
+            <option value="CGPA" {% if e.score_type == 'CGPA' %}selected{% endif %}>CGPA</option>
+            <option value="Percentage" {% if e.score_type == 'Percentage' %}selected{% endif %}>Percentage</option>
+            <option value="Rank" {% if e.score_type == 'Rank' %}selected{% endif %}>Rank (EAMCET/ECET)</option>
           </select>
         </div>
       </div>
-      <button type="submit" class="df-btn-primary" style="margin-top:4px;">Save {{ edu_type_label }}</button>
+      
+      <div style="display:flex;gap:8px;margin-top:8px;">
+        <button type="submit" class="btn-primary" style="flex:1;">Save Updates</button>
+        <button type="button" class="btn-ghost" style="padding:0 12px;" onclick="document.getElementById('form-{{ e.edu_type }}').style.display='none'; document.getElementById('display-{{ e.edu_type }}').style.display='block';">Cancel</button>
+      </div>
     </form>
+
   </div>
   {% endfor %}
 </div>
+{% else %}
+<div class="card" style="padding:40px;text-align:center;">
+  <div style="font-size:48px;margin-bottom:16px;">🎓</div>
+  <div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:8px;">No Education Added Yet</div>
+  <p style="font-size:14px;color:var(--muted);">Click the button above to add your 10th, 12th, or entrance exam details.</p>
+</div>
+{% endif %}
+
+
+<!-- Add Education Modal -->
+<div class="modal fade" id="addEducationModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" style="border:none;border-radius:16px;overflow:hidden;box-shadow:0 20px 40px rgba(0,0,0,0.1);">
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="save">
+        
+        <div style="padding:24px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;background:#f8fafc;">
+          <h5 style="margin:0;font-size:18px;font-weight:800;color:var(--text);">Add Educational Details</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        
+        <div style="padding:24px;display:flex;flex-direction:column;gap:16px;">
+          
+          <div class="df-group">
+            <label class="df-label">Education Type *</label>
+            <select name="edu_type" class="df-input" required>
+              <option value="" disabled selected>Select education type...</option>
+              {% for edu_type_key, edu_type_label in edu_types %}
+                <!-- Only show option if the student hasn't already added it -->
+                {% if edu_type_key not in existing_edu_types %}
+                  <option value="{{ edu_type_key }}">{{ edu_type_label }}</option>
+                {% endif %}
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="df-group">
+            <label class="df-label">Institution Name *</label>
+            <input type="text" name="institution" class="df-input" placeholder="e.g. SR Junior College" required>
+          </div>
+          
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div class="df-group">
+              <label class="df-label">Board / Univ</label>
+              <input type="text" name="board_university" class="df-input" placeholder="BIEAP / CBSE" required>
+            </div>
+            <div class="df-group">
+              <label class="df-label">Year of Passing</label>
+              <input type="number" name="year_of_passing" class="df-input" placeholder="2022" required>
+            </div>
+          </div>
+          
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div class="df-group">
+              <label class="df-label">Score / Rank</label>
+              <input type="text" name="score" class="df-input" placeholder="9.2 or 96% or 12450" required>
+            </div>
+            <div class="df-group">
+              <label class="df-label">Score Type</label>
+              <select name="score_type" class="df-input" required>
+                <option value="CGPA">CGPA</option>
+                <option value="Percentage">Percentage</option>
+                <option value="Rank">Rank (EAMCET/ECET)</option>
+              </select>
+            </div>
+          </div>
+
+        </div>
+        <div style="padding:24px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:12px;background:#f8fafc;">
+          <button type="button" class="btn-ghost" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn-primary">Save Details</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
 {% endblock %}

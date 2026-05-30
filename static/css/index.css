@@ -2,14 +2,14 @@
 
 :root {
     /* Premium Palette - Slate/Blue Focus */
-    --brand-primary: #0062FF;
-    --brand-secondary: #00D1FF;
+    --brand-primary: #AF0C3E;
+    --brand-secondary: #8F0830;
     --brand-dark: #0F172A;
     --brand-light: #F8FAFC;
 
     /* CIET Branding - Integrated */
-    --ciet-maroon: #800000;
-    --ciet-gold: #FFD700;
+    --ciet-maroon: #AF0C3E;
+    --ciet-gold: #22D3EE;
 
     /* Layout Tokens */
     --glass-bg: rgba(255, 255, 255, 0.7);
@@ -337,8 +337,8 @@ body {
 
 .input-glass:focus {
     background: #fff;
-    border-color: #FDF9D4;
-    box-shadow: 0 0 0 4px rgba(253, 249, 212, 0.2);
+    border-color: #AF0C3E;
+    box-shadow: 0 0 0 4px rgba(175, 12, 62, 0.15);
     outline: none;
 }
 
@@ -359,78 +359,78 @@ body {
 
 /* Global Theme Overrides */
 .text-maroon {
-    color: #4a4a4a !important;
+    color: #AF0C3E !important;
 }
 
 .bg-maroon {
-    background-color: #FDF9D4 !important;
-    color: #4a4a4a !important;
+    background-color: #AF0C3E !important;
+    color: #FFFFFF !important;
 }
 
 .text-primary {
-    color: #a19a5f !important;
+    color: #AF0C3E !important;
 }
 
 /* A darker citrus for emphasis */
 .border-maroon {
-    border-color: #FDF9D4 !important;
+    border-color: #AF0C3E !important;
 }
 
 .bg-maroon-subtle {
-    background-color: rgba(253, 249, 212, 0.4) !important;
+    background-color: rgba(175, 12, 62, 0.1) !important;
 }
 
 .bg-primary-subtle {
-    background-color: rgba(253, 249, 212, 0.2) !important;
+    background-color: rgba(175, 12, 62, 0.05) !important;
 }
 
 /* Student Portal Overrides */
 .pf-banner {
-    background: linear-gradient(120deg, #FDF9D4 0%, #FFFFFF 100%) !important;
+    background: linear-gradient(120deg, rgba(175, 12, 62, 0.08) 0%, #FFFFFF 100%) !important;
 }
 
 .pf-av-ph {
-    background: #FDF9D4 !important;
-    color: #4a4a4a !important;
+    background: #AF0C3E !important;
+    color: #FFFFFF !important;
 }
 
 .pf-stat-val {
-    color: #4a4a4a !important;
+    color: #AF0C3E !important;
 }
 
 .abt-p {
-    background: #FDF9D4 !important;
-    color: #4a4a4a !important;
-    border: 1px solid #f8f1b0 !important;
+    background: rgba(175, 12, 62, 0.05) !important;
+    color: #0F172A !important;
+    border: 1px solid rgba(175, 12, 62, 0.15) !important;
 }
 
 .abt-o:hover {
-    border-color: #FDF9D4 !important;
-    color: #4a4a4a !important;
+    border-color: #AF0C3E !important;
+    color: #AF0C3E !important;
 }
 
 .abt-g {
     background: #FFFFFF !important;
-    color: #4a4a4a !important;
-    border: 1px solid #FDF9D4 !important;
+    color: #0F172A !important;
+    border: 1px solid #E2E8F0 !important;
 }
 
 .kpi-val {
-    color: #4a4a4a !important;
+    color: #AF0C3E !important;
 }
 
 .std-tab.active {
-    color: #4a4a4a !important;
-    border-bottom-color: #FDF9D4 !important;
+    color: #AF0C3E !important;
+    border-bottom-color: #AF0C3E !important;
 }
 
 .tl-ico {
-    background: rgba(253, 249, 212, 0.5) !important;
-    color: #4a4a4a !important;
+    background: rgba(175, 12, 62, 0.1) !important;
+    color: #AF0C3E !important;
 }
 
 .proj-row:hover {
-    border-color: #FDF9D4 !important;
+    border-color: #AF0C3E !important;
 }
 
 /* Responsive */

@@ -1,0 +1,210 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block title %}{{ app_list.0.name }} | {% translate 'Admin Portal' %}{% endblock %}
+
+{% block bodyclass %}{{ block.super }} app-{{ app_list.0.app_label }} app-index-dashboard{% endblock %}
+
+{% block nav-breadcrumbs %}{% endblock %}
+
+{% block content %}
+<style>
+    .app-index-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        animation: fadeIn 0.4s ease-out;
+    }
+    .app-index-header {
+        margin-bottom: 2rem;
+    }
+    .app-index-title {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: #1E293B;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    .app-index-badge {
+        font-size: 0.75rem;
+        background: #FDF2F4;
+        color: var(--admin-primary);
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-weight: 600;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+    }
+    .app-index-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    .model-dashboard-card {
+        background: #FFFFFF;
+        border: 1px solid #E2E8F0;
+        border-radius: 16px;
+        padding: 1.5rem;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        min-height: 200px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.01);
+    }
+    .model-dashboard-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 20px -8px rgba(15, 23, 42, 0.08);
+        border-color: rgba(175, 12, 62, 0.2);
+    }
+    .model-card-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        margin-bottom: 1rem;
+    }
+    .model-card-info {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    .model-card-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 12px;
+        background: #FDF2F4;
+        color: var(--admin-primary);
+        display: grid;
+        place-items: center;
+        font-size: 1.25rem;
+    }
+    .model-card-name {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #1E293B;
+        text-decoration: none;
+    }
+    .model-card-name:hover {
+        color: var(--admin-primary);
+    }
+    .model-card-desc {
+        font-size: 0.875rem;
+        color: #64748B;
+        line-height: 1.5;
+        margin-bottom: 1.5rem;
+    }
+    .model-card-actions {
+        display: flex;
+        gap: 10px;
+        border-top: 1px solid #F1F5F9;
+        padding-top: 1rem;
+        margin-top: auto;
+    }
+    .btn-action-primary {
+        flex: 1;
+        background: var(--admin-primary) !important;
+        color: #FFFFFF !important;
+        border: none !important;
+        border-radius: 10px !important;
+        padding: 8px 16px !important;
+        font-weight: 600 !important;
+        font-size: 0.85rem !important;
+        text-align: center !important;
+        text-decoration: none !important;
+        transition: all 0.2s ease !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 6px !important;
+    }
+    .btn-action-primary:hover {
+        background: var(--admin-primary-600) !important;
+        box-shadow: 0 4px 12px rgba(175, 12, 62, 0.2) !important;
+    }
+    .btn-action-secondary {
+        flex: 1;
+        background: #FFFFFF !important;
+        color: #475569 !important;
+        border: 1px solid #E2E8F0 !important;
+        border-radius: 10px !important;
+        padding: 8px 16px !important;
+        font-weight: 600 !important;
+        font-size: 0.85rem !important;
+        text-align: center !important;
+        text-decoration: none !important;
+        transition: all 0.2s ease !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 6px !important;
+    }
+    .btn-action-secondary:hover {
+        background: #F8FAFC !important;
+        color: #0F172A !important;
+        border-color: #CBD5E1 !important;
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(8px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
+
+<div class="app-index-container">
+    {% if app_list %}
+        {% for app in app_list %}
+            <div class="app-index-header">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <a href="{% url 'admin:index' %}" class="text-decoration-none text-muted small"><i class="bi bi-arrow-left"></i> {% translate 'Dashboard' %}</a>
+                    <span class="text-muted small">/</span>
+                    <span class="text-muted small">{{ app.name }}</span>
+                </div>
+                <h1 class="app-index-title">
+                    <span>{{ app.name }}</span>
+                    <span class="app-index-badge">{% translate 'App Administration' %}</span>
+                </h1>
+                <p class="text-muted mb-0">{% translate 'Select a database model card below to insert new records or manage current lists.' %}</p>
+            </div>
+
+            <div class="app-index-grid">
+                {% for model in app.models %}
+                    <div class="model-dashboard-card">
+                        <div>
+                            <div class="model-card-header">
+                                <div class="model-card-info">
+                                    <div class="model-card-icon">
+                                        <i class="bi bi-folder2"></i>
+                                    </div>
+                                    {% if model.admin_url %}
+                                        <a href="{{ model.admin_url }}" class="model-card-name">{{ model.name }}</a>
+                                    {% else %}
+                                        <span class="model-card-name">{{ model.name }}</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="model-card-desc">
+                                {% translate 'Manage ' %}{{ model.name|lower }}{% translate ' records, perform advanced filters, edits, updates, or bulk export files.' %}
+                            </div>
+                        </div>
+                        <div class="model-card-actions">
+                            {% if model.admin_url %}
+                                <a href="{{ model.admin_url }}" class="btn-action-secondary">
+                                    <i class="bi bi-list-ul"></i> {% translate 'Manage List' %}
+                                </a>
+                            {% endif %}
+                            {% if model.add_url %}
+                                <a href="{{ model.add_url }}" class="btn-action-primary">
+                                    <i class="bi bi-plus-circle"></i> {% translate 'Add New' %}
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endfor %}
+    {% else %}
+        <p>{% translate 'You don’t have permission to view or edit anything.' %}</p>
+    {% endif %}
+</div>
+{% endblock %}

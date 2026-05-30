@@ -21,25 +21,19 @@
 </div>
 
 {% if projects %}
-<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px;">
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:24px;">
   {% for p in projects %}
-  <div class="card project-card" style="padding:20px;display:flex;flex-direction:column;gap:12px;position:relative;">
+  <div class="card project-card" style="padding:16px;display:flex;flex-direction:column;gap:12px;position:relative;border-radius:12px;">
     {% if p.cover_image %}
-    <img src="{{ p.cover_image.url }}" alt="{{ p.title }}" style="width:100%;height:160px;object-fit:cover;border-radius:8px;border:1px solid var(--border);">
+    <div style="width:100%;aspect-ratio:16/9;background:#f8fafc;border-radius:8px;border:1px solid var(--border);margin-bottom:4px;display:flex;align-items:center;justify-content:center;padding:8px;overflow:hidden;">
+      <img src="{{ p.cover_image.url }}" alt="{{ p.title }}" style="max-width:100%;max-height:100%;object-fit:contain;">
+    </div>
     {% endif %}
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
       <div>
-        <div style="font-size:15px;font-weight:700;color:var(--text);">{{ p.title }}</div>
+        <div style="font-size:16px;font-weight:800;color:var(--text);line-height:1.2;margin-bottom:4px;">{{ p.title }}</div>
         <span class="tag" style="margin-top:4px;">{{ p.get_project_type_display }}</span>
         {% if p.is_verified %}<span class="tag tag-green" style="margin-left:4px;">Verified</span>{% endif %}
       </div>
-      <form method="post" onsubmit="return confirm('Remove this project?');">
-        {% csrf_token %}
-        <input type="hidden" name="action" value="delete">
-        <input type="hidden" name="project_id" value="{{ p.id }}">
-        <button type="submit" style="font-size:11px;color:#dc2626;background:none;border:none;cursor:pointer;padding:4px;">✕ Remove</button>
-      </form>
-    </div>
     {% if p.description %}
     <p style="font-size:12px;color:#475569;line-height:1.6;margin:0;">{{ p.description|truncatewords:25 }}</p>
     {% endif %}
@@ -50,15 +44,22 @@
       {% endfor %}
     </div>
     {% endif %}
-    <div style="display:flex;gap:8px;margin-top:4px;padding-top:12px;border-top:1px solid var(--border);">
-      {% if p.repo_url %}
-      <a href="{{ p.repo_url }}" target="_blank" class="btn-ghost" style="font-size:12px;padding:7px 14px;text-decoration:none;">GitHub →</a>
-      {% endif %}
-      {% if p.is_group %}
-      <span style="font-size:11px;color:var(--muted);font-weight:600;align-self:center;">{{ p.team_size }} Members</span>
-      {% else %}
-      <span style="font-size:11px;color:var(--muted);font-weight:600;align-self:center;">Solo Project</span>
-      {% endif %}
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:auto;padding-top:16px;border-top:1px dashed var(--border);">
+      <div style="display:flex;gap:12px;align-items:center;">
+        {% if p.repo_url %}
+        <a href="{{ p.repo_url }}" target="_blank" class="btn-ghost" style="font-size:13px;padding:6px 12px;text-decoration:none;">GitHub →</a>
+        {% endif %}
+        <span style="font-size:12px;color:var(--muted);font-weight:600;">{% if p.is_group %}{{ p.team_size }} Members{% else %}Solo Project{% endif %}</span>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button type="button" class="btn-outline" style="padding:6px 12px;font-size:12px;border-radius:6px;" data-bs-toggle="modal" data-bs-target="#addProjectModal" onclick="populateProjectModal(this.dataset.id, this.dataset.title, this.dataset.desc, this.dataset.tech, this.dataset.type, this.dataset.group, this.dataset.size, this.dataset.url)" data-id="{{ p.id }}" data-title="{{ p.title }}" data-desc="{{ p.description }}" data-tech="{{ p.tech_stack }}" data-type="{{ p.project_type }}" data-group="{{ p.is_group }}" data-size="{{ p.team_size }}" data-url="{{ p.repo_url }}">✏️ Edit</button>
+        <form method="post" style="display:inline;" onsubmit="return confirm('Delete this project?');">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="delete">
+          <input type="hidden" name="project_id" value="{{ p.id }}">
+          <button type="submit" class="btn-danger" style="padding:6px 12px;font-size:12px;border-radius:6px;">🗑️ Delete</button>
+        </form>
+      </div>
     </div>
   </div>
   {% endfor %}
@@ -76,11 +77,13 @@
   <div class="modal-dialog modal-lg">
     <div class="modal-content" style="border-radius:16px;border:1px solid var(--border);">
       <div class="modal-header" style="padding:20px 24px;border-bottom:1px solid var(--border);">
-        <h5 class="modal-title" style="font-size:15px;font-weight:700;">Add New Project</h5>
+        <h5 class="modal-title" id="projectModalTitle" style="font-size:15px;font-weight:700;">Add New Project</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
+        <input type="hidden" name="action" value="create" id="projectActionInput">
+        <input type="hidden" name="project_id" value="" id="projectIdInput">
         <div class="modal-body" style="padding:24px;display:grid;grid-template-columns:1fr 1fr;gap:16px;">
           <div class="df-group"><label class="df-label">Project Title *</label><input type="text" name="title" class="df-input" required placeholder="e.g. AI Autonomous Drone"></div>
           <div class="df-group"><label class="df-label">Type</label>
@@ -107,4 +110,33 @@
     </div>
   </div>
 </div>
+
+<script>
+function populateProjectModal(id, title, desc, tech, type, isGroup, teamSize, url) {
+  document.getElementById('projectActionInput').value = 'edit';
+  document.getElementById('projectIdInput').value = id;
+  document.getElementById('projectModalTitle').innerText = 'Edit Project';
+  document.querySelector('#addProjectModal input[name="title"]').value = title;
+  document.querySelector('#addProjectModal textarea[name="description"]').value = desc;
+  document.querySelector('#addProjectModal input[name="tech_stack"]').value = tech;
+  document.querySelector('#addProjectModal select[name="project_type"]').value = type;
+  document.querySelector('#addProjectModal input[name="repo_url"]').value = url;
+  
+  const groupCheck = document.getElementById('isGroupCheck');
+  if (isGroup === 'True' || isGroup === 'true') {
+    groupCheck.checked = true;
+  } else {
+    groupCheck.checked = false;
+  }
+  document.querySelector('#addProjectModal input[name="team_size"]').value = teamSize;
+}
+
+// Reset modal on close so "Add New" works next time
+document.getElementById('addProjectModal').addEventListener('hidden.bs.modal', function () {
+  document.getElementById('projectActionInput').value = 'create';
+  document.getElementById('projectIdInput').value = '';
+  document.getElementById('projectModalTitle').innerText = 'Add New Project';
+  this.querySelector('form').reset();
+});
+</script>
 {% endblock %}

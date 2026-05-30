@@ -1,11 +1,38 @@
 :root {
-  --admin-primary: #4F46E5;
-  --admin-primary-600: #4338CA;
-  --admin-accent: #6366F1;
-  --admin-bg: #F9FAFB;
-  --admin-text: #1F2937;
-  --admin-sidebar: #111827;
-  --admin-border: #E5E7EB;
+  --admin-primary: #AF0C3E;
+  --admin-primary-600: #8F0830;
+  --admin-accent: #22D3EE;
+  --admin-bg: #F8FAFC;
+  --admin-text: #0F172A;
+  --admin-sidebar: #1E293B;
+  --admin-border: #E2E8F0;
+
+  /* Native Django Admin CSS Variable Overrides to Eradicate Blue Color Globally */
+  --primary: #AF0C3E !important;
+  --primary-fg: #ffffff !important;
+  --secondary: #8F0830 !important;
+  --secondary-fg: #ffffff !important;
+  --accent: #22D3EE !important;
+  --accent-fg: #0F172A !important;
+  --body-bg: #F8FAFC !important;
+  --body-fg: #0F172A !important;
+  --header-bg: #AF0C3E !important;
+  --header-color: #ffffff !important;
+  --header-link-color: #ffffff !important;
+  --breadcrumbs-bg: #F8FAFC !important;
+  --breadcrumbs-fg: #64748B !important;
+  --breadcrumbs-link-fg: #AF0C3E !important;
+  --link-color: #AF0C3E !important;
+  --link-hover-color: #8F0830 !important;
+  --link-selected-color: #AF0C3E !important;
+  --button-bg: #AF0C3E !important;
+  --button-hover-bg: #8F0830 !important;
+  --default-button-bg: #8F0830 !important;
+  --default-button-hover-bg: #6E0522 !important;
+  --border-color: #E2E8F0 !important;
+  --message-success-bg: #ECFDF5 !important;
+  --message-warning-bg: #FFFBEB !important;
+  --message-error-bg: #FEF2F2 !important;
 }
 
 body.admin-body {
@@ -18,84 +45,7 @@ body.admin-body {
   display: flex;
 }
 
-.admin-sidebar {
-  width: 260px;
-  background: var(--admin-sidebar);
-  color: #E5E7EB;
-  display: flex;
-  flex-direction: column;
-  position: sticky;
-  top: 0;
-  height: 100vh;
-  padding: 1.5rem 1rem;
-}
-
-.sidebar-brand {
-  margin-bottom: 1.5rem;
-}
-
-.brand-link {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  color: #F9FAFB;
-  font-weight: 600;
-  text-decoration: none;
-}
-
-.brand-mark {
-  width: 36px;
-  height: 36px;
-  display: grid;
-  place-items: center;
-  border-radius: 10px;
-  background: rgba(99, 102, 241, 0.2);
-  color: #A5B4FC;
-}
-
-.sidebar-nav {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-  overflow-y: auto;
-  padding-right: 0.25rem;
-}
-
-.nav-section {
-  margin-top: 1rem;
-  margin-bottom: 0.35rem;
-  font-size: 0.75rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: #9CA3AF;
-}
-
-.sidebar-nav .nav-link {
-  color: #E5E7EB;
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  padding: 0.5rem 0.75rem;
-  border-radius: 10px;
-  text-decoration: none;
-  font-size: 0.95rem;
-}
-
-.sidebar-nav .nav-link:hover,
-.sidebar-nav .nav-link.active {
-  background: rgba(79, 70, 229, 0.2);
-  color: #FFFFFF;
-}
-
-.nav-sublink {
-  font-size: 0.9rem;
-  padding-left: 1.5rem;
-}
-
-.sidebar-footer {
-  margin-top: auto;
-  padding-top: 1rem;
-}
+/* Legacy sidebar styling cleaned up to prevent duplication - styled in premium Phase 3 section below */
 
 .admin-main {
   flex: 1;
@@ -196,20 +146,30 @@ body.admin-body {
   flex-wrap: wrap;
 }
 
-#content-main .object-tools a {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  padding: 0.4rem 0.75rem;
-  background: var(--admin-primary);
-  color: #FFFFFF;
-  border-radius: 8px;
-  text-decoration: none;
-  font-weight: 600;
+#content-main .object-tools a,
+#content-main .object-tools a:link,
+#content-main .object-tools a:visited,
+.object-tools a,
+.object-tools a:link,
+.object-tools a:visited {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.35rem !important;
+  padding: 0.5rem 1rem !important;
+  background: var(--admin-primary) !important;
+  color: #FFFFFF !important;
+  border-radius: 8px !important;
+  text-decoration: none !important;
+  font-weight: 600 !important;
+  transition: all 0.2s ease !important;
 }
 
-#content-main .object-tools a:hover {
-  background: var(--admin-primary-600);
+#content-main .object-tools a:hover,
+.object-tools a:hover {
+  background: var(--admin-primary-600) !important;
+  color: #FFFFFF !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(175, 12, 62, 0.15) !important;
 }
 
 .module {
@@ -287,15 +247,63 @@ body.admin-body {
   display: block;
 }
 
-.form-row input,
+.form-row input[type="text"],
+.form-row input[type="password"],
+.form-row input[type="email"],
+.form-row input[type="number"],
+.form-row input[type="url"],
+.form-row input[type="tel"],
+.form-row input[type="date"],
+.form-row input[type="time"],
 .form-row select,
 .form-row textarea,
-.form-row .vTextField {
-  width: 100%;
-  padding: 0.5rem 0.75rem;
-  border-radius: 8px;
-  border: 1px solid var(--admin-border);
-  background: #FFFFFF;
+.form-row .vTextField,
+.vTextField {
+  width: 100% !important;
+  height: 42px !important;
+  padding: 8px 12px !important;
+  border-radius: 8px !important;
+  border: 1px solid var(--admin-border) !important;
+  background: #FFFFFF !important;
+  box-sizing: border-box !important;
+  font-family: inherit !important;
+  line-height: 1.5 !important;
+  transition: all 0.2s ease !important;
+}
+
+.form-row textarea {
+  height: auto !important;
+  min-height: 100px !important;
+}
+
+/* Fix massive checkbox containers and keep them compact and aligned */
+.form-row input[type="checkbox"],
+.form-row input[type="radio"] {
+  width: 18px !important;
+  height: 18px !important;
+  padding: 0 !important;
+  border: 1px solid var(--admin-border) !important;
+  border-radius: 4px !important;
+  background: #FFFFFF !important;
+  margin: 0 8px 0 0 !important;
+  display: inline-block !important;
+  vertical-align: middle !important;
+  cursor: pointer !important;
+  box-shadow: none !important;
+}
+
+.form-row label.vCheckboxLabel {
+  display: inline-block !important;
+  vertical-align: middle !important;
+  margin: 0 !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+}
+
+.form-row .checkbox-row {
+  display: flex !important;
+  align-items: center !important;
+  padding: 8px 0 !important;
 }
 
 fieldset.module h2 {
@@ -318,18 +326,713 @@ fieldset.module h2 {
   padding: 0.5rem 1rem;
 }
 
-@media (max-width: 992px) {
-  .admin-shell {
-    flex-direction: column;
-  }
+/* Force Bootstrap components to follow brand color variables */
+.btn-primary,
+.btn-primary:link,
+.btn-primary:visited,
+.text-bg-primary {
+  background-color: var(--admin-primary) !important;
+  border-color: var(--admin-primary) !important;
+  color: #ffffff !important;
+  transition: all 0.2s ease !important;
+}
 
-  .admin-sidebar {
-    position: relative;
-    width: 100%;
-    height: auto;
-  }
+.btn-primary:hover,
+.btn-primary:active {
+  background-color: var(--admin-primary-600) !important;
+  border-color: var(--admin-primary-600) !important;
+  color: #ffffff !important;
+}
 
-  .admin-main {
-    width: 100%;
-  }
+.btn-outline-primary,
+.btn-outline-primary:link,
+.btn-outline-primary:visited {
+  color: var(--admin-primary) !important;
+  border-color: var(--admin-primary) !important;
+  background-color: transparent !important;
+  transition: all 0.2s ease !important;
+}
+
+.btn-outline-primary:hover,
+.btn-outline-primary:active {
+  background-color: var(--admin-primary) !important;
+  border-color: var(--admin-primary) !important;
+  color: #ffffff !important;
+}
+
+.btn-outline-secondary,
+.btn-outline-secondary:link,
+.btn-outline-secondary:visited {
+  color: #64748B !important;
+  border-color: #E2E8F0 !important;
+  background-color: transparent !important;
+  transition: all 0.2s ease !important;
+}
+
+.btn-outline-secondary:hover,
+.btn-outline-secondary:active {
+  background-color: #F1F5F9 !important;
+  border-color: #CBD5E1 !important;
+  color: #1E293B !important;
+}
+
+.text-primary {
+  color: var(--admin-primary) !important;
+}
+
+.badge.text-bg-primary {
+  background-color: var(--admin-primary) !important;
+  color: #ffffff !important;
+}
+
+.badge.text-bg-success {
+  background-color: #10B981 !important;
+}
+
+.badge.text-bg-danger {
+  background-color: #EF4444 !important;
+}
+
+.list-group-item a {
+  color: var(--admin-primary);
+  transition: color 0.2s ease;
+}
+
+.list-group-item a:hover {
+  color: var(--admin-primary-600);
+}
+
+/* Rounded, friendly inputs with focus rings */
+.form-row input:focus, 
+.form-row select:focus, 
+.form-row textarea:focus,
+.vTextField:focus {
+  border-color: var(--admin-primary) !important;
+  box-shadow: 0 0 0 3px rgba(175, 12, 62, 0.15) !important;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.admin-card {
+  border-radius: 12px !important;
+  border: 1px solid var(--admin-border) !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05) !important;
+}
+
+/* Premium Light Collapsible Sidebar Drawer - Perfectly Aligned with Student Portal Aesthetic */
+.admin-sidebar {
+  position: fixed !important;
+  top: 0;
+  left: 0;
+  width: 290px !important;
+  height: 100vh !important;
+  z-index: 1200 !important;
+  transform: translateX(-100%);
+  background: #FFFFFF !important; /* Solid clean white background */
+  border-right: 1px solid #E2E8F0 !important; /* Subtle gray boundary */
+  color: #1E293B !important; /* Dark slate text */
+  display: flex !important;
+  flex-direction: column !important;
+  padding: 1.75rem 1.25rem !important;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), background 0.3s ease !important;
+  box-shadow: 15px 0 30px rgba(15, 23, 42, 0.04) !important; /* Extremely soft shadow */
+}
+
+.admin-shell.sidebar-open .admin-sidebar {
+  transform: translateX(0) !important;
+}
+
+.admin-main {
+  width: 100%;
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: #F8FAFC !important; /* High-end light slate canvas */
+}
+
+/* Overlay to close sidebar on tapping outside */
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.3); /* Softer backdrop for light theme */
+  backdrop-filter: blur(4px);
+  z-index: 1100;
+  transition: opacity 0.3s ease;
+}
+
+.admin-shell.sidebar-open .sidebar-overlay {
+  display: block;
+}
+
+/* Sidebar Brand Header - Aligned with Student Portal Logo Mark & Typeface */
+.sidebar-brand {
+  margin-bottom: 2rem !important;
+  padding-left: 0.5rem !important;
+}
+
+.brand-link {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.75rem !important;
+  color: #1E293B !important;
+  font-weight: 700 !important;
+  text-decoration: none !important;
+  font-size: 1.1rem !important;
+  letter-spacing: -0.02em !important;
+}
+
+.brand-mark {
+  width: 36px !important;
+  height: 36px !important;
+  display: grid !important;
+  place-items: center !important;
+  border-radius: 50% !important; /* Perfectly circular logo badge */
+  background: var(--admin-primary) !important; /* Solid brand crimson */
+  color: #FFFFFF !important;
+  font-weight: 800 !important;
+  font-size: 0.85rem !important;
+  box-shadow: 0 2px 8px rgba(175, 12, 62, 0.2) !important;
+}
+
+/* Force "CI" logo text to display inside the brand badge */
+.brand-mark::before {
+  content: "CI" !important;
+  font-family: "Outfit", sans-serif !important;
+}
+
+/* Hide grid icon in the mark */
+.brand-mark i {
+  display: none !important;
+}
+
+.brand-text {
+  color: #1E293B !important;
+  font-weight: 700 !important;
+  font-family: 'Outfit', sans-serif !important;
+}
+
+/* Sidebar Nav Wrapper & Dynamic Menu Options */
+.sidebar-nav-wrapper {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 0.25rem !important;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.sidebar-nav-wrapper::-webkit-scrollbar {
+  width: 4px;
+}
+
+.sidebar-nav-wrapper::-webkit-scrollbar-thumb {
+  background: rgba(15, 23, 42, 0.05);
+  border-radius: 99px;
+}
+
+.sidebar-nav-wrapper .nav-link.dashboard-link {
+  color: #475569 !important; /* Soft dark-slate text */
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.75rem !important;
+  padding: 0.65rem 0.85rem !important;
+  border-radius: 10px !important;
+  text-decoration: none !important;
+  font-size: 0.92rem !important;
+  font-weight: 500 !important;
+  transition: all 0.2s ease !important;
+}
+
+.sidebar-nav-wrapper .nav-link.dashboard-link i {
+  font-size: 1.1rem !important;
+  color: #94A3B8 !important; /* Muted silver-grey icons */
+  transition: color 0.2s ease !important;
+}
+
+.sidebar-nav-wrapper .nav-link.dashboard-link:hover {
+  background: rgba(15, 23, 42, 0.03) !important;
+  color: #1E293B !important;
+}
+
+.sidebar-nav-wrapper .nav-link.dashboard-link:hover i {
+  color: var(--admin-primary) !important;
+}
+
+.sidebar-nav-wrapper .nav-link.dashboard-link.active {
+  background: #FDF2F4 !important; /* Soft cherry-pink active background */
+  color: var(--admin-primary) !important; /* Crimson active text */
+  font-weight: 600 !important;
+}
+
+.sidebar-nav-wrapper .nav-link.dashboard-link.active i {
+  color: var(--admin-primary) !important;
+}
+
+/* Custom Static Sidebar Menu Styling - Perfectly Aligned with Student Portal */
+.sidebar-custom-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Sidebar Search Filter Input Box */
+.sidebar-search-box {
+  position: relative;
+  width: 100%;
+}
+
+.sidebar-search-box input {
+  width: 100% !important;
+  background: #F8FAFC !important;
+  border: 1px solid #E2E8F0 !important;
+  border-radius: 10px !important;
+  color: #1E293B !important;
+  padding: 0.5rem 0.75rem 0.5rem 2.25rem !important;
+  font-size: 0.85rem !important;
+  transition: all 0.2s ease !important;
+}
+
+.sidebar-search-box input:focus {
+  background: #FFFFFF !important;
+  border-color: var(--admin-primary) !important;
+  box-shadow: 0 0 0 3px rgba(175, 12, 62, 0.08) !important;
+  outline: none !important;
+}
+
+.sidebar-search-box .search-icon {
+  position: absolute !important;
+  left: 0.85rem !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  color: #94A3B8 !important;
+  font-size: 0.85rem !important;
+}
+
+/* App Category Dividers (MAIN, PEOPLE, SYSTEM) */
+.menu-category {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.menu-category-title {
+  color: #94A3B8 !important; /* Muted Slate category dividers like "MAIN" and "CAREER" */
+  font-size: 0.72rem !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+  padding: 0.5rem 0.85rem 0.35rem 0.85rem !important;
+  font-weight: 700 !important;
+  font-family: 'Outfit', sans-serif !important;
+}
+
+/* Premium Sidebar Links */
+.menu-item-link,
+.menu-item-link:link,
+.menu-item-link:visited {
+  color: #475569 !important; /* Soft dark-slate text */
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.75rem !important;
+  padding: 0.65rem 0.85rem !important;
+  border-radius: 10px !important;
+  text-decoration: none !important;
+  font-size: 0.92rem !important;
+  font-weight: 500 !important;
+  transition: all 0.2s ease !important;
+  font-family: 'Outfit', sans-serif !important;
+}
+
+.menu-item-link i {
+  font-size: 1.1rem !important;
+  color: #94A3B8 !important; /* Muted silver-grey icons */
+  transition: color 0.2s ease !important;
+}
+
+.menu-item-link:hover,
+.menu-item-link:active {
+  background: rgba(15, 23, 42, 0.03) !important;
+  color: #1E293B !important;
+}
+
+.menu-item-link:hover i,
+.menu-item-link:active i {
+  color: var(--admin-primary) !important;
+}
+
+/* Cherry-pink active highlighting block matching Student Portal active options */
+.menu-item-link.active,
+.menu-item-link.active:link,
+.menu-item-link.active:visited {
+  background: #FDF2F4 !important; /* Soft cherry-pink active background block */
+  color: var(--admin-primary) !important; /* Crimson active text */
+  font-weight: 600 !important;
+}
+
+.menu-item-link.active i {
+  color: var(--admin-primary) !important;
+}
+
+/* Hide native Django sidebar triggers and scroll elements cleanly */
+.js-nav-sidebar,
+#nav-sidebar,
+.nav-sidebar-toggle,
+.js-toggle-nav-sidebar,
+#nav-sidebar-trigger {
+  display: none !important;
+}
+
+/* Sidebar Footer log out button styling */
+.sidebar-footer {
+  margin-top: auto !important;
+  padding-top: 1.25rem !important;
+  border-top: 1px solid #E2E8F0 !important;
+}
+
+.sidebar-footer button {
+  border-color: #E2E8F0 !important;
+  color: #64748B !important;
+  background: #FFFFFF !important;
+  font-weight: 600 !important;
+  border-radius: 8px !important;
+  transition: all 0.2s ease !important;
+}
+
+.sidebar-footer button:hover {
+  background: #FDF2F4 !important; /* Soft crimson overlay on logout hover */
+  border-color: #F8D7DA !important;
+  color: var(--admin-primary) !important;
+}
+
+/* Wiping out Django default blue across all admin interior elements */
+a:link, 
+a:visited {
+  color: var(--admin-primary) !important;
+}
+
+a:hover {
+  color: var(--admin-primary-600) !important;
+}
+
+/* Overriding default blue headers on changelists and inline groups */
+.module h2, 
+.module caption, 
+.inline-group h2,
+fieldset.module h2,
+.module h2 a,
+.module h2 a:link,
+.module h2 a:visited {
+  background: var(--admin-primary) !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+}
+
+/* Overriding default blue breadcrumbs background & links */
+.topbar-breadcrumbs {
+  margin-left: 1.5rem;
+  display: flex;
+  align-items: center;
+}
+
+.breadcrumbs,
+.topbar-breadcrumbs .breadcrumbs {
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  font-size: 0.875rem !important;
+  color: var(--admin-text) !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.4rem !important;
+  box-shadow: none !important;
+}
+
+.breadcrumbs a {
+  color: var(--admin-primary) !important;
+  text-decoration: none !important;
+  font-weight: 500 !important;
+}
+
+.breadcrumbs a:hover {
+  color: var(--admin-primary-600) !important;
+  text-decoration: underline !important;
+}
+
+/* Overriding default blue buttons in list/form views */
+.button,
+a.button,
+a.button:link,
+a.button:visited,
+input[type=submit],
+input[type=button],
+button,
+button[type=submit],
+.submit-row input,
+.submit-row a,
+.submit-row a:link,
+.submit-row a:visited {
+  background: var(--admin-primary) !important;
+  border: 1px solid var(--admin-primary) !important;
+  color: #ffffff !important;
+  border-radius: 8px !important;
+  font-weight: 600 !important;
+  padding: 0.5rem 1rem !important;
+  transition: all 0.2s ease !important;
+  text-decoration: none !important;
+  display: inline-block !important;
+}
+
+.button:hover,
+a.button:hover,
+input[type=submit]:hover,
+input[type=button]:hover,
+button:hover,
+button[type=submit]:hover,
+.submit-row input:hover,
+.submit-row a:hover {
+  background: var(--admin-primary-600) !important;
+  border-color: var(--admin-primary-600) !important;
+  color: #ffffff !important;
+}
+
+.button.default,
+a.button.default,
+input[type=submit].default,
+button.default,
+button[type=submit].default {
+  background: var(--admin-primary-600) !important;
+  border-color: var(--admin-primary-600) !important;
+  color: #ffffff !important;
+}
+
+.deletelink,
+.deletelink:link,
+.deletelink:visited {
+  background: #EF4444 !important;
+  color: #ffffff !important;
+  border-radius: 8px !important;
+  font-weight: 600 !important;
+  padding: 0.5rem 1rem !important;
+  text-decoration: none !important;
+  display: inline-block !important;
+  height: auto !important; /* Override legacy 15px height */
+  line-height: normal !important; /* Override legacy 15px line-height */
+  box-sizing: border-box !important;
+}
+
+.deletelink:hover {
+  background: #DC2626 !important;
+  color: #ffffff !important;
+}
+
+/* Polishing search fields and headers */
+#searchbar {
+  border-radius: 8px !important;
+  border: 1px solid var(--admin-border) !important;
+  padding: 0.4rem 0.75rem !important;
+}
+
+#searchbar:focus {
+  border-color: var(--admin-primary) !important;
+  box-shadow: 0 0 0 3px rgba(175, 12, 62, 0.15) !important;
+}
+
+/* Clean up table header accents */
+#changelist-headers th a {
+  color: #374151 !important;
+}
+
+#changelist-headers th.sorted a {
+  color: var(--admin-primary) !important;
+}
+
+/* App index model dashboard custom action buttons specificity fixes */
+.btn-action-primary,
+.btn-action-primary:link,
+.btn-action-primary:visited {
+  flex: 1 !important;
+  background: var(--admin-primary) !important;
+  color: #FFFFFF !important;
+  border: none !important;
+  border-radius: 10px !important;
+  padding: 8px 16px !important;
+  font-weight: 600 !important;
+  font-size: 0.85rem !important;
+  text-align: center !important;
+  text-decoration: none !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  transition: all 0.2s ease !important;
+}
+
+.btn-action-primary:hover,
+.btn-action-primary:active {
+  background: var(--admin-primary-600) !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 4px 12px rgba(175, 12, 62, 0.2) !important;
+}
+
+.btn-action-secondary,
+.btn-action-secondary:link,
+.btn-action-secondary:visited {
+  flex: 1 !important;
+  background: #FFFFFF !important;
+  color: #475569 !important;
+  border: 1px solid #E2E8F0 !important;
+  border-radius: 10px !important;
+  padding: 8px 16px !important;
+  font-weight: 600 !important;
+  font-size: 0.85rem !important;
+  text-align: center !important;
+  text-decoration: none !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  transition: all 0.2s ease !important;
+}
+
+.btn-action-secondary:hover,
+.btn-action-secondary:active {
+  background: #F8FAFC !important;
+  color: #0F172A !important;
+  border-color: #CBD5E1 !important;
+}
+
+/* Premium Overhaul of Django's FilteredSelectMultiple (User Permissions / Groups Selector Widget) */
+.selector {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  width: 100% !important;
+  max-width: 960px !important;
+  margin: 1.5rem 0 !important;
+}
+
+.selector-available,
+.selector-chosen {
+  flex: 1 !important;
+  width: auto !important;
+  float: none !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.selector-chooser {
+  float: none !important;
+  width: auto !important;
+  margin: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  gap: 8px !important;
+}
+
+.selector-available h2,
+.selector-chosen h2 {
+  background: #F8FAFC !important;
+  color: #0F172A !important;
+  border: 1px solid #E2E8F0 !important;
+  border-bottom: none !important;
+  border-radius: 12px 12px 0 0 !important;
+  font-weight: 700 !important;
+  font-size: 0.9rem !important;
+  padding: 10px 14px !important;
+  margin: 0 !important;
+  font-family: 'Outfit', sans-serif !important;
+  text-align: left !important;
+}
+
+.selector-filter {
+  border: 1px solid #E2E8F0 !important;
+  border-top: none !important;
+  border-bottom: none !important;
+  background: #FFFFFF !important;
+  padding: 8px 12px !important;
+  text-align: left !important;
+}
+
+.selector-filter input {
+  border: 1px solid #E2E8F0 !important;
+  border-radius: 8px !important;
+  padding: 6px 10px 6px 28px !important;
+  font-size: 0.85rem !important;
+  width: 100% !important;
+  background: #F8FAFC !important;
+  transition: all 0.2s ease !important;
+}
+
+.selector-filter input:focus {
+  background: #FFFFFF !important;
+  border-color: var(--admin-primary) !important;
+  box-shadow: 0 0 0 3px rgba(175, 12, 62, 0.08) !important;
+  outline: none !important;
+}
+
+.selector select {
+  border: 1px solid #E2E8F0 !important;
+  border-radius: 0 0 12px 12px !important;
+  padding: 8px !important;
+  height: 220px !important;
+  width: 100% !important;
+  font-family: 'Outfit', sans-serif !important;
+  color: #334155 !important;
+  background: #FFFFFF !important;
+}
+
+.selector-chooser li {
+  list-style: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.selector-chooser li a {
+  background-color: #F1F5F9 !important;
+  border: 1px solid #CBD5E1 !important;
+  border-radius: 8px !important;
+  width: 36px !important;
+  height: 36px !important;
+  display: block !important;
+  transition: all 0.2s ease !important;
+}
+
+.selector-chooser li a:hover {
+  background-color: var(--admin-primary) !important;
+  border-color: var(--admin-primary) !important;
+  filter: invert(1) brightness(2) !important;
+}
+
+.selector-chooseall,
+.selector-chooseall:link,
+.selector-chooseall:visited,
+.selector-clearall,
+.selector-clearall:link,
+.selector-clearall:visited {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  color: var(--admin-primary) !important;
+  background: #FDF2F4 !important; /* Soft cherry pink background */
+  border: 1px solid rgba(175, 12, 62, 0.12) !important;
+  border-radius: 8px !important;
+  padding: 6px 14px !important;
+  font-size: 0.82rem !important;
+  font-weight: 600 !important;
+  text-decoration: none !important;
+  margin-top: 10px !important;
+  height: auto !important; /* Override native 16px height */
+  overflow: visible !important; /* Override native overflow: hidden */
+  transition: all 0.2s ease !important;
+  font-family: 'Outfit', sans-serif !important;
+}
+
+.selector-chooseall:hover,
+.selector-clearall:hover {
+  background: var(--admin-primary) !important;
+  color: #FFFFFF !important;
+  border-color: var(--admin-primary) !important;
 }

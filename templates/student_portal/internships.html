@@ -15,34 +15,39 @@
 {% if internships %}
 <div style="display:flex;flex-direction:column;gap:16px;">
   {% for i in internships %}
-  <div class="card intern-card" style="padding:20px;">
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;">
+  <div class="card project-card" style="padding:24px;border-radius:12px;position:relative;">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;">
       <div>
-        <div class="intern-title" style="font-size:15px;font-weight:700;color:var(--text);">{{ i.role }}</div>
-        <div class="intern-company" style="font-size:13px;color:var(--primary);font-weight:600;margin-top:2px;">{{ i.organization }}</div>
-        <div style="font-size:12px;color:var(--muted);margin-top:4px;">
+        <div class="intern-title" style="font-size:18px;font-weight:800;color:var(--text);line-height:1.2;margin-bottom:4px;">{{ i.role }}</div>
+        <div class="intern-company" style="font-size:14px;color:var(--primary);font-weight:700;">{{ i.organization }}</div>
+        <div style="font-size:13px;color:var(--muted);font-weight:600;margin-top:6px;display:flex;align-items:center;gap:6px;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
           {{ i.start_date }} — {% if i.end_date %}{{ i.end_date }}{% else %}Present{% endif %}
         </div>
       </div>
       <div style="display:flex;gap:8px;">
-        <a href="?action=edit_intern&id={{ i.id }}" class="btn-ghost" data-action="edit" style="font-size:12px;padding:6px 12px;">Edit</a>
+        <button type="button" class="btn-outline" style="padding:6px 12px;font-size:12px;border-radius:6px;" data-bs-toggle="modal" data-bs-target="#addInternModal" onclick="populateInternModal(this.dataset.id, this.dataset.role, this.dataset.org, this.dataset.start, this.dataset.end, this.dataset.tech, this.dataset.desc)" data-id="{{ i.id }}" data-role="{{ i.role }}" data-org="{{ i.organization }}" data-start="{{ i.start_date|date:'Y-m-d' }}" data-end="{{ i.end_date|date:'Y-m-d' }}" data-tech="{{ i.technologies }}" data-desc="{{ i.description }}">✏️ Edit</button>
         <form method="post" style="display:inline;" onsubmit="return confirm('Delete this internship?');">
           {% csrf_token %}
           <input type="hidden" name="action" value="delete_intern">
           <input type="hidden" name="intern_id" value="{{ i.id }}">
-          <button type="submit" data-action="delete" class="btn-ghost" style="font-size:12px;padding:6px 12px;color:#dc2626;">Delete</button>
+          <button type="submit" class="btn-danger" style="padding:6px 12px;font-size:12px;border-radius:6px;">🗑️ Delete</button>
         </form>
       </div>
     </div>
     {% if i.technologies %}
-    <div style="margin-top:12px;font-size:12px;color:#475569;"><strong>Technologies:</strong> {{ i.technologies }}</div>
+    <div style="margin-top:16px;display:flex;flex-wrap:wrap;gap:6px;">
+      {% for tech in i.technologies.split %}
+      <span class="tag" style="background:#f1f5f9;color:#475569;border:none;">{{ tech }}</span>
+      {% endfor %}
+    </div>
     {% endif %}
     {% if i.description %}
-    <div style="margin-top:6px;font-size:12px;color:#475569;">{{ i.description }}</div>
+    <p style="margin-top:12px;font-size:14px;color:#475569;line-height:1.6;margin-bottom:0;">{{ i.description }}</p>
     {% endif %}
     {% if i.certificate %}
-    <div style="margin-top:12px;">
-      <a href="{{ i.certificate.url }}" target="_blank" class="btn-ghost" style="font-size:12px;padding:6px 12px;">View Certificate</a>
+    <div style="margin-top:16px;padding-top:16px;border-top:1px dashed var(--border);">
+      <a href="{{ i.certificate.url }}" target="_blank" class="btn-ghost" style="font-size:13px;padding:8px 16px;display:inline-flex;align-items:center;gap:6px;"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg> View Certificate</a>
     </div>
     {% endif %}
   </div>

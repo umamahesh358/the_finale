@@ -434,6 +434,7 @@ class StudentCertificationsView(LoginRequiredMixin, View):
         cert_type = request.POST.get('cert_type', 'upload')
         cert_url = request.POST.get('cert_url', '').strip()
         title = request.POST.get('title', '').strip()
+        description = request.POST.get('description', '').strip()
         issuer = request.POST.get('issuer', '').strip()
         issued_date = request.POST.get('issued_date', '').strip()
 
@@ -442,6 +443,7 @@ class StudentCertificationsView(LoginRequiredMixin, View):
             title = title or derived.get('title', '')
             issuer = issuer or derived.get('issuer', '')
             issued_date = issued_date or derived.get('issued_date', '')
+            description = description or derived.get('description', '')
 
         if not title:
             title = 'External Certification'
@@ -450,9 +452,25 @@ class StudentCertificationsView(LoginRequiredMixin, View):
         if not issued_date:
             issued_date = str(timezone.now().date())
 
+        cert_id = request.POST.get('cert_id')
+        if action == 'edit' and cert_id:
+            cert = get_object_or_404(Certification, id=cert_id, student=profile)
+            cert.title = title
+            cert.description = description
+            cert.issuer = issuer
+            cert.issued_date = issued_date
+            cert.cert_type = cert_type
+            cert.cert_url = cert_url
+            if 'file' in request.FILES:
+                cert.file = request.FILES['file']
+            cert.save()
+            messages.success(request, 'Certification updated.')
+            return redirect('student-certifications')
+
         cert = Certification(
             student=profile,
             title=title,
+            description=description,
             issuer=issuer,
             issued_date=issued_date,
             cert_type=cert_type,
@@ -489,6 +507,22 @@ class StudentProjectsView(LoginRequiredMixin, View):
             messages.success(request, 'Project removed.')
             return redirect('student-projects')
 
+        project_id = request.POST.get('project_id')
+        if action == 'edit' and project_id:
+            project = get_object_or_404(Project, id=project_id, student=profile)
+            project.title = request.POST.get('title', '')
+            project.description = request.POST.get('description', '')
+            project.tech_stack = request.POST.get('tech_stack', '')
+            project.project_type = request.POST.get('project_type', 'external')
+            project.is_group = request.POST.get('is_group') == 'on'
+            project.team_size = int(request.POST.get('team_size', 1))
+            project.repo_url = request.POST.get('repo_url', '')
+            if 'cover_image' in request.FILES:
+                project.cover_image = request.FILES['cover_image']
+            project.save()
+            messages.success(request, 'Project updated.')
+            return redirect('student-projects')
+
         project = Project.objects.create(
             student=profile,
             title=request.POST.get('title', ''),
@@ -502,6 +536,7 @@ class StudentProjectsView(LoginRequiredMixin, View):
         if 'cover_image' in request.FILES:
             project.cover_image = request.FILES['cover_image']
             project.save(update_fields=['cover_image', 'updated_at'])
+        messages.success(request, 'Project created.')
         return redirect('student-projects')
 
 
@@ -597,6 +632,30 @@ class StudentResearchView(LoginRequiredMixin, View):
 
     def post(self, request):
         profile = get_object_or_404(StudentProfile, user=request.user)
+        action = request.POST.get('action', 'create')
+        
+        if action == 'delete_research':
+            research_id = request.POST.get('research_id')
+            research = get_object_or_404(Research, id=research_id, student=profile)
+            research.delete()
+            messages.success(request, 'Research removed.')
+            return redirect('student-research')
+
+        research_id = request.POST.get('research_id')
+        if action == 'edit_research' and research_id:
+            research = get_object_or_404(Research, id=research_id, student=profile)
+            research.title = request.POST.get('title', '')
+            research.research_type = request.POST.get('research_type', 'external')
+            research.advisor_name = request.POST.get('advisor_name', '')
+            research.advisor_email = request.POST.get('advisor_email', '')
+            research.outcome = request.POST.get('outcome', 'paper')
+            research.publisher = request.POST.get('publisher', '')
+            research.publication_url = request.POST.get('publication_url', '')
+            research.published_date = request.POST.get('published_date') or None
+            research.save()
+            messages.success(request, 'Research updated.')
+            return redirect('student-research')
+
         Research.objects.create(
             student=profile,
             title=request.POST.get('title', ''),
@@ -608,6 +667,7 @@ class StudentResearchView(LoginRequiredMixin, View):
             publication_url=request.POST.get('publication_url', ''),
             published_date=request.POST.get('published_date') or None,
         )
+        messages.success(request, 'Research added successfully.')
         return redirect('student-research')
 
 
@@ -617,14 +677,22 @@ class StudentEducationView(LoginRequiredMixin, View):
             return redirect('dashboard')
         profile = get_object_or_404(StudentProfile, user=request.user)
         education = EducationBackground.objects.filter(student=profile)
+        existing_edu_types = [e.edu_type for e in education]
         return render(request, 'student_portal/education.html', {
             'profile': profile, 'education': education,
             'edu_types': EducationBackground.EduType.choices,
+            'existing_edu_types': existing_edu_types,
         })
 
     def post(self, request):
         profile = get_object_or_404(StudentProfile, user=request.user)
+        action = request.POST.get('action')
         edu_type = request.POST.get('edu_type')
+        
+        if action == 'delete':
+            EducationBackground.objects.filter(student=profile, edu_type=edu_type).delete()
+            return redirect('student-education')
+
         EducationBackground.objects.update_or_create(
             student=profile, edu_type=edu_type,
             defaults={
@@ -635,6 +703,7 @@ class StudentEducationView(LoginRequiredMixin, View):
                 'score_type': request.POST.get('score_type', '%'),
             }
         )
+        messages.success(request, 'Education details updated successfully.')
         return redirect('student-education')
 
 

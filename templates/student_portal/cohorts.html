@@ -18,21 +18,23 @@
 {% if cohorts %}
 <div class="two-col-grid" style="margin-bottom:24px;">
   {% for cohort in cohorts %}
-  <div class="cohort-card" style="padding:20px;background:var(--bg);border-radius:12px;border:1px solid var(--border);box-shadow:0 1px 3px rgba(0,0,0,0.05);">
-    <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
-      <div style="width:44px;height:44px;background:var(--primary-light);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2">
+  <div class="card project-card" style="padding:24px;background:var(--bg);border-radius:12px;border:1px solid var(--border);position:relative;display:flex;flex-direction:column;gap:12px;">
+    <div style="display:flex;align-items:center;gap:16px;">
+      <div style="width:48px;height:48px;background:var(--primary-light);border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2">
           <polyline points="16 18 22 12 16 6" />
           <polyline points="8 6 2 12 8 18" />
         </svg>
       </div>
-      <div>
-        <div class="cohort-name" style="font-size:15px;font-weight:800;color:var(--text);">{{ cohort.name }}</div>
-        <span class="tag tag-green"><span class="status-dot"></span>Active</span>
+      <div style="flex:1;">
+        <div class="cohort-name" style="font-size:18px;font-weight:800;color:var(--text);line-height:1.2;">{{ cohort.name }}</div>
+        <div style="font-size:13px;color:var(--muted);font-weight:600;margin-top:4px;">{{ cohort.get_cohort_type_display|default:"Cohort" }} · {{ cohort.department.name }}</div>
       </div>
+      <span class="tag tag-green" style="align-self:flex-start;"><span class="status-dot"></span>Active</span>
     </div>
-    <div style="font-size:12px;color:var(--muted);margin-bottom:6px;">{{ cohort.get_cohort_type_display|default:"Cohort" }} · {{ cohort.department.name }}</div>
-    <p class="cohort-desc" style="font-size:13px;color:#475569;line-height:1.5;">{{ cohort.description|default:"No description provided." }}</p>
+    <div style="padding-top:12px;border-top:1px dashed var(--border);margin-top:auto;">
+      <p class="cohort-desc" style="font-size:14px;color:#475569;line-height:1.6;margin:0;">{{ cohort.description|default:"No description provided." }}</p>
+    </div>
   </div>
   {% endfor %}
 </div>

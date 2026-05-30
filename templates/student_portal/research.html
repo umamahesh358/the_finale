@@ -15,18 +15,35 @@
 {% if research_list %}
 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;">
   {% for r in research_list %}
-  <div class="card" style="padding:20px;display:flex;flex-direction:column;gap:10px;">
+  <div class="card project-card" style="padding:24px;border-radius:12px;position:relative;display:flex;flex-direction:column;gap:12px;">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
-      <span class="tag tag-green">{{ r.get_research_type_display }}</span>
-      <span class="tag tag-blue">{{ r.get_outcome_display }}</span>
+      <div style="display:flex;gap:8px;">
+        <span class="tag tag-green">{{ r.get_research_type_display }}</span>
+        <span class="tag tag-blue">{{ r.get_outcome_display }}</span>
+      </div>
     </div>
-    <div style="font-size:14px;font-weight:700;color:var(--text);">{{ r.title }}</div>
-    {% if r.advisor_name %}<div style="font-size:12px;color:var(--muted);">Advisor: {{ r.advisor_name }}</div>{% endif %}
-    {% if r.publisher %}<div style="font-size:12px;color:var(--muted);">Publisher: {{ r.publisher }}</div>{% endif %}
-    {% if r.published_date %}<div style="font-size:12px;color:var(--muted);">Published: {{ r.published_date }}</div>{% endif %}
-    {% if r.publication_url %}
-    <a href="{{ r.publication_url }}" target="_blank" class="btn-ghost" style="font-size:12px;padding:7px 14px;margin-top:4px;text-decoration:none;display:inline-block;">View Paper →</a>
-    {% endif %}
+    <div style="font-size:16px;font-weight:800;color:var(--text);line-height:1.3;">{{ r.title }}</div>
+    <div style="display:flex;flex-direction:column;gap:4px;margin-top:4px;">
+      {% if r.advisor_name %}<div style="font-size:13px;color:var(--muted);font-weight:600;">👨‍🏫 Advisor: {{ r.advisor_name }}</div>{% endif %}
+      {% if r.publisher %}<div style="font-size:13px;color:var(--muted);font-weight:600;">📚 Publisher: {{ r.publisher }}</div>{% endif %}
+      {% if r.published_date %}<div style="font-size:13px;color:var(--muted);font-weight:600;">📅 Published: {{ r.published_date }}</div>{% endif %}
+    </div>
+    <div style="margin-top:auto;padding-top:16px;border-top:1px dashed var(--border);display:flex;justify-content:space-between;align-items:center;">
+      <div style="display:flex;">
+        {% if r.publication_url %}
+        <a href="{{ r.publication_url }}" target="_blank" class="btn-ghost" style="font-size:13px;padding:6px 12px;text-decoration:none;"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px;"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg> View Publication</a>
+        {% endif %}
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button type="button" class="btn-outline" style="padding:6px 12px;font-size:12px;border-radius:6px;" data-bs-toggle="modal" data-bs-target="#addResearchModal" onclick="populateResearchModal(this.dataset.id, this.dataset.title, this.dataset.type, this.dataset.outcome, this.dataset.advisor, this.dataset.email, this.dataset.publisher, this.dataset.date, this.dataset.url)" data-id="{{ r.id }}" data-title="{{ r.title }}" data-type="{{ r.research_type }}" data-outcome="{{ r.outcome }}" data-advisor="{{ r.advisor_name }}" data-email="{{ r.advisor_email }}" data-publisher="{{ r.publisher }}" data-date="{{ r.published_date|date:'Y-m-d' }}" data-url="{{ r.publication_url }}">✏️ Edit</button>
+        <form method="post" style="display:inline;" onsubmit="return confirm('Delete this research?');">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="delete_research">
+          <input type="hidden" name="research_id" value="{{ r.id }}">
+          <button type="submit" class="btn-danger" style="padding:6px 12px;font-size:12px;border-radius:6px;">🗑️ Delete</button>
+        </form>
+      </div>
+    </div>
   </div>
   {% endfor %}
 </div>
@@ -43,11 +60,13 @@
   <div class="modal-dialog modal-lg">
     <div class="modal-content" style="border-radius:16px;border:1px solid var(--border);">
       <div class="modal-header" style="padding:20px 24px;border-bottom:1px solid var(--border);">
-        <h5 class="modal-title" style="font-size:15px;font-weight:700;">Add Research</h5>
+        <h5 class="modal-title" id="researchModalTitle" style="font-size:15px;font-weight:700;">Add Research</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <form method="post">
         {% csrf_token %}
+        <input type="hidden" name="action" value="create" id="researchActionInput">
+        <input type="hidden" name="research_id" value="" id="researchIdInput">
         <div class="modal-body" style="padding:24px;display:grid;grid-template-columns:1fr 1fr;gap:16px;">
           <div class="df-group" style="grid-column:span 2;"><label class="df-label">Title *</label><input type="text" name="title" class="df-input" required></div>
           <div class="df-group"><label class="df-label">Type</label>
@@ -77,4 +96,27 @@
     </div>
   </div>
 </div>
+
+<script>
+function populateResearchModal(id, title, type, outcome, advisor, email, publisher, date, url) {
+  document.getElementById('researchActionInput').value = 'edit_research';
+  document.getElementById('researchIdInput').value = id;
+  document.getElementById('researchModalTitle').innerText = 'Edit Research';
+  document.querySelector('#addResearchModal input[name="title"]').value = title;
+  document.querySelector('#addResearchModal select[name="research_type"]').value = type;
+  document.querySelector('#addResearchModal select[name="outcome"]').value = outcome;
+  document.querySelector('#addResearchModal input[name="advisor_name"]').value = advisor;
+  document.querySelector('#addResearchModal input[name="advisor_email"]').value = email;
+  document.querySelector('#addResearchModal input[name="publisher"]').value = publisher;
+  document.querySelector('#addResearchModal input[name="published_date"]').value = date;
+  document.querySelector('#addResearchModal input[name="publication_url"]').value = url;
+}
+
+document.getElementById('addResearchModal').addEventListener('hidden.bs.modal', function () {
+  document.getElementById('researchActionInput').value = 'create';
+  document.getElementById('researchIdInput').value = '';
+  document.getElementById('researchModalTitle').innerText = 'Add Research';
+  this.querySelector('form').reset();
+});
+</script>
 {% endblock %}

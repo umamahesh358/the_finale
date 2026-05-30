@@ -1,0 +1,90 @@
+{% load i18n static %}
+<div class="sidebar-custom-menu">
+  <!-- SEARCH FILTER -->
+  <div class="sidebar-search-box mb-4">
+    <div class="position-relative">
+      <input type="text" id="sidebar-search-input" placeholder="Search menu..." onkeyup="filterSidebarMenu()">
+      <i class="bi bi-search search-icon"></i>
+    </div>
+  </div>
+
+  <!-- CATEGORY 1: MAIN -->
+  <div class="menu-category">
+    <div class="menu-category-title">{% translate 'Main' %}</div>
+    
+    <a class="menu-item-link{% if request.path == '/admin/' %} active{% endif %}" href="/admin/">
+      <i class="bi bi-speedometer2"></i>
+      <span>{% translate 'Dashboard' %}</span>
+    </a>
+    
+    <a class="menu-item-link{% if '/admin/academics/' in request.path %} active{% endif %}" href="/admin/academics/">
+      <i class="bi bi-mortarboard"></i>
+      <span>{% translate 'Academics' %}</span>
+    </a>
+    
+    <a class="menu-item-link{% if '/admin/accounts/' in request.path %} active{% endif %}" href="/admin/accounts/">
+      <i class="bi bi-person-badge"></i>
+      <span>{% translate 'Accounts' %}</span>
+    </a>
+  </div>
+
+  <!-- CATEGORY 2: PEOPLE -->
+  <div class="menu-category">
+    <div class="menu-category-title">{% translate 'People' %}</div>
+    
+    <a class="menu-item-link{% if '/admin/faculty/' in request.path %} active{% endif %}" href="/admin/faculty/">
+      <i class="bi bi-people"></i>
+      <span>{% translate 'Faculty' %}</span>
+    </a>
+    
+    <a class="menu-item-link{% if '/admin/students/' in request.path %} active{% endif %}" href="/admin/students/">
+      <i class="bi bi-person-workspace"></i>
+      <span>{% translate 'Students' %}</span>
+    </a>
+  </div>
+
+  <!-- CATEGORY 3: SYSTEM -->
+  <div class="menu-category">
+    <div class="menu-category-title">{% translate 'System' %}</div>
+    
+    <a class="menu-item-link{% if '/admin/auth/' in request.path %} active{% endif %}" href="/admin/auth/">
+      <i class="bi bi-shield-lock"></i>
+      <span>{% translate 'Authentication' %}</span>
+    </a>
+    
+    <a class="menu-item-link{% if '/admin/core/' in request.path %} active{% endif %}" href="/admin/core/">
+      <i class="bi bi-grid-3x3-gap"></i>
+      <span>{% translate 'Core' %}</span>
+    </a>
+  </div>
+</div>
+
+<script>
+function filterSidebarMenu() {
+  var input = document.getElementById('sidebar-search-input');
+  var filter = input.value.toLowerCase();
+  var items = document.querySelectorAll('.menu-item-link');
+  var categories = document.querySelectorAll('.menu-category');
+
+  items.forEach(function(item) {
+    var text = item.textContent || item.innerText;
+    if (text.toLowerCase().indexOf(filter) > -1) {
+      item.style.display = "flex";
+    } else {
+      item.style.display = "none";
+    }
+  });
+
+  categories.forEach(function(cat) {
+    var visibleItems = cat.querySelectorAll('.menu-item-link[style="display: flex;"]');
+    var visibleItemsNoStyle = cat.querySelectorAll('.menu-item-link:not([style*="display: none"])');
+    if (filter === "") {
+      cat.style.display = "block";
+    } else if (visibleItems.length > 0 || visibleItemsNoStyle.length > 0) {
+      cat.style.display = "block";
+    } else {
+      cat.style.display = "none";
+    }
+  });
+}
+</script>

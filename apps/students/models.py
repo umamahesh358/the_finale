@@ -99,6 +99,7 @@ class Certification(BaseModel):
                     on_delete=models.SET_NULL, related_name='cert_verifications')
     verified_at = models.DateTimeField(null=True, blank=True)
     rejection_reason = models.TextField(blank=True, default='')
+    description = models.TextField(blank=True, default='')
 
     def __str__(self):
         return f"{self.student.roll_no} - {self.title}"

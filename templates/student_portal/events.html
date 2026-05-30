@@ -14,18 +14,20 @@
 {% if events %}
 <div style="display:flex;flex-direction:column;gap:12px;">
   {% for e in events %}
-  <div class="card event-card event-card-full" style="padding:18px 20px;">
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;">
-      <div>
-        <div style="font-size:15px;font-weight:700;color:var(--text);">{{ e.name }}</div>
-        {% if e.organizer %}<div style="font-size:12px;color:var(--muted);margin-top:2px;">By {{ e.organizer }}</div>{% endif %}
-        {% if e.location %}<div style="font-size:12px;color:var(--muted);">At {{ e.location }}</div>{% endif %}
-        <div style="font-size:12px;color:var(--muted);margin-top:4px;">{{ e.event_date }}</div>
+  <div class="card project-card event-card-full" style="padding:24px;border-radius:12px;">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:16px;">
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        <div style="font-size:18px;font-weight:800;color:var(--text);line-height:1.2;">{{ e.name }}</div>
+        {% if e.organizer %}<div style="font-size:14px;color:var(--primary);font-weight:700;">By {{ e.organizer }}</div>{% endif %}
+        <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:4px;">
+          {% if e.location %}<div style="font-size:13px;color:var(--muted);font-weight:600;display:flex;align-items:center;gap:4px;">📍 {{ e.location }}</div>{% endif %}
+          <div style="font-size:13px;color:var(--muted);font-weight:600;display:flex;align-items:center;gap:4px;">📅 {{ e.event_date }}</div>
+        </div>
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-start;">
         <span class="tag {% if e.scope == 'College' %}tag-blue{% else %}tag-amber{% endif %}">{{ e.scope }}</span>
         <span class="tag {% if e.role == 'Award' %}tag-green{% else %}tag-blue{% endif %}">{{ e.role }}</span>
-        {% if e.position %}<span class="tag">{{ e.position }}</span>{% endif %}
+        {% if e.position %}<span class="tag" style="background:#f1f5f9;color:#475569;border:none;">{{ e.position }}</span>{% endif %}
       </div>
     </div>
   </div>
