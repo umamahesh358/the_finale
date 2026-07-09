@@ -1,7 +1,237 @@
-{% extends "base.html" %}
+{% extends 'faculty/base_portal.html' %}
+{% load static %}
 
-{% block title %}HOD Dashboard{% endblock %}
+{% block portal_tab_title %}Faculty Hub — HOD Updates{% endblock %}
 
-{% block content %}
-<h1>Hello</h1>
+{% block extra_head %}
+<style>
+  /* News feed styling */
+  .update-stream-container {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .update-card {
+    position: relative;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.85);
+    padding: 20px 24px;
+    transition: transform 0.25s, box-shadow 0.25s;
+    overflow: hidden;
+  }
+  .update-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+  .update-card.high-priority {
+    border-left: 5px solid #ef4444;
+    background: rgba(254, 242, 242, 0.6);
+  }
+  .update-card.medium-priority {
+    border-left: 5px solid #f59e0b;
+  }
+  .update-card.low-priority {
+    border-left: 5px solid #10b981;
+  }
+</style>
+{% endblock %}
+
+{% block portal_content %}
+<div class="page-content">
+    <div class="dashboard-header fade-in-up d-flex align-items-center justify-content-between mb-4 flex-wrap gap-3">
+        <div>
+            <h1 class="section-title">HOD Circular Updates</h1>
+            <p class="section-sub">Read and acknowledge department circulars, briefings, and academic policies</p>
+        </div>
+        <span class="badge bg-secondary-light text-dark px-3 py-2 border" id="unread-updates-count">0 Unread Updates</span>
+    </div>
+
+    <!-- Announcement stream listing -->
+    <div class="update-stream-container fade-in-up-1 mb-4" id="updates-stream-list">
+        <!-- Rendered by JavaScript -->
+    </div>
+</div>
+{% endblock %}
+
+{% block modals %}
+<!-- ── HOD Update Detail Modal ── -->
+<div class="modal fade" id="hodUpdateDetailModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius:22px; border:none; box-shadow:var(--shadow-md);">
+            <div class="modal-header border-0" style="padding:20px 24px 10px;">
+                <h2 class="modal-title fw-bold fs-5" id="modal-update-title">Announcement Details</h2>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" style="padding:10px 24px 24px;">
+                <div class="d-flex align-items-center gap-2 mb-3 flex-wrap">
+                    <span id="modal-update-badge" class="badge">Priority</span>
+                    <small style="color:var(--muted);" id="modal-update-dept">Department</small>
+                    <span class="ms-auto" style="font-size:.8rem;color:var(--muted);" id="modal-update-date">Date</span>
+                </div>
+                
+                <h3 class="fw-bold text-dark mb-2 fs-6" id="modal-update-subtitle">Title</h3>
+                <p id="modal-update-content" style="color:var(--text); line-height:1.7; font-size:0.9rem; white-space:pre-wrap;"></p>
+                
+                <div class="p-3 rounded-3 mt-3" style="background:rgba(151,0,6,0.06); border-left:4px solid var(--primary);">
+                    <small style="color:var(--muted);">Issued By:</small>
+                    <p class="fw-bold mb-0" style="color:var(--primary);">Office of the Head of Department (HOD)</p>
+                </div>
+            </div>
+            <div class="modal-footer border-0 d-flex justify-content-between" style="padding:10px 24px 20px;">
+                <div id="modal-ack-status-wrapper">
+                    <!-- Status message -->
+                </div>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-secondary px-3" data-bs-dismiss="modal" style="border-radius:999px;">Close</button>
+                    <button type="button" class="btn btn-success px-4" id="modal-acknowledge-btn" style="border-radius:999px;">Acknowledge</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ faculty_hub_data|json_script:"faculty-hub-data" }}
+<script>
+    window.FACULTY_HUB_DATA = JSON.parse(document.getElementById('faculty-hub-data').textContent);
+</script>
+<script src="{% static 'faculty-hub/js/data.js' %}"></script>
+<script>
+    let hodUpdates = window.FACULTY_HUB_DATA.hodUpdates || [];
+    let acknowledgedIds = loadAcknowledgedIds();
+    let currentDetailId = null;
+
+    function loadAcknowledgedIds() {
+        const d = localStorage.getItem('acknowledgedNotifications');
+        return d ? JSON.parse(d) : [];
+    }
+    function saveAcknowledgedIds(ids) {
+        localStorage.setItem('acknowledgedNotifications', JSON.stringify(ids));
+    }
+
+    function renderUpdatesStream() {
+        const container = document.getElementById('updates-stream-list');
+        if (!container) return;
+
+        if (hodUpdates.length === 0) {
+            container.innerHTML = `<div class="text-center py-5">
+                <i data-lucide="bell-off" style="width:40px; height:40px; color:var(--muted); opacity:0.5;"></i>
+                <p class="mt-2 text-muted">No circular updates from HOD at the moment.</p>
+            </div>`;
+            lucide.createIcons();
+            return;
+        }
+
+        const unreadUpdates = hodUpdates.filter(u => !acknowledgedIds.includes(u.id));
+        document.getElementById('unread-updates-count').textContent = `${unreadUpdates.length} Unread Update${unreadUpdates.length === 1 ? '' : 's'}`;
+        
+        // Update unread count badges in topbar/navigation too
+        updateNavBadgeCounter(unreadUpdates.length);
+
+        container.innerHTML = hodUpdates.map(update => {
+            const isRead = acknowledgedIds.includes(update.id);
+            const dept = departments.find(d => d.id === update.departmentId);
+            const priorityClass = update.priority === 'high' ? 'high-priority' : (update.priority === 'medium' ? 'medium-priority' : 'low-priority');
+            const prioBadge = update.priority === 'high' ? 'bg-danger' : (update.priority === 'medium' ? 'bg-warning text-dark' : 'bg-success');
+
+            return `
+            <div class="update-card ${priorityClass} shadow-sm" onclick="openUpdateModal('${update.id}')" style="cursor:pointer;">
+                <div class="d-flex justify-content-between align-items-start mb-2 flex-wrap gap-2">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge ${prioBadge}" style="font-size:0.65rem; text-transform:uppercase;">${update.priority}</span>
+                        <span class="badge bg-light text-muted border" style="font-size:0.65rem;">${dept ? dept.code : 'All Depts'}</span>
+                    </div>
+                    <small class="text-muted" style="font-size:0.75rem;">${update.date}</small>
+                </div>
+                <h2 class="fw-bold text-dark mb-2 fs-6" style="font-size:0.95rem;">${update.title}</h2>
+                <p class="text-muted text-truncate mb-3" style="font-size:0.85rem;">${update.content}</p>
+                <div class="d-flex justify-content-between align-items-center pt-2 border-top" style="border-color:var(--border);">
+                    <div>
+                        ${isRead ? `
+                            <span class="badge bg-success-light text-success d-flex align-items-center gap-1" style="font-size:0.7rem;">
+                                <i data-lucide="check" style="width:10px; height:10px;"></i> Acknowledged
+                            </span>
+                        ` : `
+                            <span class="badge bg-danger-light text-danger" style="font-size:0.7rem;">Action Required</span>
+                        `}
+                    </div>
+                    <small style="color:var(--primary); font-weight:700; font-size:0.75rem;">READ CIRCULAR →</small>
+                </div>
+            </div>`;
+        }).join('');
+
+        lucide.createIcons();
+    }
+
+    function updateNavBadgeCounter(unreadCount) {
+        // Bottom nav updates count
+        const navBadge = document.getElementById('nav-badge-updates');
+        if (navBadge) {
+            if (unreadCount > 0) {
+                navBadge.textContent = unreadCount;
+                navBadge.style.display = 'inline-block';
+            } else {
+                navBadge.style.display = 'none';
+            }
+        }
+        // Topbar red indicator dot
+        const topbarDot = document.querySelector('.topbar-dot');
+        if (topbarDot) {
+            topbarDot.style.display = unreadCount > 0 ? 'block' : 'none';
+        }
+    }
+
+    window.openUpdateModal = function(id) {
+        currentDetailId = id;
+        const update = hodUpdates.find(u => u.id === id);
+        if (!update) return;
+
+        const dept = departments.find(d => d.id === update.departmentId);
+        const prioBadge = update.priority === 'high' ? 'bg-danger' : (update.priority === 'medium' ? 'bg-warning text-dark' : 'bg-success');
+        
+        document.getElementById('modal-update-title').textContent = `${update.priority.toUpperCase()} Priority Update`;
+        document.getElementById('modal-update-badge').textContent = update.priority.toUpperCase();
+        document.getElementById('modal-update-badge').className = `badge ${prioBadge}`;
+        document.getElementById('modal-update-dept').textContent = dept ? dept.name : 'All Departments';
+        document.getElementById('modal-update-date').textContent = update.date;
+        document.getElementById('modal-update-subtitle').textContent = update.title;
+        document.getElementById('modal-update-content').textContent = update.content;
+
+        const isRead = acknowledgedIds.includes(update.id);
+        const ackBtn = document.getElementById('modal-acknowledge-btn');
+        const statusWrapper = document.getElementById('modal-ack-status-wrapper');
+
+        if (isRead) {
+            ackBtn.style.display = 'none';
+            statusWrapper.innerHTML = `
+                <span class="badge bg-success-light text-success d-flex align-items-center gap-1 py-2 px-3 fw-bold" style="border-radius:10px;">
+                    <i data-lucide="check" style="width:14px; height:14px;"></i> Acknowledged
+                </span>`;
+        } else {
+            ackBtn.style.display = 'inline-block';
+            statusWrapper.innerHTML = `<span class="text-danger small fw-bold">Pending Acknowledgment</span>`;
+        }
+
+        lucide.createIcons();
+        new bootstrap.Modal(document.getElementById('hodUpdateDetailModal')).show();
+    };
+
+    document.getElementById('modal-acknowledge-btn')?.addEventListener('click', () => {
+        if (!currentDetailId) return;
+
+        if (!acknowledgedIds.includes(currentDetailId)) {
+            acknowledgedIds.push(currentDetailId);
+            saveAcknowledgedIds(acknowledgedIds);
+        }
+
+        bootstrap.Modal.getInstance(document.getElementById('hodUpdateDetailModal'))?.hide();
+        renderUpdatesStream();
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+        renderUpdatesStream();
+    });
+</script>
 {% endblock %}

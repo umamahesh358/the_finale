@@ -1,11 +1,13 @@
-﻿from django.urls import path
+from django.urls import path
+from django.views.generic import RedirectView
 from apps.faculty import views
 
 # ── Faculty Portal UI URLs ──────────────────────────────────────────────────
 ui_urlpatterns = [
     path('hod/',     views.HODDashboardView.as_view(),    name='hod-dashboard'),
-    path('mentor/',  views.MentorDashboardView.as_view(), name='mentor-dashboard'),
+    path('mentor/',  RedirectView.as_view(url='/faculty-portal/portal/mentoring/', permanent=False), name='mentor-dashboard'),
     path('portal/',  views.FacultyDashboardView.as_view(), name='faculty-dashboard'),
+    path('portal/mentoring/', views.FacultyHubMentoringView.as_view(), name='faculty-mentor'),
     path('portal/cohorts/', views.FacultyHubCohortsView.as_view(), name='faculty-cohorts'),
     path('portal/explore-students/', views.FacultyHubExploreStudentsView.as_view(), name='faculty-explore-students'),
     path('portal/hod-updates/', views.FacultyHubHodUpdatesView.as_view(), name='faculty-hod-updates'),

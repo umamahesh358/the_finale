@@ -5,6 +5,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Secure login portal for CIET ERP. Select your role to access your academic dashboard.">
+    <link rel="canonical" href="{{ request.build_absolute_uri }}">
     <title>Secure Access | CIET ERP</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
@@ -152,7 +154,7 @@
             <i class="bi bi-arrow-left me-2"></i> Back to Home
         </a>
         <div class="auth-header text-center">
-            <img src="{% static 'images/ciet_logo.svg' %}" class="auth-logo mx-auto mb-3"
+            <img src="{% static 'images/ciet_logo.svg' %}" alt="CIET Logo" class="auth-logo mx-auto mb-3"
                 style="height: 100px; width: auto;">
             <h3 class="fw-bold text-dark mb-1">CIET PORTAL</h3>
             <p class="text-muted smaller">Select your gateway to proceed</p>
@@ -173,10 +175,6 @@
                 <div class="role-card" onclick="setRole('Faculty', this)">
                     <i class="bi bi-journal-text"></i>
                     <span>Faculty</span>
-                </div>
-                <div class="role-card" onclick="setRole('Mentor', this)">
-                    <i class="bi bi-person-lines-fill"></i>
-                    <span>Mentor</span>
                 </div>
                 <div class="role-card" onclick="setRole('HOD', this)">
                     <i class="bi bi-building-fill"></i>

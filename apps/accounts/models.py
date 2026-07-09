@@ -60,6 +60,13 @@ class User(AbstractBaseUser, PermissionsMixin, BaseModel):
             self.is_superuser = True
         super().save(*args, **kwargs)
 
+    @property
+    def is_mentor(self):
+        from apps.faculty.models import StudentMentorAssignment
+        from django.utils.timezone import now
+        current_year = f"{now().year}-{now().year + 1}"
+        return self.role == self.Role.MENTOR or StudentMentorAssignment.objects.filter(mentor=self, academic_year=current_year).exists()
+
 
 class OTPRecord(BaseModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='otp_records')

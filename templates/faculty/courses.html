@@ -1,1369 +1,525 @@
-<!DOCTYPE html>
+{% extends 'faculty/base_portal.html' %}
 {% load static %}
-<html lang="en">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Faculty Hub – Manage and publish academic courses.">
-    <title>Faculty Hub — Courses</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
-        rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'faculty-hub/style.css' %}">
-    <script src="https://unpkg.com/lucide@latest"></script>
-</head>
+{% block portal_tab_title %}Courses{% endblock %}
 
-<body>
+{% block extra_head %}
+<style>
+  .modal-backdrop { display: none !important; }
+  .modal { background: rgba(0, 0, 0, 0.5) !important; }
+  .df-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; width: 100%; }
+  .df-label { font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; }
+  .df-input {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 24px !important;
+    font-size: 13px;
+    color: #0f172a;
+    background: #fff;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    box-sizing: border-box;
+  }
+  .df-input:focus { border-color: #AF0C3E; box-shadow: 0 0 0 3px rgba(175,12,62,.08); }
+  
+  .form-select {
+    border-radius: 24px !important;
+    padding: 10px 14px;
+    font-size: 13px;
+    border: 1.5px solid #e2e8f0;
+    height: 42px;
+  }
+  .form-select:focus { border-color: #AF0C3E; box-shadow: 0 0 0 3px rgba(175,12,62,.08); }
 
-    <div id="layout-wrapper">
-        <!-- ── Sidebar ── -->
-        <aside class="sidebar" id="app-sidebar">
-            <div class="sidebar-brand"
-                style="border-bottom:1px solid var(--border); padding:1.25rem 1.5rem; display:flex; align-items:center; justify-content:center;">
-                <img src="{% static 'faculty-hub/images/image.png' %}" alt="CIET Logo"
-                    style="max-width:100%; max-height:56px; object-fit:contain;">
-            </div>
-            <div class="sidebar-content">
-                <div class="nav-section-label" style="padding-top:1.25rem;">Main Menu</div>
-                <nav>
-                    <a href="{% url 'faculty-dashboard' %}" class="nav-link"><i
-                            data-lucide="layout-dashboard"></i><span>Dashboard</span></a>
-                    <a href="{% url 'faculty-cohorts' %}" class="nav-link"><i
-                            data-lucide="users"></i><span>Cohorts</span></a>
-                    <a href="{% url 'faculty-explore-students' %}" class="nav-link"><i
-                            data-lucide="search"></i><span>Explore Students</span></a>
-                    <a href="{% url 'faculty-courses' %}" class="nav-link active"><i
-                            data-lucide="book-open"></i><span>Courses</span></a>
-                    <a href="{% url 'faculty-hod-updates' %}" class="nav-link hod-updates" id="nav-updates">
-                        <i data-lucide="bell-ring"></i><span class="fw-semibold">HOD Updates</span>
-                        {% if hod_unread_count > 0 %}<span class="pulse-dot"></span>{% endif %}
-                    </a>
-                    <a href="#" class="nav-link" id="nav-chat-btn"><i
-                            data-lucide="message-circle"></i><span>Chat</span></a>
-                    <a href="{% url 'logout' %}" class="nav-link text-danger mt-auto">
-                        <i data-lucide="log-out"></i>
-                        <span>Logout</span>
-                    </a>
+  /* Student Selector list grid */
+  .student-select-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 12px;
+    max-height: 240px;
+    overflow-y: auto;
+    padding: 10px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: #f8fafc;
+  }
+  .student-select-card {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    background: #fff;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 10px;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    user-select: none;
+  }
+  .student-select-card:hover {
+    border-color: #AF0C3E;
+    box-shadow: 0 2px 8px rgba(175,12,62,0.04);
+  }
+  .student-select-card input[type="checkbox"] {
+    accent-color: #AF0C3E;
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+  }
+  .student-select-card input[type="checkbox"]:checked + div strong {
+    color: #AF0C3E;
+  }
+</style>
+{% endblock %}
 
-                </nav>
-            </div>
-        </aside>
+{% block portal_content %}
+<div class="flex-between" style="margin-bottom:24px;">
+  <div>
+    <h1 class="section-title">Course Management</h1>
+    <p class="section-sub">Manage institutional courses, upload study material, and configure reference links.</p>
+  </div>
+  <button class="btn-primary" data-bs-toggle="modal" data-bs-target="#createCourseModal">
+    + Create Course
+  </button>
+</div>
 
-        <!-- ── Main Content ── -->
-        <main class="main-content">
-            <header class="top-navbar">
-                <div class="d-flex align-items-center gap-3 flex-grow-1">
-                    <button class="nav-action-btn border-0" id="sidebar-toggle" aria-label="Toggle Sidebar">
-                        <i data-lucide="menu"></i>
-                    </button>
-                    <div class="search-wrap d-none d-lg-block">
-                        <i data-lucide="search" class="search-icon"></i>
-                        <input type="text" placeholder="Search courses…">
-                    </div>
-                </div>
-                <div class="navbar-actions">
-                    <button class="nav-action-btn border-0" id="theme-toggle" aria-label="Toggle Theme">
-                        <i data-lucide="sun" style="width:20px;height:20px;"></i>
-                    </button>
-                    <div class="dropdown">
-                        <button class="nav-action-btn border-0 position-relative" data-bs-toggle="dropdown"
-                            aria-label="Notifications">
-                            <i data-lucide="bell"></i>
-                            {% if hod_unread_count > 0 %}<span class="notif-badge"></span>{% endif %}
-                        </button>
-                        <div class="dropdown-menu dropdown-menu-end p-0 mt-2 overflow-hidden"
-                            style="width:300px;border-radius:var(--radius-lg);">
-                            <div class="notif-header">
-                                <p class="fw-bold mb-0 text-white" style="font-size:.9rem;">Notifications</p>
-                                <span class="badge bg-white rounded-pill"
-                                    style="color:var(--primary);font-size:.7rem;">{{ hod_unread_count }} New</span>
-                            </div>
-                            <div class="p-3 border-bottom" style="border-color:var(--border)!important;">
-                                <div class="d-flex gap-3 align-items-start">
-                                    <div class="flex-shrink-0 d-flex align-items-center justify-content-center rounded-2"
-                                        style="width:34px;height:34px;background:rgba(var(--primary-rgb),0.1);">
-                                        <i data-lucide="bell" style="width:14px;color:var(--primary);"></i>
-                                    </div>
-                                    <div>
-                                        <p class="fw-bold mb-0" style="font-size:.8rem;color:var(--text-primary);">New
-                                            Update from HOD</p>
-                                        <p class="mb-0" style="font-size:.72rem;color:var(--text-muted);">Revised
-                                            evaluation policy posted.</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="p-2 text-center" style="background:var(--muted-bg);">
-                                <a href="{% url 'faculty-hod-updates' %}" class="small fw-bold text-decoration-none"
-                                    style="color:var(--primary);">View all</a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="dropdown">
-                        <div class="profile-trigger" data-bs-toggle="dropdown" style="cursor:pointer;">
-                            <div class="d-none d-sm-block profile-name-block text-end">
-                                <p class="pname mb-0">Dr. Rajesh Kumar</p>
-                                <span class="prole">Professor</span>
-                            </div>
-                            <div class="profile-avatar"><i data-lucide="user"></i></div>
-                        </div>
-                        <ul class="dropdown-menu dropdown-menu-end mt-2 p-2"
-                            style="width:230px;border-radius:var(--radius-lg);">
-                            <li class="profile-user-block mb-2">
-                                <span class="fw-bold d-block" style="font-size:.85rem;color:var(--text-primary);">Dr.
-                                    Rajesh Kumar</span>
-                                <small
-                                    style="color:var(--text-muted);font-size:.7rem;">rajesh.kumar@university.edu</small>
-                            </li>
+<!-- Courses Grid -->
+{% if faculty_hub_data.institutionCourses %}
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:20px;margin-bottom:32px;">
+  {% for course in faculty_hub_data.institutionCourses %}
+  <div class="card portal-panel" style="padding:20px;display:flex;flex-direction:column;gap:12px;">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+      <div>
+        <span class="tag tag-blue">{{ course.category_display }}</span>
+        <h2 style="font-size:16px;font-weight:800;color:var(--text);margin-top:6px;">{{ course.name }}</h2>
+      </div>
+      <div style="display:flex;gap:6px;align-items:center;">
+        <span class="tag {% if course.published %}tag-green{% else %}tag-cyan{% endif %}">
+          {% if course.published %}Published{% else %}Draft{% endif %}
+        </span>
+        <!-- Delete Course Form -->
+        {% if course.isOwner or request.user.is_superuser %}
+        <form method="post" action="{% url 'faculty-dashboard' %}" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this course?');">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="delete_course">
+          <input type="hidden" name="course_id" value="{{ course.id }}">
+          <button type="submit" class="btn-ghost" style="padding:4px 8px;font-size:12px;border:none;background:none;color:#AF0C3E;cursor:pointer;line-height:1;" title="Delete Course">
+            🗑️
+          </button>
+        </form>
+        {% endif %}
+      </div>
+    </div>
+    
+    <p style="font-size:13px;color:var(--muted);line-height:1.4;margin:0;">
+      {{ course.description|default:"Institutional training syllabus course." }}
+    </p>
 
-                            <li>
-                                <hr class="dropdown-divider opacity-50 mx-2">
-                            </li>
-                            <li><a class="dropdown-item text-danger" href="{% url 'logout' %}"><i data-lucide="log-out"
-                                        style="width:14px;"></i> Logout</a></li>
-                        </ul>
-                    </div>
-                </div>
-            </header>
-
-            <div class="page-content">
-                <div class="dashboard-header fade-in-up">
-                    <div>
-                        <h1 class="page-title">Course Management</h1>
-                        <p class="page-subtitle">Create, manage and assign courses with institutional preference</p>
-                    </div>
-                    <button class="btn btn-primary d-flex align-items-center gap-2" data-bs-toggle="modal"
-                        data-bs-target="#courseModal">
-                        <i data-lucide="plus" style="width:16px;"></i> New Course
-                    </button>
-                </div>
-
-                <div class="d-flex align-items-center gap-2 mb-3" id="course-kind-filter">
-                    <button type="button" class="btn btn-sm btn-secondary" data-course-kind="all">All</button>
-                    <button type="button" class="btn btn-sm btn-secondary" data-course-kind="regular">Courses</button>
-                    <button type="button" class="btn btn-sm btn-secondary"
-                        data-course-kind="institutional">Institutional Courses</button>
-                </div>
-
-                <div class="row g-3 fade-in-up-1" id="courses-list">
-                    <!-- Dynamic -->
-                </div>
-
-                <div class="selection-view-panel mt-3 d-none" id="course-selection-view">
-                    <div class="selection-view-header">
-                        <div>
-                            <h5 class="selection-view-title" id="selected-course-title">Selected Course</h5>
-                            <p class="selection-view-meta" id="selected-course-meta">Click a course card to inspect
-                                details.</p>
-                        </div>
-                        <div class="d-flex gap-2">
-                            <button type="button" class="btn btn-sm btn-warning d-none" id="close-course-action-btn">
-                                <i data-lucide="check-circle" style="width:14px;"></i> Close Course
-                            </button>
-                            <button type="button" class="btn btn-sm btn-secondary"
-                                id="close-course-selection-view">Close</button>
-                        </div>
-                    </div>
-                    <div class="selection-view-grid" id="selected-course-grid"></div>
-                    <div class="selection-detail-layout">
-                        <div class="selection-detail-card">
-                            <h6>Uploaded Study Materials</h6>
-                            <div class="materials-list" id="selected-course-materials"></div>
-                        </div>
-                        <div class="selection-detail-card d-none" id="selected-course-updates-card">
-                            <h6>Updates / Resources</h6>
-                            <div class="updates-split-container">
-                                <div class="updates-links-side">
-                                    <p class="updates-side-label">Reference Links</p>
-                                    <div class="mb-3 d-flex gap-2">
-                                        <input type="text" id="course-link-name" class="form-control form-control-sm"
-                                            placeholder="Link title (e.g. Documentation)">
-                                        <input type="url" id="course-link-url" class="form-control form-control-sm"
-                                            placeholder="https://...">
-                                        <button type="button" class="btn btn-sm btn-primary"
-                                            id="add-course-link-btn">Add</button>
-                                    </div>
-                                    <div class="updates-links-list" id="selected-course-update-links"></div>
-                                </div>
-                                <div class="updates-upload-side">
-                                    <p class="updates-side-label">Upload Document</p>
-                                    <div class="file-drop-zone-compact" id="course-detail-upload-zone"
-                                        onclick="document.getElementById('course-detail-material').click()">
-                                        <i data-lucide="plus" style="width:16px;height:16px;" class="mb-1"></i>
-                                        <p class="mb-0"
-                                            style="font-size:.7rem;color:var(--text-primary);font-weight:700;">Add file
-                                        </p>
-                                        <p class="mb-0" style="font-size:.65rem;color:var(--text-muted);">PDF, DOCX,
-                                            etc.</p>
-                                        <input type="file" id="course-detail-material" class="d-none" multiple>
-                                    </div>
-                                    <div id="course-detail-file-preview" class="mt-2 d-flex flex-column gap-2"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="selection-students-section" id="selected-course-students-section">
-                        <div class="selection-students-header">
-                            <h6 class="selection-students-title">Students In This Course</h6>
-                            <span class="selection-students-badge" id="selected-course-students-count">0</span>
-                        </div>
-                        <div class="selection-students-showcase" id="selected-course-students-list"></div>
-                    </div>
-                </div>
-            </div>
-        </main>
+    <div style="display:flex;gap:12px;font-size:12px;color:var(--muted);border-top:1px solid var(--border);padding-top:12px;">
+      <span><strong>Students Enrolled:</strong> {{ course.students_count }}</span>
     </div>
 
-    <!-- ── Course Modal ── -->
-    <div class="modal fade" id="courseModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title fw-bold">Create Course</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="courseCreateForm">
-                        <div class="mb-3">
-                            <label class="form-label">Course Name</label>
-                            <input type="text" class="form-control" id="new-course-name"
-                                placeholder="e.g. Machine Learning" required>
-                        </div>
-                        <div class="row g-3 mb-3">
-                            <div class="col-6">
-                                <label class="form-label">Department</label>
-                                <select class="form-select" id="new-course-dept" required>
-                                    <option value="">Select Dept</option>
-                                </select>
-                            </div>
-                            <div class="col-3">
-                                <label class="form-label">Year</label>
-                                <select class="form-select" id="new-course-year" required>
-                                    <option value="1">Year I</option>
-                                    <option value="2">Year II</option>
-                                    <option value="3">Year III</option>
-                                    <option value="4">Year IV</option>
-                                </select>
-                            </div>
-                            <div class="col-3">
-                                <label class="form-label">Semester</label>
-                                <select class="form-select" id="new-course-semester" required>
-                                    <option value="1">SEM-1</option>
-                                    <option value="2">SEM-2</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="row g-3 mb-3">
-                            <div class="col-6">
-                                <label class="form-label">Section</label>
-                                <select class="form-select" id="new-course-section" required>
-                                    <option value="">Select Dept & Year first</option>
-                                </select>
-                            </div>
-                            <div class="col-6">
-                                <label class="form-label">Cohort <span
-                                        style="font-size:0.75rem;font-weight:normal;color:var(--text-muted);">(Optional)</span></label>
-                                <select class="form-select" id="new-course-cohort">
-                                    <option value="">No Cohort</option>
-                                </select>
-                            </div>
-                        </div>
-                        <!-- File Upload -->
-                        <div class="mb-3">
-                            <label class="form-label d-flex justify-content-between">
-                                <span>Course Materials</span>
-                                <span
-                                    style="color:var(--text-muted);font-weight:400;font-size:.75rem;">(Optional)</span>
-                            </label>
-                            <div class="file-drop-zone" id="course-file-drop-zone"
-                                onclick="document.getElementById('new-course-material').click()">
-                                <i data-lucide="cloud-upload" style="width:28px;height:28px;" class="mb-2"></i>
-                                <p class="fw-semibold mb-1" style="font-size:.875rem;color:var(--text-primary);">Click
-                                    or drag files here</p>
-                                <p class="mb-0" style="font-size:.75rem;color:var(--text-muted);">PDF, DOCX, ZIP, PPTX,
-                                    MP4 · Max 50MB</p>
-                                <input type="file" id="new-course-material" class="d-none" multiple>
-                            </div>
-                            <div id="course-file-preview-list" class="mt-2 d-flex flex-column gap-2"></div>
-                        </div>
-                        <!-- Institutional Toggle -->
-                        <div class="mb-3 p-3 rounded-3"
-                            style="background:var(--muted-bg);border:1px solid var(--border);">
-                            <div class="form-check form-switch d-flex align-items-center gap-3 p-0 m-0">
-                                <input class="form-check-input ms-0" type="checkbox" id="new-course-inst" role="switch">
-                                <label class="form-check-label fw-semibold" for="new-course-inst"
-                                    style="font-size:.875rem;color:var(--text-primary);">
-                                    Mark as Institutional Course
-                                </label>
-                            </div>
-                        </div>
-                        <div class="d-flex justify-content-end gap-2 pt-2">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                            <button type="submit" class="btn btn-primary px-4">Create &amp; Publish</button>
-                        </div>
-                    </form>
-                </div>
+    <div style="display:flex;gap:8px;margin-top:8px;">
+      <button class="btn-ghost" style="font-size:12px;flex:1;padding:8px;" data-bs-toggle="collapse" data-bs-target="#courseDetails-{{ course.id }}">
+        View Details &darr;
+      </button>
+      {% if course.isOwner or request.user.is_superuser %}
+      <button class="btn-primary" style="font-size:12px;flex:1;padding:8px;" onclick="openEditCourse('{{ course.id }}')">
+        Edit Course Details
+      </button>
+      {% endif %}
+    </div>
+
+    <!-- Collapse details -->
+    <div class="collapse" id="courseDetails-{{ course.id }}" style="margin-top:12px;padding-top:12px;border-top:1px dashed var(--border);">
+      
+      <!-- Materials List -->
+      <div>
+        <h3 style="font-size:12px;font-weight:700;margin-bottom:8px;color:var(--text);">Study Materials:</h3>
+        <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px;">
+          {% for mat in course.studyMaterials %}
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 8px;background:rgba(0,0,0,0.03);border-radius:6px;font-size:11px;">
+            <span style="font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:180px;">📄 {{ mat.name }}</span>
+            <div style="display:flex;gap:4px;">
+              <a href="{{ mat.url }}" target="_blank" download class="btn-ghost" style="font-size:9px;padding:2px 6px;text-decoration:none;line-height:1.2;">Download</a>
+              {% if course.isOwner or request.user.is_superuser %}
+              <form method="post" action="{% url 'faculty-dashboard' %}" style="display:inline;" onsubmit="return confirm('Remove this material?');">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="delete_material">
+                <input type="hidden" name="material_id" value="{{ mat.id }}">
+                <button type="submit" class="btn-ghost" style="font-size:9px;padding:2px 6px;color:red;line-height:1.2;border:none;background:none;">Delete</button>
+              </form>
+              {% endif %}
             </div>
+          </div>
+          {% empty %}
+          <span style="font-size:11px;color:var(--muted);font-style:italic;">No materials uploaded yet.</span>
+          {% endfor %}
         </div>
-    </div>
 
-    <!-- Close Course Modal -->
-    <div class="modal fade" id="closeCourseModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title fw-bold">Close Course</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <p>Are you sure you want to close this course? This action cannot be undone and will mark the course
-                        as completed.</p>
-                </div>
-                <div class="modal-footer border-0">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-warning" id="confirm-close-course-btn">Confirm Close</button>
-                </div>
+        <!-- Upload Cohort Material Form -->
+        {% if course.isOwner or request.user.is_superuser %}
+        <form method="post" action="{% url 'faculty-dashboard' %}" enctype="multipart/form-data" style="display:flex;gap:6px;align-items:center;margin-bottom:16px;">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="upload_material">
+          <input type="hidden" name="course_id" value="{{ course.id }}">
+          <div style="display:flex;flex-direction:column;gap:4px;flex:1;">
+            <input type="text" name="title" class="df-input" style="padding:6px;font-size:11px;" required placeholder="Material Title">
+          </div>
+          <label class="btn-ghost" style="padding:6px 12px;font-size:11px;margin:0;cursor:pointer;height:32px;display:flex;align-items:center;">
+            Choose File
+            <input type="file" name="file" required style="display:none;" onchange="this.form.submit()">
+          </label>
+        </form>
+        {% endif %}
+      </div>
+
+      <!-- Reference Links List -->
+      <div style="border-top:1px solid var(--border);padding-top:12px;margin-top:12px;">
+        <h3 style="font-size:12px;font-weight:700;margin-bottom:8px;color:var(--text);">Reference Links:</h3>
+        <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px;">
+          {% for link in course.links %}
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 8px;background:rgba(0,0,0,0.03);border-radius:6px;font-size:11px;">
+            <span style="font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:180px;">🔗 {{ link.name }}</span>
+            <div style="display:flex;gap:4px;align-items:center;">
+              <a href="{{ link.url }}" target="_blank" class="btn-ghost" style="font-size:9px;padding:2px 6px;text-decoration:none;line-height:1.2;">Visit</a>
+              {% if course.isOwner or request.user.is_superuser %}
+              <form method="post" action="{% url 'faculty-dashboard' %}" style="display:inline;" onsubmit="return confirm('Remove this link?');">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="delete_link">
+                <input type="hidden" name="link_id" value="{{ link.id }}">
+                <button type="submit" class="btn-ghost" style="font-size:9px;padding:2px 6px;color:red;line-height:1.2;border:none;background:none;">Delete</button>
+              </form>
+              {% endif %}
             </div>
+          </div>
+          {% empty %}
+          <span style="font-size:11px;color:var(--muted);font-style:italic;">No links added yet.</span>
+          {% endfor %}
         </div>
-    </div>
 
-    <!-- Allocate Course Modal -->
-    <div class="modal fade" id="allocateCourseModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title fw-bold">Allocate Course</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="allocateCourseForm">
-                        <div class="mb-3">
-                            <label class="form-label">Department / Branch</label>
-                            <select class="form-select" id="allocate-course-dept" required>
-                                <option value="">Select Dept</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Academic Year</label>
-                            <select class="form-select" id="allocate-course-year" required>
-                                <option value="1">Year I</option>
-                                <option value="2">Year II</option>
-                                <option value="3">Year III</option>
-                                <option value="4">Year IV</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Section</label>
-                            <select class="form-select" id="allocate-course-section" required>
-                                <option value="">Select Dept & Year first</option>
-                            </select>
-                        </div>
-                        <div class="d-flex justify-content-end gap-2 pt-2">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                            <button type="submit" class="btn btn-primary px-4">Add Allocation</button>
-                        </div>
-                    </form>
-                </div>
+        <!-- Add Link Form -->
+        {% if course.isOwner or request.user.is_superuser %}
+        <form method="post" action="{% url 'faculty-dashboard' %}" style="display:flex;gap:6px;margin-top:8px;">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="add_link">
+          <input type="hidden" name="course_id" value="{{ course.id }}">
+          <input type="text" name="title" class="df-input" style="padding:6px;font-size:11px;flex:1;" required placeholder="Link Title">
+          <input type="url" name="url" class="df-input" style="padding:6px;font-size:11px;flex:1;" required placeholder="URL (https://...)">
+          <button type="submit" class="btn-primary" style="padding:6px 12px;font-size:11px;">Add Link</button>
+        </form>
+        {% endif %}
+      </div>
+      
+      <!-- Enrolled Students Detail list -->
+      <div style="border-top:1px solid var(--border);padding-top:12px;margin-top:12px;">
+        <h3 style="font-size:12px;font-weight:700;margin-bottom:8px;color:var(--text);">Enrolled Students List:</h3>
+        <ul style="padding-left:16px;font-size:12px;color:var(--text);max-height: 150px; overflow-y: auto;">
+          {% for student in faculty_hub_data.students %}
+            {% if student.id in course.studentIds %}
+            <li><strong>{{ student.name }}</strong> <span class="text-muted">({{ student.regNo }})</span></li>
+            {% endif %}
+          {% empty %}
+          <li style="list-style:none;color:var(--muted);margin-left:-16px;">No students enrolled.</li>
+          {% endfor %}
+        </ul>
+      </div>
+
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="card" style="padding:48px;text-align:center;margin-bottom:32px;">
+  <div style="font-size:14px;font-weight:600;color:var(--muted);">No courses created yet.</div>
+  <div style="font-size:12px;color:var(--muted);margin-top:8px;">Create a training syllabus course using the button above.</div>
+</div>
+{% endif %}
+
+<!-- Create / Edit Course Modal -->
+<div class="modal fade" id="createCourseModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title fw-bold" id="courseModalTitle">Create Course</h4>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form method="post" action="{% url 'faculty-dashboard' %}" id="courseModalForm">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="create_course" id="courseFormAction">
+        <input type="hidden" name="course_id" id="courseFormId">
+        
+        <div class="modal-body" style="display:flex;flex-direction:column;gap:14px;">
+          <div class="df-group">
+            <label class="df-label">Course Title</label>
+            <input type="text" name="name" id="courseNameInput" class="df-input" required placeholder="e.g. Skill Enhancement Group A">
+          </div>
+          <input type="hidden" name="category" id="courseCategorySelect" value="other">
+          <div class="df-group">
+            <label class="df-label">Description</label>
+            <textarea name="description" id="courseDescInput" class="df-input" rows="2" placeholder="Explain the focus of this course..."></textarea>
+          </div>
+
+          <div class="row g-3">
+            <div class="col-4">
+              <div class="df-group">
+                <label class="df-label">Select Branch / Department</label>
+                <select name="department_id" id="courseDeptSelect" class="form-select" required>
+                  <option value="">Select Dept</option>
+                  {% for dept in faculty_hub_data.departments %}
+                  <option value="{{ dept.id }}">{{ dept.code }} - {{ dept.name }}</option>
+                  {% endfor %}
+                </select>
+              </div>
             </div>
+            <div class="col-4">
+              <div class="df-group">
+                <label class="df-label">Select Academic Year</label>
+                <select name="year" id="courseYearSelect" class="form-select" required>
+                  <option value="1">Year I</option>
+                  <option value="2">Year II</option>
+                  <option value="3">Year III</option>
+                  <option value="4">Year IV</option>
+                </select>
+              </div>
+            </div>
+            <div class="col-4">
+              <div class="df-group">
+                <label class="df-label">Filter Section (Optional)</label>
+                <select id="courseSectionSelect" class="form-select">
+                  <option value="all">All Sections</option>
+                  {% for sec in faculty_hub_data.sections %}
+                  <option value="{{ sec.id }}">Sec {{ sec.name }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Select Students with Interactive controls -->
+          <div class="df-group">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+              <label class="df-label" style="margin:0;">Select Students (Sequential & Range Check)</label>
+            </div>
+            
+            <!-- Search, Sort & Filter Panel -->
+            <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;align-items:center;">
+              <input type="text" id="courseStudentSearch" class="df-input" style="flex:1;min-width:200px;padding:6px 12px;font-size:12px;" placeholder="🔍 Search students by name or roll no...">
+              
+              <div style="display:flex;gap:4px;">
+                <button type="button" id="selectAllBtn" class="btn-ghost" style="padding:4px 8px;font-size:11px;height:32px;">Select All Shown</button>
+                <button type="button" id="clearAllBtn" class="btn-ghost" style="padding:4px 8px;font-size:11px;height:32px;color:red;">Clear All</button>
+              </div>
+            </div>
+
+            <!-- Student Grid -->
+            <div class="student-select-grid" id="courseStudentGrid">
+              <!-- Dynamically rendered checkbox cards of the selected branch -->
+            </div>
+            <small class="text-muted" style="font-size:10px; margin-top:4px;">💡 <strong>Tip:</strong> Hold <strong>Shift</strong> key and check a checkbox to select a sequence range of students (e.g. from `y23cse071` to `y23cse140`).</small>
+          </div>
+
+          <div style="display:flex;align-items:center;gap:8px;margin-top:8px;">
+            <input type="checkbox" name="is_published_to_profile" id="coursePublishCheckbox" class="form-check-input">
+            <label for="coursePublishCheckbox" class="form-check-label" style="font-size:12px;cursor:pointer;">Publish directly to student portal profiles</label>
+          </div>
         </div>
+        
+        <div class="modal-footer">
+          <button type="button" class="btn-ghost" data-bs-dismiss="modal" onclick="resetCourseModal()">Cancel</button>
+          <button type="submit" class="btn-primary" id="courseSubmitBtn">Save Course</button>
+        </div>
+      </form>
     </div>
+  </div>
+</div>
+{% endblock %}
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    {{ faculty_hub_data|json_script:"faculty-hub-data" }}
-    <script>
-        window.FACULTY_HUB_DATA = JSON.parse(document.getElementById('faculty-hub-data').textContent);
-    </script>
-    <script src="{% static 'faculty-hub/js/data.js' %}"></script>
-    <script src="{% static 'faculty-hub/js/scripts.js' %}"></script>
-    <script>
-        lucide.createIcons();
-        let isEditingCourse = false;
-        let editingCourseId = null;
-        let editingCourseSource = 'courses';
-        let selectedCourseId = null;
-        let courseUpdates = loadData('course_updates', []);
-        const params = new URLSearchParams(window.location.search);
-        let selectedCourseType = params.get('type') || 'all';
-        const courseTypeButtons = document.querySelectorAll('[data-course-kind]');
+{% block extra_js %}
+{{ faculty_hub_data|json_script:"faculty-hub-data" }}
+<script>
+  window.FACULTY_HUB_DATA = JSON.parse(document.getElementById('faculty-hub-data').textContent);
+  const students = window.FACULTY_HUB_DATA.students || [];
+  const courses = window.FACULTY_HUB_DATA.institutionCourses || [];
 
-        function normalizeCourseEntries() {
-            const fromCourses = courses.map(course => ({
-                ...course,
-                _source: 'courses',
-                _entryId: course.id,
-                _kind: course.isInstitutional ? 'institutional' : 'regular',
-                _category: course.isInstitutional ? 'Institutional' : 'Regular'
-            }));
+  // Sort students sequentially by roll number / regNo
+  students.sort((a, b) => {
+    return (a.regNo || '').localeCompare(b.regNo || '');
+  });
 
-            const fromInstitutionOnly = institutionCourses
-                .filter(ic => !courses.some(c => c.name === ic.name && c.year === ic.year && c.isInstitutional))
-                .map(ic => {
-                    const firstSection = sections.find(s => (ic.sectionIds || []).includes(s.id));
-                    return {
-                        id: `legacy-${ic.id}`,
-                        name: ic.name,
-                        departmentId: firstSection?.departmentId || '',
-                        year: ic.year,
-                        sectionIds: ic.sectionIds || [],
-                        cohortIds: [],
-                        published: true,
-                        status: ic.status || 'active',
-                        isInstitutional: true,
-                        assessmentName: 'Institutional Track',
-                        assessmentScore: 0,
-                        studyMaterials: ic.studyMaterials || [],
-                        resources: ic.resources || [],
-                        _source: 'institution',
-                        _entryId: ic.id,
-                        _kind: 'institutional',
-                        _category: ic.category || 'Institutional'
-                    };
-                });
+  const deptSelect = document.getElementById('courseDeptSelect');
+  const yearSelect = document.getElementById('courseYearSelect');
+  const sectionSelect = document.getElementById('courseSectionSelect');
+  const studentSearch = document.getElementById('courseStudentSearch');
+  const studentGrid = document.getElementById('courseStudentGrid');
 
-            return [...fromCourses, ...fromInstitutionOnly];
+  let activeStudentIds = []; // student IDs currently checked
+
+  function renderStudentGrid() {
+    if (!studentGrid) return;
+    const deptId = deptSelect.value;
+    const year = yearSelect.value;
+    const sectionId = sectionSelect.value;
+    const query = (studentSearch.value || '').toLowerCase().trim();
+
+    if (!deptId) {
+      studentGrid.innerHTML = '<div style="padding:20px;color:var(--muted);font-size:12px;grid-column:span 3;text-align:center;">Please select a Branch/Department to display students.</div>';
+      return;
+    }
+
+    // Filter students
+    const filtered = students.filter(s => {
+      const matchesDept = s.departmentId === deptId;
+      const matchesYear = String(s.year) === String(year);
+      const matchesSection = sectionId === 'all' || s.sectionId === sectionId;
+      const matchesSearch = !query || s.name.toLowerCase().includes(query) || s.regNo.toLowerCase().includes(query);
+      return matchesDept && matchesYear && matchesSection && matchesSearch;
+    });
+
+    if (filtered.length === 0) {
+      studentGrid.innerHTML = '<div style="padding:20px;color:var(--muted);font-size:12px;grid-column:span 3;text-align:center;">No matching students found in this branch/year/section.</div>';
+      return;
+    }
+
+    studentGrid.innerHTML = filtered.map(s => {
+      const isChecked = activeStudentIds.includes(s.id) ? 'checked' : '';
+      return `
+      <label class="student-select-card student-checkbox-item-wrapper" data-student-id="${s.id}" style="cursor:pointer;margin:0;">
+        <input type="checkbox" name="student_ids" value="${s.id}" class="student-checkbox-item" ${isChecked}>
+        <div style="margin-left:4px;">
+          <strong style="font-size:12px;display:block;">${s.name}</strong>
+          <span style="font-size:10px;color:var(--muted);">${s.regNo || s.rollNumber}</span>
+        </div>
+      </label>
+      `;
+    }).join('');
+
+    // Bind shift click events
+    bindShiftClickEvents();
+  }
+
+  function bindShiftClickEvents() {
+    const checkboxes = Array.from(studentGrid.querySelectorAll('.student-checkbox-item'));
+    let lastChecked = null;
+
+    checkboxes.forEach(cb => {
+      cb.addEventListener('click', function(e) {
+        const checkedId = this.value;
+        
+        // Sync activeStudentIds list
+        if (this.checked) {
+          if (!activeStudentIds.includes(checkedId)) activeStudentIds.push(checkedId);
+        } else {
+          activeStudentIds = activeStudentIds.filter(id => id !== checkedId);
         }
 
-        function setCourseTypeFilter(kind) {
-            selectedCourseType = kind;
-            courseTypeButtons.forEach(btn => {
-                const isActive = btn.dataset.courseKind === selectedCourseType;
-                btn.classList.toggle('btn-primary', isActive);
-                btn.classList.toggle('btn-secondary', !isActive);
+        if (e.shiftKey && lastChecked) {
+          let start = checkboxes.indexOf(this);
+          let end = checkboxes.indexOf(lastChecked);
+          
+          if (start > -1 && end > -1) {
+            const range = checkboxes.slice(Math.min(start, end), Math.max(start, end) + 1);
+            range.forEach(box => {
+              box.checked = this.checked;
+              const boxId = box.value;
+              if (this.checked) {
+                if (!activeStudentIds.includes(boxId)) activeStudentIds.push(boxId);
+              } else {
+                activeStudentIds = activeStudentIds.filter(id => id !== boxId);
+              }
             });
-
-            const url = new URL(window.location.href);
-            if (kind === 'all') {
-                url.searchParams.delete('type');
-            } else {
-                url.searchParams.set('type', kind);
-            }
-            window.history.replaceState({}, '', url);
-            renderCourses();
+          }
         }
-
-        function formatBytes(sizeInBytes) {
-            const value = Number(sizeInBytes || 0);
-            if (!value) return '0 KB';
-            return `${(value / 1024 / 1024).toFixed(2)} MB`;
-        }
-
-        function recordCourseUpdate(courseRecord, actionLabel) {
-            const links = Array.isArray(courseRecord.studyMaterials)
-                ? courseRecord.studyMaterials
-                    .filter(item => !!item.name)
-                    .map(item => ({ name: item.name, url: item.dataUrl || '#' }))
-                : [];
-
-            courseUpdates.unshift({
-                id: `crupd-${Date.now()}-${Math.floor(Math.random() * 999)}`,
-                courseId: courseRecord.id,
-                title: `${actionLabel} ${courseRecord.name}`,
-                message: `${actionLabel} with ${links.length} linked material${links.length === 1 ? '' : 's'}.`,
-                createdAt: new Date().toISOString(),
-                links
-            });
-            saveData('course_updates', courseUpdates);
-        }
-
-        function renderCourseMaterials(selectedCourse) {
-            const container = document.getElementById('selected-course-materials');
-            if (!container) return;
-
-            const materials = Array.isArray(selectedCourse.studyMaterials) ? selectedCourse.studyMaterials : [];
-            if (!materials.length) {
-                container.innerHTML = '<div class="selection-view-empty">No course materials uploaded yet for this course.</div>';
-                return;
-            }
-
-            container.innerHTML = materials.map((item, index) => {
-                const fileUrl = item.dataUrl || '#';
-                const typeLabel = String(item.type || 'file').split('/').pop().toUpperCase();
-                return `
-                <div class="material-item">
-                    <div class="material-main">
-                        <p class="material-name">${item.name || `Material ${index + 1}`}</p>
-                        <p class="material-meta">${formatBytes(item.size)} • ${typeLabel}</p>
-                    </div>
-                    <div class="material-links">
-                        <a class="doc-link-btn text-decoration-none" href="${fileUrl}" target="_blank" rel="noopener">Open</a>
-                        <a class="doc-link-btn text-decoration-none" href="${fileUrl}" download="${item.name || 'course-material'}">Download</a>
-                    </div>
-                </div>
-            `;
-            }).join('');
-        }
-
-        function addCourseResource(courseId, type, name, url) {
-            let course = courses.find(c => c.id === courseId);
-            let sourceKey = 'courses';
-
-            if (!course) {
-                let instCourse = institutionCourses.find(c => `legacy-${c.id}` === courseId || c.id === courseId);
-                if (instCourse) {
-                    course = instCourse;
-                    sourceKey = 'inst_courses';
-                }
-            }
-
-            if (!course) return;
-
-            course.resources = course.resources || [];
-            course.resources.push({
-                id: `res-${Date.now()}`,
-                type: type,
-                name: name,
-                url: url,
-                createdAt: new Date().toISOString()
-            });
-
-            if (sourceKey === 'courses') {
-                saveData('courses', courses);
-            } else {
-                saveData('inst_courses', institutionCourses);
-            }
-            renderCourseUpdates(courseId);
-        }
-
-        function renderCourseUpdates(courseId) {
-            const wrapper = document.getElementById('selected-course-updates-card');
-            const linksContainer = document.getElementById('selected-course-update-links');
-            if (!wrapper || !linksContainer) return;
-
-            const course = normalizeCourseEntries().find(c => c.id === courseId);
-            if (!course) return;
-
-            wrapper.classList.remove('d-none');
-            const resources = course.resources || [];
-
-            if (!resources.length) {
-                linksContainer.innerHTML = '<p class="text-muted small" style="font-size:0.8rem;">No updates/resources added yet.</p>';
-                return;
-            }
-
-            linksContainer.innerHTML = resources.map(res => `
-            <div class="update-link-item mb-2 p-2 border rounded d-flex justify-content-between align-items-center" style="background:var(--base);">
-                <p class="update-link-name mb-0 text-truncate" title="${res.name}" style="font-size:0.85rem;font-weight:500;max-width:200px;">
-                    <i data-lucide="${res.type === 'file' ? 'file-text' : 'link'}" style="width:14px; margin-right:4px; color:var(--primary);"></i>
-                    ${res.name}
-                </p>
-                <div class="update-link-action d-flex gap-2">
-                    <a class="btn btn-sm btn-outline-primary d-flex align-items-center justify-content-center" style="font-size:0.75rem; padding:0.1rem 0.4rem; height:24px;" href="${res.url || '#'}" target="_blank" rel="noopener">${res.type === 'file' ? 'View' : 'Open'}</a>
-                    ${res.type === 'file' ? `<a class="btn btn-sm btn-primary d-flex align-items-center justify-content-center" style="font-size:0.75rem; padding:0.1rem 0.4rem; height:24px;" href="${res.url || '#'}" download="${res.name}">Download</a>` : ''}
-                </div>
-            </div>
-        `).join('');
-            lucide.createIcons();
-        }
-
-        function renderCourseStudents(selectedCourse) {
-            const section = document.getElementById('selected-course-students-section');
-            const listEl = document.getElementById('selected-course-students-list');
-            const countEl = document.getElementById('selected-course-students-count');
-            if (!section || !listEl || !countEl) return;
-
-            const sectionSet = new Set(selectedCourse.sectionIds || []);
-            const cohortSet = new Set(selectedCourse.cohortIds || []);
-
-            const courseStudents = students.filter(student => {
-                const bySection = sectionSet.has(student.sectionId);
-                const byCohort = cohortSet.has(student.cohortId);
-                return bySection || byCohort;
-            });
-
-            countEl.textContent = courseStudents.length;
-
-            if (!courseStudents.length) {
-                listEl.innerHTML = '<div class="selection-view-empty" style="padding:2rem;text-align:center;color:var(--text-muted);"><i data-lucide="users" style="width:48px;height:48px;margin-bottom:1rem;opacity:0.3;"></i><p>No students enrolled in this course yet.</p></div>';
-                lucide.createIcons();
-                return;
-            }
-
-            listEl.innerHTML = courseStudents.map((student, index) => {
-                const parts = String(student.name || '').trim().split(' ').filter(Boolean);
-                const avatar = parts.length >= 2 ? `${parts[0][0]}${parts[1][0]}` : (parts[0]?.[0] || 'S') + 'T';
-                const section = sections.find(sec => sec.id === student.sectionId);
-                const dept = departments.find(dep => dep.id === student.departmentId);
-                const cgpa = typeof student.cgpa === 'number' ? student.cgpa.toFixed(2) : 'N/A';
-                const year = YEAR_LABELS[student.year] || student.year || '1';
-                const email = student.email || 'N/A';
-                const phone = student.phone || 'N/A';
-
-                return `
-                <div class="student-showcase-card">
-                    <div class="student-card-head">
-                        <span class="student-card-avatar">${avatar.toUpperCase()}</span>
-                        <div class="student-card-info">
-                            <p class="student-card-name">${student.name || 'Unnamed'}</p>
-                            <p class="student-card-reg">${student.regNo || 'No Registration'}</p>
-                        </div>
-                    </div>
-                    <div class="student-card-details">
-                        <div class="student-detail-item">
-                            <p class="student-detail-label">Year</p>
-                            <p class="student-detail-value">${year}</p>
-                        </div>
-                        <div class="student-detail-item">
-                            <p class="student-detail-label">Section</p>
-                            <p class="student-detail-value">${section?.name || 'N/A'}</p>
-                        </div>
-                        <div class="student-detail-item">
-                            <p class="student-detail-label">Dept</p>
-                            <p class="student-detail-value">${dept?.code || 'N/A'}</p>
-                        </div>
-                        <div class="student-detail-item">
-                            <p class="student-detail-label">CGPA</p>
-                            <p class="student-detail-value">${cgpa}</p>
-                        </div>
-                    </div>
-                </div>
-            `;
-            }).join('');
-            lucide.createIcons();
-        }
-
-        function renderCourses() {
-            const container = document.getElementById('courses-list');
-            const mergedCourses = normalizeCourseEntries();
-            const filteredCourses = mergedCourses.filter(course => selectedCourseType === 'all' || course._kind === selectedCourseType);
-
-            if (!filteredCourses.length) {
-                container.innerHTML = `
-                <div class="col-12 text-center py-5">
-                    <i data-lucide="book-open" style="width:48px;height:48px;color:var(--text-muted);opacity:.4;"></i>
-                    <h5 class="mt-3 fw-semibold" style="color:var(--text-muted);">No courses in this category</h5>
-                    <p style="color:var(--text-muted);font-size:.875rem;">Switch preference or create a new course.</p>
-                </div>`;
-                lucide.createIcons();
-                return;
-            }
-
-            container.innerHTML = filteredCourses.map(course => {
-                const dept = departments.find(d => d.id === course.departmentId);
-                const chs = cohorts.filter(c => (course.cohortIds || []).includes(c.id));
-                const secs = sections.filter(s => (course.sectionIds || []).includes(s.id));
-                const materialsCount = Array.isArray(course.studyMaterials) ? course.studyMaterials.length : 0;
-
-                return `
-                <div class="col-12 col-md-6 col-lg-4">
-                    <div class="course-card item-card-clickable ${selectedCourseId === course.id ? 'course-card-active' : ''}" onclick="if(event.target.closest('.course-card-actions')) return; openCourseSelectionView('${course.id}')">
-                        <!-- Header with Title and Actions -->
-                        <div class="course-card-header">
-                            <div class="course-title-block">
-                                <span class="course-status-dot ${course.published ? 'published' : 'draft'}"></span>
-                                <h6 class="course-title">${course.name}</h6>
-                            </div>
-                            <div class="course-card-actions">
-                                <button class="btn-icon" onclick="return openEditCourseModal('${course._entryId}', '${course._source}', event)" title="Edit">
-                                    <i data-lucide="edit-2" style="width:13px;"></i>
-                                </button>
-                                <button class="btn-icon danger" onclick="return deleteCourse('${course._entryId}', '${course._source}', event)" title="Delete">
-                                    <i data-lucide="trash-2" style="width:13px;"></i>
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- Metadata Grid -->
-                        <div class="course-metadata-grid">
-                            <div class="course-meta-item">
-                                <span class="course-meta-label">Branch</span>
-                                <span class="badge badge-primary">${dept ? dept.code : 'N/A'}</span>
-                            </div>
-                            <div class="course-meta-item">
-                                <span class="course-meta-label">Term</span>
-                                <span class="badge badge-warning">Year ${YEAR_LABELS[course.year]} • Sem ${course.semester || 1}</span>
-                            </div>
-                            <div class="course-meta-item">
-                                <span class="course-meta-label">Published</span>
-                                <span class="badge ${course.published ? 'badge-success' : 'badge-muted'}">${course.published ? 'Published' : 'Draft'}</span>
-                            </div>
-                            <div class="course-meta-item">
-                                <span class="course-meta-label">Materials</span>
-                                <span class="badge badge-muted" style="display: inline-flex; align-items: center; gap: 0.4rem;">
-                                    <i data-lucide="file-text" style="width:10px;"></i> ${materialsCount}
-                                </span>
-                            </div>
-                        </div>
-
-                        <!-- Sections -->
-                        <div class="course-sections-block">
-                            <span class="course-meta-label d-block mb-2" style="font-weight: 800; font-size: 0.65rem; color: #64748b;">ASSIGNED SECTIONS</span>
-                            <div class="d-flex flex-wrap gap-2">
-                                ${secs.length > 0 ? secs.map(s => {
-                    const sDept = departments.find(d => d.id === s.departmentId);
-                    const branchCode = sDept ? sDept.code : (dept ? dept.code : 'N/A');
-                    // Roman numerals for Year (I, II, III, IV)
-                    const romanYear = ["", "I", "II", "III", "IV"][s.year] || s.year;
-                    return `<span class="badge" style="background:#fce9ef;color:#a71a3e;border:1px solid #fbcfe8;padding:0.4rem 0.6rem;font-size:0.75rem;font-weight:700;">${romanYear}-${branchCode}-${s.name}</span>`;
-                }).join('') : '<span class="badge badge-muted">No Sections Assigned</span>'}
-                            </div>
-                        </div>
-
-                        <!-- Type Badges -->
-                        <div class="course-type-badges">
-                            ${course.isInstitutional ? `<span class="badge badge-accent">${course._category}</span>` : ''}
-                            ${course._source === 'institution' ? '<span class="badge badge-muted">Legacy Institutional</span>' : ''}
-                            ${course.status === 'closed' ? '<span class="badge badge-success">Course Completed</span>' : ''}
-                        </div>
-
-                        <!-- Cohorts Info -->
-                        ${chs.length > 0 ? `<div class="course-cohorts"><span class="course-cohorts-label">Cohorts:</span> <span class="course-cohorts-value">${chs.map(c => c.name).join(', ')}</span></div>` : ''}
-
-                        <!-- Footer -->
-                        <div class="course-card-footer">
-                            <small>Managed in unified courses</small>
-                        </div>
-                    </div>
-                </div>`;
-            }).join('');
-            lucide.createIcons();
-        }
-
-        function openCourseSelectionView(courseId) {
-            selectedCourseId = courseId;
-            renderCourses();
-
-            const wrapper = document.getElementById('course-selection-view');
-            const title = document.getElementById('selected-course-title');
-            const meta = document.getElementById('selected-course-meta');
-            const grid = document.getElementById('selected-course-grid');
-            if (!wrapper || !title || !meta || !grid) return;
-
-            const selectedCourse = normalizeCourseEntries().find(course => course.id === courseId);
-            if (!selectedCourse) return;
-
-            const dept = departments.find(d => d.id === selectedCourse.departmentId);
-            const secCount = sections.filter(s => (selectedCourse.sectionIds || []).includes(s.id)).length;
-            const cohCount = (selectedCourse.cohortIds || []).length;
-            const materialCount = Array.isArray(selectedCourse.studyMaterials) ? selectedCourse.studyMaterials.length : 0;
-
-            title.textContent = selectedCourse.name;
-            meta.textContent = `${selectedCourse._kind === 'institutional' ? 'Institutional' : 'Regular'} • Year ${YEAR_LABELS[selectedCourse.year]} • ${selectedCourse.published ? 'Published' : 'Draft'} ${selectedCourse.status === 'closed' ? '• (Closed)' : ''}`;
-
-            const closeBtn = document.getElementById('close-course-action-btn');
-            if (closeBtn) {
-                if (selectedCourse.status === 'closed') {
-                    closeBtn.classList.add('d-none');
-                } else {
-                    closeBtn.classList.remove('d-none');
-                }
-            }
-
-            grid.innerHTML = `
-            <div class="selection-view-stat">
-                <h6>Department</h6>
-                <p>${dept ? dept.name : 'Not mapped'}</p>
-            </div>
-            <div class="selection-view-stat">
-                <h6>Course Type</h6>
-                <p>${selectedCourse._kind === 'institutional' ? 'Institutional Course' : 'Regular Course'}</p>
-            </div>
-            <div class="selection-view-stat">
-                <h6>Sections</h6>
-                <p>${secCount} Active <button class="btn btn-sm btn-link p-0 ms-2 fw-semibold" style="font-size: 0.8rem; text-decoration: none;" id="btn-allocate-section">+ Allocate</button></p>
-            </div>
-            <div class="selection-view-stat">
-                <h6>Cohorts Linked</h6>
-                <p>${cohCount} Cohorts</p>
-            </div>
-            <div class="selection-view-stat">
-                <h6>Materials</h6>
-                <p>${materialCount} Uploaded</p>
-            </div>
-            <div class="selection-view-stat">
-                <h6>Category</h6>
-                <p>${selectedCourse._category || 'General'}</p>
-            </div>
-        `;
-
-            const btnAllocate = document.getElementById('btn-allocate-section');
-            if (btnAllocate) {
-                btnAllocate.addEventListener('click', () => {
-                    const modalEl = document.getElementById('allocateCourseModal');
-                    if (modalEl) {
-                        document.getElementById('allocateCourseForm').reset();
-                        bootstrap.Modal.getOrCreateInstance(modalEl).show();
-                    }
-                });
-            }
-
-            renderCourseMaterials(selectedCourse);
-            renderCourseUpdates(selectedCourse.id);
-            renderCourseStudents(selectedCourse);
-
-            wrapper.classList.remove('d-none');
-        }
-
-        function closeCourseSelectionView() {
-            selectedCourseId = null;
-            document.getElementById('course-selection-view')?.classList.add('d-none');
-            renderCourses();
-        }
-
-        function openAddCourseModal() {
-            isEditingCourse = false;
-            editingCourseId = null;
-            editingCourseSource = 'courses';
-            document.getElementById('courseCreateForm').reset();
-            document.getElementById('courseModal').querySelector('.modal-title').textContent = 'Create Course';
-        }
-
-        function openEditCourseModal(id, source, e) {
-            if (e) e.stopPropagation();
-            isEditingCourse = true;
-            editingCourseId = id;
-            editingCourseSource = source || 'courses';
-            const course = editingCourseSource === 'institution'
-                ? institutionCourses.find(c => c.id === id)
-                : courses.find(c => c.id === id);
-            if (!course) {
-                alert('Course not found. Please refresh and try again.');
-                return false;
-            }
-            document.getElementById('courseModal').querySelector('.modal-title').textContent = editingCourseSource === 'institution' ? 'Update Institutional Course' : 'Update Course';
-            document.getElementById('new-course-name').value = course.name;
-            const firstSec = sections.find(s => course.sectionIds && course.sectionIds.includes(s.id));
-            const departmentId = course.departmentId || firstSec?.departmentId || '';
-            document.getElementById('new-course-dept').value = departmentId;
-            document.getElementById('new-course-year').value = course.year;
-            document.getElementById('new-course-semester').value = course.semester || '1';
-
-            // Populate dynamic fields before setting values
-            updateCourseFormOptions();
-
-            if (firstSec) document.getElementById('new-course-section').value = firstSec.name;
-            const firstCoh = cohorts.find(c => course.cohortIds && course.cohortIds.includes(c.id));
-            if (firstCoh) document.getElementById('new-course-cohort').value = firstCoh.name;
-
-            const instToggle = document.getElementById('new-course-inst');
-            instToggle.checked = editingCourseSource === 'institution' ? true : !!course.isInstitutional;
-            instToggle.dispatchEvent(new Event('change'));
-
-            new bootstrap.Modal(document.getElementById('courseModal')).show();
-            return false;
-        }
-
-        function deleteCourse(id, source, e) {
-            if (e) e.stopPropagation();
-            const record = source === 'institution'
-                ? institutionCourses.find(c => c.id === id)
-                : courses.find(c => c.id === id);
-            const label = record?.name || 'this course';
-            if (!confirm(`Delete ${label}?`)) return false;
-
-            if (source === 'institution') {
-                institutionCourses = institutionCourses.filter(c => c.id !== id);
-                saveData('inst_courses', institutionCourses);
-            } else {
-                const removed = courses.find(c => c.id === id);
-                courses = courses.filter(c => c.id !== id);
-                if (removed?.isInstitutional) {
-                    institutionCourses = institutionCourses.filter(ic => !(ic.name === removed.name && ic.year === removed.year));
-                    saveData('inst_courses', institutionCourses);
-                }
-            }
-            saveData('courses', courses);
-            if (selectedCourseId === id || selectedCourseId === `legacy-${id}`) {
-                closeCourseSelectionView();
-            }
-            renderCourses();
-            return false;
-        }
-
-        function fileToDataUrl(file) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = () => resolve({
-                    name: file.name,
-                    size: file.size,
-                    type: file.type || 'application/octet-stream',
-                    uploadedAt: new Date().toISOString(),
-                    dataUrl: reader.result
-                });
-                reader.onerror = () => reject(new Error(`Failed to read ${file.name}`));
-                reader.readAsDataURL(file);
-            });
-        }
-
-        document.getElementById('courseCreateForm').addEventListener('submit', async e => {
-            e.preventDefault();
-            const name = document.getElementById('new-course-name').value;
-            const dId = document.getElementById('new-course-dept').value;
-            const year = parseInt(document.getElementById('new-course-year').value);
-            const semester = parseInt(document.getElementById('new-course-semester').value) || 1;
-            const secName = document.getElementById('new-course-section').value;
-            const cohName = document.getElementById('new-course-cohort').value;
-            const isInst = document.getElementById('new-course-inst').checked;
-            const studyMaterials = selectedCourseFiles.length
-                ? await Promise.all(selectedCourseFiles.map(fileToDataUrl))
-                : [];
-
-            let sec = sections.find(s => s.name === secName && s.departmentId === dId && s.year === year);
-            if (!sec) {
-                sec = { id: `sec-${Date.now()}`, name: secName, departmentId: dId, year };
-                sections.push(sec);
-                saveData('sections', sections);
-            }
-
-            let cohId = null;
-            if (cohName) {
-                let coh = cohorts.find(c => c.name === cohName && c.departmentId === dId);
-                if (!coh) {
-                    coh = { id: `coh-${Date.now()}`, name: cohName, departmentId: dId, year, sectionIds: [sec.id] };
-                    cohorts.push(coh);
-                    saveData('cohorts', cohorts);
-                }
-                cohId = coh.id;
-            }
-
-            if (isEditingCourse) {
-                if (editingCourseSource === 'institution') {
-                    const instIdx = institutionCourses.findIndex(c => c.id === editingCourseId);
-                    if (instIdx > -1) {
-                        institutionCourses[instIdx] = {
-                            ...institutionCourses[instIdx],
-                            name,
-                            year,
-                            semester,
-                            sectionIds: [sec.id],
-                            category: institutionCourses[instIdx].category || 'Institutional',
-                            studyMaterials: studyMaterials.length ? studyMaterials : (institutionCourses[instIdx].studyMaterials || [])
-                        };
-                        saveData('inst_courses', institutionCourses);
-                    }
-
-                    const matchIdx = courses.findIndex(c => c.name === name && c.year === year && c.isInstitutional);
-                    if (matchIdx > -1) {
-                        courses[matchIdx] = {
-                            ...courses[matchIdx],
-                            departmentId: dId,
-                            year,
-                            semester,
-                            sectionIds: [sec.id],
-                            cohortIds: cohId ? [cohId] : [],
-                            isInstitutional: true,
-                            studyMaterials: studyMaterials.length ? studyMaterials : (courses[matchIdx].studyMaterials || [])
-                        };
-                        recordCourseUpdate(courses[matchIdx], 'Updated');
-                    } else {
-                        const createdInstitutionalCourse = {
-                            id: `crs-${Date.now()}`,
-                            name,
-                            departmentId: dId,
-                            year,
-                            semester,
-                            sectionIds: [sec.id],
-                            cohortIds: cohId ? [cohId] : [],
-                            published: true,
-                            isInstitutional: true,
-                            assessmentName: 'Institutional Assessment',
-                            assessmentScore: 0,
-                            studyMaterials
-                        };
-                        courses.push(createdInstitutionalCourse);
-                        recordCourseUpdate(createdInstitutionalCourse, 'Created');
-                    }
-                } else {
-                    const idx = courses.findIndex(c => c.id === editingCourseId);
-                    if (idx > -1) {
-                        courses[idx] = {
-                            ...courses[idx],
-                            name,
-                            departmentId: dId,
-                            year,
-                            semester,
-                            sectionIds: [sec.id],
-                            cohortIds: cohId ? [cohId] : [],
-                            isInstitutional: isInst,
-                            studyMaterials: studyMaterials.length ? studyMaterials : (courses[idx].studyMaterials || [])
-                        };
-                        recordCourseUpdate(courses[idx], 'Updated');
-                    }
-                }
-            } else {
-                const createdCourse = {
-                    id: `crs-${Date.now()}`,
-                    name,
-                    departmentId: dId,
-                    year,
-                    semester,
-                    sectionIds: [sec.id],
-                    cohortIds: cohId ? [cohId] : [],
-                    published: true,
-                    isInstitutional: isInst,
-                    assessmentName: 'New Assessment',
-                    assessmentScore: 0,
-                    studyMaterials
-                };
-                courses.push(createdCourse);
-                recordCourseUpdate(createdCourse, 'Created');
-            }
-            saveData('courses', courses);
-
-            if (isInst) {
-                const existing = institutionCourses.find(ic => ic.name === name && ic.year === year);
-                if (!existing) {
-                    institutionCourses.push({ id: `inst-${Date.now()}`, name, category: 'Institutional', sectionIds: [sec.id], year, semester, studyMaterials });
-                    saveData('inst_courses', institutionCourses);
-                }
-            }
-
-            bootstrap.Modal.getInstance(document.getElementById('courseModal')).hide();
-            isEditingCourse = false;
-            editingCourseId = null;
-            editingCourseSource = 'courses';
-            e.target.reset();
-            selectedCourseFiles = [];
-            renderCourseFilePreviews();
-            if (courseFileInput) courseFileInput.value = '';
-            renderCourses();
-        });
-
-        document.querySelector('[data-bs-target="#courseModal"]').addEventListener('click', openAddCourseModal);
-
-        const deptFormSelect = document.getElementById('new-course-dept');
-        if (deptFormSelect) deptFormSelect.innerHTML += departments.map(d => `<option value="${d.id}">${d.name}</option>`).join('');
-
-        function updateCourseFormOptions() {
-            const dId = document.getElementById('new-course-dept').value;
-            const year = parseInt(document.getElementById('new-course-year').value) || 1;
-            const isInst = document.getElementById('new-course-inst').checked;
-
-            const secSelect = document.getElementById('new-course-section');
-            const cohSelect = document.getElementById('new-course-cohort');
-
-            if (secSelect) {
-                let relevantSections = sections.filter(s => s.year === year);
-                if (!isInst && dId) {
-                    relevantSections = relevantSections.filter(s => s.departmentId === dId);
-                } else if (!isInst && !dId) {
-                    relevantSections = [];
-                }
-
-                const standardSections = ['A', 'B', 'C', 'D', 'E'];
-                const uniqueNames = [...new Set([...standardSections, ...relevantSections.map(s => s.name)])].sort();
-
-                secSelect.innerHTML = uniqueNames.length
-                    ? uniqueNames.map(name => `<option value="${name}">Section ${name}</option>`).join('')
-                    : '<option value="">Select Dept first</option>';
-
-                if (!isInst && !dId) {
-                    secSelect.innerHTML = '<option value="">Select Dept first</option>';
-                }
-            }
-
-            if (cohSelect) {
-                let relevantCohorts = cohorts.filter(c => c.year === year);
-                if (!isInst && dId) {
-                    relevantCohorts = relevantCohorts.filter(c => c.departmentId === dId);
-                } else if (!isInst && !dId) {
-                    relevantCohorts = [];
-                }
-
-                const uniqueCohorts = [...new Set(relevantCohorts.map(c => c.name))].sort();
-
-                cohSelect.innerHTML = '<option value="">No Cohort</option>' +
-                    uniqueCohorts.map(name => `<option value="${name}">${name}</option>`).join('');
-            }
-        }
-
-        document.getElementById('new-course-dept')?.addEventListener('change', updateCourseFormOptions);
-        document.getElementById('new-course-year')?.addEventListener('change', updateCourseFormOptions);
-
-        document.getElementById('new-course-inst')?.addEventListener('change', (e) => {
-            const isInst = e.target.checked;
-            const deptSelect = document.getElementById('new-course-dept');
-            const cohSelect = document.getElementById('new-course-cohort');
-
-            if (isInst) {
-                deptSelect.removeAttribute('required');
-                deptSelect.value = '';
-                deptSelect.closest('.col-6').style.opacity = '0.5';
-                deptSelect.disabled = true;
-
-                cohSelect.value = '';
-                cohSelect.closest('.col-6').style.opacity = '0.5';
-                cohSelect.disabled = true;
-            } else {
-                deptSelect.setAttribute('required', 'true');
-                deptSelect.closest('.col-6').style.opacity = '1';
-                deptSelect.disabled = false;
-
-                cohSelect.closest('.col-6').style.opacity = '1';
-                cohSelect.disabled = false;
-            }
-            updateCourseFormOptions();
-        });
-
-        // File Upload
-        const courseFileInput = document.getElementById('new-course-material');
-        const courseDropZone = document.getElementById('course-file-drop-zone');
-        const coursePreviewList = document.getElementById('course-file-preview-list');
-        let selectedCourseFiles = [];
-
-        if (courseFileInput && courseDropZone) {
-            courseFileInput.addEventListener('change', e => handleCourseFiles(e.target.files));
-            courseDropZone.addEventListener('dragover', e => { e.preventDefault(); courseDropZone.classList.add('drag-over'); });
-            courseDropZone.addEventListener('dragleave', () => courseDropZone.classList.remove('drag-over'));
-            courseDropZone.addEventListener('drop', e => {
-                e.preventDefault(); courseDropZone.classList.remove('drag-over');
-                if (e.dataTransfer.files) handleCourseFiles(e.dataTransfer.files);
-            });
-        }
-
-        function handleCourseFiles(files) { for (let f of files) selectedCourseFiles.push(f); renderCourseFilePreviews(); }
-        function removeCourseFile(i, e) { e.stopPropagation(); selectedCourseFiles.splice(i, 1); renderCourseFilePreviews(); }
-        function renderCourseFilePreviews() {
-            if (!selectedCourseFiles.length) { coursePreviewList.innerHTML = ''; return; }
-            coursePreviewList.innerHTML = selectedCourseFiles.map((f, i) => `
-            <div class="d-flex align-items-center justify-content-between p-2 rounded-3" style="border:1px solid var(--border);background:var(--base);">
-                <div class="d-flex align-items-center gap-2 overflow-hidden">
-                    <div style="width:30px;height:30px;border-radius:8px;background:rgba(var(--primary-rgb),0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                        <i data-lucide="file" style="width:13px;color:var(--primary);"></i>
-                    </div>
-                    <div class="overflow-hidden">
-                        <p class="small fw-bold mb-0 text-truncate">${f.name}</p>
-                        <p class="mb-0" style="font-size:.65rem;color:var(--text-muted);">${(f.size / 1024 / 1024).toFixed(2)} MB</p>
-                    </div>
-                </div>
-                <button type="button" class="btn-icon danger" onclick="removeCourseFile(${i},event)">
-                    <i data-lucide="x" style="width:12px;"></i>
-                </button>
-            </div>`).join('');
-            lucide.createIcons();
-        }
-
-        const origAddCourse = openAddCourseModal;
-        openAddCourseModal = function () {
-            origAddCourse();
-            selectedCourseFiles = [];
-            renderCourseFilePreviews();
-            if (courseFileInput) courseFileInput.value = '';
-
-            const instToggle = document.getElementById('new-course-inst');
-            if (instToggle) {
-                instToggle.checked = false;
-                instToggle.dispatchEvent(new Event('change'));
-            }
-
-            updateCourseFormOptions();
-        };
-        const origEditCourse = openEditCourseModal;
-        openEditCourseModal = function (id, source, e) {
-            const result = origEditCourse(id, source, e);
-            selectedCourseFiles = [];
-            renderCourseFilePreviews();
-            if (courseFileInput) courseFileInput.value = '';
-            return result;
-        };
-
-        courseTypeButtons.forEach(btn => {
-            btn.addEventListener('click', () => setCourseTypeFilter(btn.dataset.courseKind));
-        });
-
-        document.getElementById('close-course-selection-view')?.addEventListener('click', closeCourseSelectionView);
-
-        // Course Detail Panel File Upload & Updates
-        const courseDetailInput = document.getElementById('course-detail-material');
-        const courseDetailDropZone = document.getElementById('course-detail-upload-zone');
-        const addCourseLinkBtn = document.getElementById('add-course-link-btn');
-
-        if (addCourseLinkBtn) {
-            addCourseLinkBtn.addEventListener('click', () => {
-                const nameInput = document.getElementById('course-link-name');
-                const urlInput = document.getElementById('course-link-url');
-                if (nameInput.value && urlInput.value && selectedCourseId) {
-                    addCourseResource(selectedCourseId, 'link', nameInput.value, urlInput.value);
-                    nameInput.value = '';
-                    urlInput.value = '';
-                } else {
-                    alert("Please provide both a link title and URL.");
-                }
-            });
-        }
-
-        if (courseDetailInput && courseDetailDropZone) {
-            courseDetailInput.addEventListener('change', async e => {
-                const files = e.target.files;
-                if (files.length && selectedCourseId) {
-                    for (let f of files) {
-                        try {
-                            const dataUrlObj = await fileToDataUrl(f);
-                            addCourseResource(selectedCourseId, 'file', f.name, dataUrlObj.dataUrl);
-                        } catch (err) {
-                            console.error(err);
-                        }
-                    }
-                    e.target.value = '';
-                }
-            });
-            courseDetailDropZone.addEventListener('dragover', e => { e.preventDefault(); courseDetailDropZone.classList.add('drag-over'); });
-            courseDetailDropZone.addEventListener('dragleave', () => courseDetailDropZone.classList.remove('drag-over'));
-            courseDetailDropZone.addEventListener('drop', async e => {
-                e.preventDefault();
-                courseDetailDropZone.classList.remove('drag-over');
-                if (e.dataTransfer.files && selectedCourseId) {
-                    for (let f of e.dataTransfer.files) {
-                        try {
-                            const dataUrlObj = await fileToDataUrl(f);
-                            addCourseResource(selectedCourseId, 'file', f.name, dataUrlObj.dataUrl);
-                        } catch (err) {
-                            console.error(err);
-                        }
-                    }
-                }
-            });
-        }
-
-        const closeCourseActionBtn = document.getElementById('close-course-action-btn');
-        const confirmCloseCourseBtn = document.getElementById('confirm-close-course-btn');
-
-        if (closeCourseActionBtn) {
-            closeCourseActionBtn.addEventListener('click', () => {
-                const el = document.getElementById('closeCourseModal');
-                if (el) {
-                    const modal = bootstrap.Modal.getOrCreateInstance(el);
-                    modal.show();
-                }
-            });
-        }
-
-        if (confirmCloseCourseBtn) {
-            confirmCloseCourseBtn.addEventListener('click', () => {
-                if (!selectedCourseId) return;
-
-                let course = courses.find(c => c.id === selectedCourseId);
-                let instCourse = null;
-                let sourceKey = 'courses';
-
-                if (!course) {
-                    instCourse = institutionCourses.find(c => `legacy-${c.id}` === selectedCourseId || c.id === selectedCourseId);
-                    if (instCourse) {
-                        course = instCourse;
-                        sourceKey = 'inst_courses';
-                    }
-                }
-
-                if (course) {
-                    course.status = 'closed';
-                    if (sourceKey === 'courses') {
-                        saveData('courses', courses);
-                    } else {
-                        saveData('inst_courses', institutionCourses);
-                    }
-
-                    const el = document.getElementById('closeCourseModal');
-                    if (el) {
-                        const modal = bootstrap.Modal.getInstance(el);
-                        if (modal) modal.hide();
-                    }
-
-                    openCourseSelectionView(selectedCourseId);
-                    renderCourses();
-                }
-            });
-        }
-
-        document.getElementById('allocateCourseForm')?.addEventListener('submit', (e) => {
-            e.preventDefault();
-            if (!selectedCourseId) return;
-
-            const dId = document.getElementById('allocate-course-dept').value;
-            const year = parseInt(document.getElementById('allocate-course-year').value);
-            const secName = document.getElementById('allocate-course-section').value;
-
-            let sec = sections.find(s => s.name === secName && s.departmentId === dId && s.year === year);
-            if (!sec) {
-                sec = { id: `sec-${Date.now()}`, name: secName, departmentId: dId, year };
-                sections.push(sec);
-                saveData('sections', sections);
-            }
-
-            let course = courses.find(c => c.id === selectedCourseId);
-            let sourceKey = 'courses';
-
-            if (!course) {
-                let instCourse = institutionCourses.find(c => `legacy-${c.id}` === selectedCourseId || c.id === selectedCourseId);
-                if (instCourse) {
-                    course = instCourse;
-                    sourceKey = 'inst_courses';
-                }
-            }
-
-            if (course) {
-                course.sectionIds = course.sectionIds || [];
-                if (!course.sectionIds.includes(sec.id)) {
-                    course.sectionIds.push(sec.id);
-                }
-                if (sourceKey === 'courses') {
-                    saveData('courses', courses);
-                } else {
-                    saveData('inst_courses', institutionCourses);
-                }
-                bootstrap.Modal.getInstance(document.getElementById('allocateCourseModal')).hide();
-                openCourseSelectionView(selectedCourseId);
-                renderCourses();
-            }
-        });
-
-        const allocateDeptSelect = document.getElementById('allocate-course-dept');
-        if (allocateDeptSelect) allocateDeptSelect.innerHTML += departments.map(d => `<option value="${d.id}">${d.name}</option>`).join('');
-
-        function updateAllocateCourseOptions() {
-            const dId = document.getElementById('allocate-course-dept')?.value;
-            const year = parseInt(document.getElementById('allocate-course-year')?.value) || 1;
-            const secSelect = document.getElementById('allocate-course-section');
-
-            if (secSelect) {
-                let relevantSections = [];
-                if (dId) {
-                    relevantSections = sections.filter(s => s.year === year && s.departmentId === dId);
-                }
-
-                const standardSections = ['A', 'B', 'C', 'D', 'E'];
-                const uniqueNames = [...new Set([...standardSections, ...relevantSections.map(s => s.name)])].sort();
-
-                if (dId) {
-                    secSelect.innerHTML = uniqueNames.map(name => `<option value="${name}">Section ${name}</option>`).join('');
-                } else {
-                    secSelect.innerHTML = '<option value="">Select Dept first</option>';
-                }
-            }
-        }
-
-        document.getElementById('allocate-course-dept')?.addEventListener('change', updateAllocateCourseOptions);
-        document.getElementById('allocate-course-year')?.addEventListener('change', updateAllocateCourseOptions);
-
-        // Add event listener to populate when modal opens
-        document.getElementById('allocateCourseModal')?.addEventListener('show.bs.modal', updateAllocateCourseOptions);
-
-        setCourseTypeFilter(['all', 'regular', 'institutional'].includes(selectedCourseType) ? selectedCourseType : 'all');
-    </script>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const saved = localStorage.getItem('facultyProfile');
-            if (saved) {
-                const profile = JSON.parse(saved);
-                function getInitials(name) {
-                    const parts = name.trim().split(' ').filter(Boolean);
-                    if (parts.length >= 2) return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
-                    if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
-                    return "FA";
-                }
-                document.querySelectorAll('.pname').forEach(el => el.textContent = profile.name);
-                document.querySelectorAll('.prole').forEach(el => el.textContent = profile.designation);
-                document.querySelectorAll('.profile-user-block small').forEach(el => el.textContent = profile.email);
-                document.querySelectorAll('.profile-user-block .fw-bold').forEach(el => el.textContent = profile.name);
-                document.querySelectorAll('.profile-avatar').forEach(el => {
-                    if (profile.picture) {
-                        el.innerHTML = `<img src="${profile.picture}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;" alt="Profile">`;
-                        el.style.background = 'transparent';
-                    } else {
-                        el.innerHTML = `<span style="font-weight:700; color:var(--primary); font-size:0.85rem;">${getInitials(profile.name)}</span>`;
-                        el.style.background = 'rgba(var(--primary-rgb), 0.1)';
-                    }
-                });
-            }
-        });
-    </script>
-</body>
-</html>
+        
+        lastChecked = this;
+      });
+    });
+  }
+
+  // Event Listeners for filters
+  deptSelect?.addEventListener('change', () => {
+    activeStudentIds = []; // clear selection when dept changes to ensure same-branch enforcement
+    renderStudentGrid();
+  });
+  yearSelect?.addEventListener('change', renderStudentGrid);
+  sectionSelect?.addEventListener('change', renderStudentGrid);
+  studentSearch?.addEventListener('input', renderStudentGrid);
+
+  // Select All button
+  document.getElementById('selectAllBtn')?.addEventListener('click', () => {
+    const visibleCheckboxes = Array.from(studentGrid.querySelectorAll('.student-checkbox-item'));
+    visibleCheckboxes.forEach(cb => {
+      cb.checked = true;
+      if (!activeStudentIds.includes(cb.value)) {
+        activeStudentIds.push(cb.value);
+      }
+    });
+  });
+
+  // Clear button
+  document.getElementById('clearAllBtn')?.addEventListener('click', () => {
+    const visibleCheckboxes = Array.from(studentGrid.querySelectorAll('.student-checkbox-item'));
+    visibleCheckboxes.forEach(cb => {
+      cb.checked = false;
+      activeStudentIds = activeStudentIds.filter(id => id !== cb.value);
+    });
+  });
+
+  // Open Edit Course details modal helper
+  window.openEditCourse = function(courseId) {
+    const course = courses.find(c => c.id === courseId);
+    if (!course) return;
+
+    document.getElementById('courseFormAction').value = 'update_course';
+    document.getElementById('courseFormId').value = course.id;
+    document.getElementById('courseNameInput').value = course.name;
+    document.getElementById('courseDescInput').value = course.description || '';
+    document.getElementById('courseCategorySelect').value = course.category || 'other';
+    document.getElementById('courseDeptSelect').value = course.departmentId || '';
+    document.getElementById('courseYearSelect').value = course.year || '1';
+    document.getElementById('coursePublishCheckbox').checked = course.published;
+
+    activeStudentIds = [...(course.studentIds || [])];
+
+    document.getElementById('courseModalTitle').textContent = 'Modify Course Details';
+    document.getElementById('courseSubmitBtn').textContent = 'Save Changes';
+    
+    // Open modal
+    new bootstrap.Modal(document.getElementById('createCourseModal')).show();
+    
+    // Render list
+    renderStudentGrid();
+  };
+
+  window.resetCourseModal = function() {
+    document.getElementById('courseFormAction').value = 'create_course';
+    document.getElementById('courseFormId').value = '';
+    document.getElementById('courseNameInput').value = '';
+    document.getElementById('courseDescInput').value = '';
+    document.getElementById('courseCategorySelect').value = 'programming';
+    document.getElementById('courseDeptSelect').value = '';
+    document.getElementById('courseYearSelect').value = '1';
+    document.getElementById('courseSectionSelect').value = 'all';
+    document.getElementById('coursePublishCheckbox').checked = false;
+    
+    activeStudentIds = [];
+    
+    document.getElementById('courseModalTitle').textContent = 'Create Course';
+    document.getElementById('courseSubmitBtn').textContent = 'Save Course';
+    
+    renderStudentGrid();
+  };
+
+  // Reset modal on opening create course
+  document.getElementById('createCourseModal')?.addEventListener('show.bs.modal', function(e) {
+    const isEdit = document.getElementById('courseFormAction').value === 'update_course';
+    if (!isEdit) {
+      resetCourseModal();
+    }
+  });
+
+  // Initialize
+  document.addEventListener('DOMContentLoaded', () => {
+    renderStudentGrid();
+  });
+</script>
+{% endblock %}

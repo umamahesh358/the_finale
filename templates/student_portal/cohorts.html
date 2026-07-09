@@ -15,34 +15,111 @@
   Active Cohorts
 </div>
 
-{% if cohorts %}
-<div class="two-col-grid" style="margin-bottom:24px;">
-  {% for cohort in cohorts %}
-  <div class="card project-card" style="padding:24px;background:var(--bg);border-radius:12px;border:1px solid var(--border);position:relative;display:flex;flex-direction:column;gap:12px;">
-    <div style="display:flex;align-items:center;gap:16px;">
-      <div style="width:48px;height:48px;background:var(--primary-light);border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2">
-          <polyline points="16 18 22 12 16 6" />
-          <polyline points="8 6 2 12 8 18" />
-        </svg>
+<div id="student-cohorts-container">
+  {% if cohorts %}
+  <div class="two-col-grid" id="student-cohorts-grid" style="margin-bottom:24px;">
+    {% for cohort in cohorts %}
+    <div class="card project-card" data-db-cohort-id="{{ cohort.id }}" style="padding:24px;background:var(--bg);border-radius:12px;border:1px solid var(--border);position:relative;display:flex;flex-direction:column;gap:12px;">
+      <div style="display:flex;align-items:center;gap:16px;">
+        <div style="width:48px;height:48px;background:var(--primary-light);border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2">
+            <polyline points="16 18 22 12 16 6" />
+            <polyline points="8 6 2 12 8 18" />
+          </svg>
+        </div>
+        <div style="flex:1;">
+          <div class="cohort-name" style="font-size:18px;font-weight:800;color:var(--text);line-height:1.2;">{{ cohort.name }}</div>
+          <div style="font-size:13px;color:var(--muted);font-weight:600;margin-top:4px;">{{ cohort.get_cohort_type_display|default:"Cohort" }} • {{ cohort.department.name }}</div>
+        </div>
+        <span class="tag tag-green" style="align-self:flex-start;"><span class="status-dot"></span>Active</span>
       </div>
-      <div style="flex:1;">
-        <div class="cohort-name" style="font-size:18px;font-weight:800;color:var(--text);line-height:1.2;">{{ cohort.name }}</div>
-        <div style="font-size:13px;color:var(--muted);font-weight:600;margin-top:4px;">{{ cohort.get_cohort_type_display|default:"Cohort" }} · {{ cohort.department.name }}</div>
+      <div style="padding-top:12px;border-top:1px dashed var(--border);margin-top:auto;">
+        <p class="cohort-desc" style="font-size:14px;color:#475569;line-height:1.6;margin:0;">{{ cohort.description|default:"No description provided." }}</p>
       </div>
-      <span class="tag tag-green" style="align-self:flex-start;"><span class="status-dot"></span>Active</span>
     </div>
-    <div style="padding-top:12px;border-top:1px dashed var(--border);margin-top:auto;">
-      <p class="cohort-desc" style="font-size:14px;color:#475569;line-height:1.6;margin:0;">{{ cohort.description|default:"No description provided." }}</p>
-    </div>
+    {% endfor %}
   </div>
-  {% endfor %}
+  {% else %}
+  <div class="card" id="cohorts-empty-state" style="padding:60px;text-align:center;">
+    <div style="font-size:14px;font-weight:600;color:var(--muted);">No cohorts assigned yet.</div>
+    <div style="font-size:12px;color:var(--muted);margin-top:8px;">Cohorts are assigned by your mentors or department heads.</div>
+  </div>
+  {% endif %}
 </div>
-{% else %}
-<div class="card" style="padding:60px;text-align:center;">
-  <div style="font-size:14px;font-weight:600;color:var(--muted);">No cohorts assigned yet.</div>
-  <div style="font-size:12px;color:var(--muted);margin-top:8px;">Cohorts are assigned by your mentors or department heads.</div>
-</div>
-{% endif %}
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const currentStudentRegNo = "{{ profile.roll_no|escapejs }}";
+    if (!currentStudentRegNo) return;
+
+    // Load data from localStorage
+    const localStudents = JSON.parse(localStorage.getItem('students')) || [];
+    const localCohorts = JSON.parse(localStorage.getItem('cohorts')) || [];
+
+    // Find student ID
+    const studentObj = localStudents.find(s => 
+      s.regNo && s.regNo.toLowerCase() === currentStudentRegNo.toLowerCase()
+    );
+    const studentId = studentObj ? studentObj.id : null;
+
+    if (!studentId) return;
+
+    // Filter cohorts where this student is enrolled
+    const myCustomCohorts = localCohorts.filter(c => 
+      c.status !== 'closed' && c.studentIds && c.studentIds.includes(studentId)
+    );
+
+    if (myCustomCohorts.length > 0) {
+      // Hide empty state if visible
+      const emptyState = document.getElementById('cohorts-empty-state');
+      if (emptyState) {
+        emptyState.remove();
+      }
+
+      // Check if grid wrapper exists
+      let grid = document.getElementById('student-cohorts-grid');
+      const container = document.getElementById('student-cohorts-container');
+      if (!grid && container) {
+        grid = document.createElement('div');
+        grid.id = 'student-cohorts-grid';
+        grid.className = 'two-col-grid';
+        grid.style.marginBottom = '24px';
+        container.appendChild(grid);
+      }
+
+      if (grid) {
+        myCustomCohorts.forEach(c => {
+          // Check if this custom cohort card is already rendered
+          if (grid.querySelector(`[data-custom-cohort-id="${c.id}"]`)) return;
+
+          const card = document.createElement('div');
+          card.className = 'card project-card';
+          card.setAttribute('data-custom-cohort-id', c.id);
+          card.style.cssText = 'padding:24px;background:var(--bg);border-radius:12px;border:1px solid var(--border);position:relative;display:flex;flex-direction:column;gap:12px;';
+          
+          card.innerHTML = `
+            <div style="display:flex;align-items:center;gap:16px;">
+              <div style="width:48px;height:48px;background:rgba(151,0,6,0.1);border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2">
+                  <polyline points="16 18 22 12 16 6" />
+                  <polyline points="8 6 2 12 8 18" />
+                </svg>
+              </div>
+              <div style="flex:1;">
+                <div class="cohort-name" style="font-size:18px;font-weight:800;color:var(--text);line-height:1.2;">${c.name}</div>
+                <div style="font-size:13px;color:var(--muted);font-weight:600;margin-top:4px;">Workspace Group • Active</div>
+              </div>
+              <span class="tag tag-green" style="align-self:flex-start;"><span class="status-dot"></span>Active</span>
+            </div>
+            <div style="padding-top:12px;border-top:1px dashed var(--border);margin-top:auto;">
+              <p class="cohort-desc" style="font-size:14px;color:#475569;line-height:1.6;margin:0;">${c.description || "No description provided."}</p>
+            </div>
+          `;
+          grid.appendChild(card);
+        });
+      }
+    }
+  });
+</script>
 
 {% endblock %}

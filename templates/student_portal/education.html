@@ -39,7 +39,7 @@
       
       <div style="display:flex;gap:12px;margin-top:20px;padding-top:16px;border-top:1px dashed var(--border);">
         <button type="button" class="btn-outline" style="flex:1;padding:8px 12px;font-size:13px;border-radius:8px;" onclick="document.getElementById('display-{{ e.edu_type }}').style.display='none'; document.getElementById('form-{{ e.edu_type }}').style.display='flex';">✏️ Edit</button>
-        <form method="post" style="flex:1;display:flex;" onsubmit="return confirm('Are you sure you want to remove this education record?');">
+        <form method="post" action="{% url 'student-education' %}" style="flex:1;display:flex;" onsubmit="return confirm('Are you sure you want to remove this education record?');">
           {% csrf_token %}
           <input type="hidden" name="action" value="delete">
           <input type="hidden" name="edu_type" value="{{ e.edu_type }}">
@@ -49,7 +49,7 @@
     </div>
 
     <!-- INLINE EDIT FORM COMPONENT (Hidden by default) -->
-    <form id="form-{{ e.edu_type }}" method="post" style="display:none;flex-direction:column;gap:12px;">
+    <form id="form-{{ e.edu_type }}" method="post" action="{% url 'student-education' %}" style="display:none;flex-direction:column;gap:12px;">
       {% csrf_token %}
       <input type="hidden" name="action" value="save">
       <input type="hidden" name="edu_type" value="{{ e.edu_type }}">
@@ -59,25 +59,25 @@
       </div>
 
       <div class="df-group">
-        <label class="df-label">Institution *</label>
-        <input type="text" name="institution" class="df-input" placeholder="Institution name" value="{{ e.institution }}" required>
+        <label class="df-label">Institution Name</label>
+        <input type="text" name="institution" class="df-input" placeholder="Institution name" value="{{ e.institution }}">
       </div>
       
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
         <div class="df-group">
           <label class="df-label">Board / Univ</label>
-          <input type="text" name="board_university" class="df-input" placeholder="JNTUA / CBSE" value="{{ e.board_university }}" required>
+          <input type="text" name="board_university" class="df-input" placeholder="JNTUA / CBSE" value="{{ e.board_university }}">
         </div>
         <div class="df-group">
-          <label class="df-label">Year</label>
-          <input type="number" name="year_of_passing" class="df-input" placeholder="YYYY" value="{{ e.year_of_passing }}" required>
+          <label class="df-label">Year of Passing</label>
+          <input type="number" name="year_of_passing" class="df-input" placeholder="YYYY" value="{{ e.year_of_passing }}">
         </div>
       </div>
       
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
         <div class="df-group">
           <label class="df-label">Score / Rank</label>
-          <input type="text" name="score" class="df-input" placeholder="9.2 or 96%" value="{{ e.score }}" required>
+          <input type="text" name="score" class="df-input" placeholder="9.2 or 96%" value="{{ e.score }}">
         </div>
         <div class="df-group">
           <label class="df-label">Score Type</label>
@@ -111,12 +111,12 @@
 <div class="modal fade" id="addEducationModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content" style="border:none;border-radius:16px;overflow:hidden;box-shadow:0 20px 40px rgba(0,0,0,0.1);">
-      <form method="post">
+      <form method="post" action="{% url 'student-education' %}">
         {% csrf_token %}
         <input type="hidden" name="action" value="save">
         
         <div style="padding:24px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;background:#f8fafc;">
-          <h5 style="margin:0;font-size:18px;font-weight:800;color:var(--text);">Add Educational Details</h5>
+          <h2 style="margin:0;font-size:18px;font-weight:800;color:var(--text);">Add Educational Details</h2>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         
@@ -136,25 +136,25 @@
           </div>
 
           <div class="df-group">
-            <label class="df-label">Institution Name *</label>
-            <input type="text" name="institution" class="df-input" placeholder="e.g. SR Junior College" required>
+            <label class="df-label">Institution Name</label>
+            <input type="text" name="institution" class="df-input" placeholder="e.g. SR Junior College">
           </div>
           
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
             <div class="df-group">
               <label class="df-label">Board / Univ</label>
-              <input type="text" name="board_university" class="df-input" placeholder="BIEAP / CBSE" required>
+              <input type="text" name="board_university" class="df-input" placeholder="BIEAP / CBSE">
             </div>
             <div class="df-group">
               <label class="df-label">Year of Passing</label>
-              <input type="number" name="year_of_passing" class="df-input" placeholder="2022" required>
+              <input type="number" name="year_of_passing" class="df-input" placeholder="2022">
             </div>
           </div>
           
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
             <div class="df-group">
               <label class="df-label">Score / Rank</label>
-              <input type="text" name="score" class="df-input" placeholder="9.2 or 96% or 12450" required>
+              <input type="text" name="score" class="df-input" placeholder="9.2 or 96% or 12450">
             </div>
             <div class="df-group">
               <label class="df-label">Score Type</label>

@@ -110,7 +110,8 @@ class LoginView(View):
                 'selected_role': role,
             })
 
-        if user.role != role and not user.is_superuser:
+        is_faculty_mentor_compat = (role == 'Faculty' and user.role == 'Mentor')
+        if user.role != role and not user.is_superuser and not is_faculty_mentor_compat:
             if role == 'Parent' and user.role == 'Student':
                 request.session['is_parent_login'] = True
             else:

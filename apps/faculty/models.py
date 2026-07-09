@@ -75,7 +75,7 @@ class TrainingProgram(BaseModel):
 
 class MentorAssignment(BaseModel):
     mentor        = models.ForeignKey('accounts.User', on_delete=models.CASCADE,
-                        related_name='mentored_students', limit_choices_to={'role': 'Mentor'})
+                        related_name='mentored_students', limit_choices_to=models.Q(role__in=['Faculty', 'Mentor']))
     student       = models.ForeignKey('students.StudentProfile', on_delete=models.CASCADE,
                         related_name='mentor_assignments')
     academic_year = models.CharField(max_length=15)
@@ -91,7 +91,7 @@ class MentorAssignment(BaseModel):
 
 class StudentMentorAssignment(BaseModel):
     mentor        = models.ForeignKey('accounts.User', on_delete=models.CASCADE,
-                        related_name='student_mentor_assignments', limit_choices_to={'role': 'Mentor'})
+                        related_name='student_mentor_assignments', limit_choices_to=models.Q(role__in=['Faculty', 'Mentor']))
     students      = models.ManyToManyField('students.StudentProfile', related_name='direct_mentor_assignments', blank=True)
     academic_year = models.CharField(max_length=20)
     assigned_by   = models.ForeignKey('accounts.User', on_delete=models.SET_NULL, null=True, blank=True,
@@ -166,7 +166,9 @@ class InstitutionCourse(BaseModel):
     name         = models.CharField(max_length=300)
     category     = models.CharField(max_length=20, choices=CourseCategory.choices)
     created_by   = models.ForeignKey('accounts.User', on_delete=models.CASCADE, related_name='institution_courses')
+    department   = models.ForeignKey('academics.Department', on_delete=models.SET_NULL, related_name='institution_courses', null=True, blank=True)
     cohorts      = models.ManyToManyField(Cohort, related_name='institution_courses', blank=True)
+    enrolled_students = models.ManyToManyField('students.StudentProfile', related_name='enrolled_institution_courses', blank=True)
     description  = models.TextField(blank=True, default='')
     is_published_to_profile = models.BooleanField(default=False,
         help_text='If True, students see this in their profile; else mentor-only')
@@ -189,6 +191,19 @@ class CourseMaterial(BaseModel):
 
     class Meta:
         ordering = ['order']
+
+    def __str__(self):
+        return f"{self.course.name} - {self.title}"
+
+
+class CourseLink(BaseModel):
+    """Reference links uploaded for an InstitutionCourse."""
+    course = models.ForeignKey(InstitutionCourse, on_delete=models.CASCADE, related_name='links')
+    title  = models.CharField(max_length=300)
+    url    = models.URLField()
+
+    class Meta:
+        ordering = ['title']
 
     def __str__(self):
         return f"{self.course.name} - {self.title}"

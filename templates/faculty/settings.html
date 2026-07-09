@@ -1,0 +1,276 @@
+{% extends 'faculty/base_portal.html' %}
+{% load static %}
+
+{% block portal_tab_title %}Profile Settings{% endblock %}
+
+{% block extra_head %}
+<style>
+  /* Form style alignment with Student Portal inputs */
+  .df-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 16px;
+  }
+  .df-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .df-input {
+    width: 100%;
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.6);
+    color: var(--text);
+    font-size: 13.5px;
+    outline: none;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .df-input:focus {
+    border-color: var(--primary);
+    background: #fff;
+  }
+  .profile-upload-bubble {
+    position: relative;
+    width: 110px;
+    height: 110px;
+    margin: 0 auto 16px;
+  }
+  .profile-upload-img-wrapper {
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    background: var(--primary-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border: 3px solid var(--border);
+  }
+  .profile-upload-badge {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 32px;
+    height: 32px;
+    background: var(--primary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #fff;
+    font-size: 13px;
+    border: 2px solid var(--white);
+    transition: transform 0.2s;
+  }
+  .profile-upload-badge:hover {
+    transform: scale(1.1);
+  }
+</style>
+{% endblock %}
+
+{% block portal_content %}
+<div class="flex-between" style="margin-bottom:24px;">
+  <div>
+    <h1 class="section-title">Profile Settings</h1>
+    <p class="section-sub">Configure your professional identity and personal bio detail cards.</p>
+  </div>
+</div>
+
+<form id="facultySettingsForm">
+  <div style="display:grid; grid-template-columns:300px 1fr; gap:24px; align-items:start;">
+
+    <!-- Left Card: Profile Photo + Summary -->
+    <div style="display:flex; flex-direction:column; gap:16px;">
+      <div class="card" style="padding:24px; text-align:center;">
+        <!-- Avatar Upload Bubble -->
+        <div class="profile-upload-bubble">
+          <div class="profile-upload-img-wrapper" id="settings-avatar-container">
+            <!-- Initials / Image rendered by JS -->
+          </div>
+          <label class="profile-upload-badge" title="Upload new photo">
+            <i data-lucide="camera" style="width:14px; height:14px;"></i>
+            <input type="file" id="settings-photo-file" style="display:none;" accept="image/*">
+          </label>
+        </div>
+
+        <div style="font-size:16px; font-weight:800; color:var(--text);" id="settings-summary-name">
+          Loading...
+        </div>
+        <div style="font-size:12px; color:var(--muted); margin-top:4px;" id="settings-summary-designation">
+          Loading...
+        </div>
+        
+        <div style="margin-top:16px; padding-top:16px; border-top:1px solid var(--border);">
+          <div style="font-size:11px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:8px;">Identity Card</div>
+          <div style="font-size:12.5px; color:var(--text);">{{ request.user.role }} Account</div>
+          <div style="font-size:11.5px; color:var(--muted); margin-top:2px;">{{ request.user.email }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Settings Inputs -->
+    <div style="display:flex; flex-direction:column; gap:20px;">
+      
+      <!-- Identity card -->
+      <div class="card" style="padding:24px;">
+        <h2 style="font-size:14px; font-weight:700; margin-bottom:20px; color:var(--text);">Identity details</h2>
+        <div class="df-group">
+          <label class="df-label">Full Name</label>
+          <input type="text" id="prof-name" class="df-input" required placeholder="Dr. Rajesh Kumar">
+        </div>
+        <div class="df-group">
+          <label class="df-label">Email Address (Read-only)</label>
+          <input type="email" id="prof-email" class="df-input" readonly style="background:rgba(216, 219, 213, 0.4); cursor:not-allowed;">
+        </div>
+      </div>
+
+      <!-- Professional Identity Card -->
+      <div class="card" style="padding:24px;">
+        <h2 style="font-size:14px; font-weight:700; margin-bottom:20px; color:var(--text);">Professional Assignment</h2>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+          <div class="df-group">
+            <label class="df-label">Designation</label>
+            <input type="text" id="prof-designation" class="df-input" required placeholder="Professor">
+          </div>
+          <div class="df-group">
+            <label class="df-label">Department / Branch</label>
+            <input type="text" id="prof-department" class="df-input" required placeholder="Computer Science & Engineering">
+          </div>
+          <div class="df-group">
+            <label class="df-label">Academic Experience (Years)</label>
+            <input type="text" id="prof-experience" class="df-input" required placeholder="15 Years">
+          </div>
+          <div class="df-group">
+            <label class="df-label">Qualification</label>
+            <input type="text" id="prof-qualification" class="df-input" required placeholder="Ph.D. in AI">
+          </div>
+        </div>
+      </div>
+
+      <!-- Professional Bio Card -->
+      <div class="card" style="padding:24px;">
+        <h2 style="font-size:14px; font-weight:700; margin-bottom:20px; color:var(--text);">Short Professional Bio</h2>
+        <div class="df-group">
+          <label class="df-label">Bio Description</label>
+          <textarea id="prof-bio" class="df-input" rows="4" placeholder="Brief professional description..."></textarea>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div style="display:flex; gap:12px; padding-bottom:12px;">
+        <button type="submit" class="btn-primary" style="padding:12px 32px; font-size:14px;">Save Changes</button>
+        <a href="{% url 'faculty-dashboard' %}" class="btn-ghost" style="padding:12px 32px; font-size:14px; text-decoration:none; display:inline-flex; align-items:center;">Discard</a>
+      </div>
+
+    </div>
+
+  </div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  let pictureBase64 = "";
+
+  document.addEventListener('DOMContentLoaded', () => {
+      // Load current profile cache to populate fields
+      const saved = localStorage.getItem('facultyProfile');
+      if (saved) {
+          try {
+              const profile = JSON.parse(saved);
+              document.getElementById('prof-name').value = profile.name || "";
+              document.getElementById('prof-email').value = profile.email || "";
+              document.getElementById('prof-designation').value = profile.designation || "";
+              document.getElementById('prof-department').value = profile.department || "";
+              document.getElementById('prof-experience').value = profile.experience || "";
+              document.getElementById('prof-qualification').value = profile.qualification || "";
+              document.getElementById('prof-bio').value = profile.bio || "";
+              pictureBase64 = profile.picture || "";
+
+              // Summary
+              document.getElementById('settings-summary-name').textContent = profile.name || "Loading...";
+              document.getElementById('settings-summary-designation').textContent = `${profile.designation} · ${profile.department}`;
+              
+              // Photo bubble
+              renderPhotoBubble(profile.name, pictureBase64);
+          } catch(e) {
+              console.error(e);
+          }
+      }
+
+      // Handle picture upload locally
+      const photoFileInput = document.getElementById('settings-photo-file');
+      if (photoFileInput) {
+          photoFileInput.addEventListener('change', function(e) {
+              const file = e.target.files[0];
+              if (file) {
+                  const reader = new FileReader();
+                  reader.onload = function(evt) {
+                      pictureBase64 = evt.target.result;
+                      const name = document.getElementById('prof-name').value;
+                      renderPhotoBubble(name, pictureBase64);
+                  };
+                  reader.readAsDataURL(file);
+              }
+          });
+      }
+
+      // Handle Form Submit
+      const settingsForm = document.getElementById('facultySettingsForm');
+      if (settingsForm) {
+          settingsForm.addEventListener('submit', function(e) {
+              e.preventDefault();
+              
+              const updatedProfile = {
+                  name: document.getElementById('prof-name').value.trim(),
+                  email: document.getElementById('prof-email').value.trim(),
+                  designation: document.getElementById('prof-designation').value.trim(),
+                  department: document.getElementById('prof-department').value.trim(),
+                  experience: document.getElementById('prof-experience').value.trim(),
+                  qualification: document.getElementById('prof-qualification').value.trim(),
+                  bio: document.getElementById('prof-bio').value.trim(),
+                  picture: pictureBase64
+              };
+
+              localStorage.setItem('facultyProfile', JSON.stringify(updatedProfile));
+              
+              // Run global sync script immediately
+              if (window.syncFacultyProfile) {
+                  window.syncFacultyProfile();
+              }
+
+              // Update locally on this page too
+              document.getElementById('settings-summary-name').textContent = updatedProfile.name;
+              document.getElementById('settings-summary-designation').textContent = `${updatedProfile.designation} · ${updatedProfile.department}`;
+
+              alert('✅ Professional Details saved and synchronized successfully!');
+              window.location.reload();
+          });
+      }
+  });
+
+  function renderPhotoBubble(name, b64) {
+      const container = document.getElementById('settings-avatar-container');
+      if (!container) return;
+
+      function getInitials(n) {
+          const parts = n.trim().split(' ').filter(Boolean);
+          if (parts.length >= 2) return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+          if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+          return "FA";
+      }
+
+      if (b64) {
+          container.innerHTML = `<img src="${b64}" style="width:100%; height:100%; object-fit:cover;" alt="Avatar">`;
+      } else {
+          container.innerHTML = `<span style="font-size:36px; font-weight:800; color:var(--primary);">${getInitials(name)}</span>`;
+      }
+  }
+</script>
+{% endblock %}

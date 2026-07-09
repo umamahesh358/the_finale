@@ -28,7 +28,7 @@ class DashboardView(View):
         if role == 'Director':
             return redirect('/admin/')
         if role in ['Faculty', 'Mentor', 'HOD']:
-            role_redirect = {'HOD': 'hod-dashboard', 'Mentor': 'mentor-dashboard', 'Faculty': 'faculty-dashboard'}
+            role_redirect = {'HOD': 'hod-dashboard', 'Mentor': 'faculty-dashboard', 'Faculty': 'faculty-dashboard'}
             return redirect(role_redirect.get(role, 'faculty-dashboard'))
         if role == 'Parent':
             return redirect('parent-portal')

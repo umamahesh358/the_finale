@@ -1,1114 +1,210 @@
+{% extends 'faculty/base_portal.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description"
-        content="Faculty Hub – Academic Dashboard for managing cohorts, courses, and department updates.">
-    <title>Faculty Hub — Dashboard</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
-        rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'faculty-hub/style.css' %}">
-    <script src="https://unpkg.com/lucide@latest"></script>
-</head>
+{% block portal_tab_title %}Overview{% endblock %}
 
-<body>
+{% block portal_content %}
+<!-- Welcome Header Banner -->
+<aside class="portal-welcome-toast" aria-live="polite">
+  <div>
+    <span>Welcome back</span>
+    <strong class="js-profile-name">{{ request.user.full_name|default:request.user.email }}</strong>
+    <small class="js-profile-designation">{{ request.user.role }} · Computer Science & Engineering</small>
+  </div>
+  <div class="portal-welcome-avatar js-profile-avatar">
+    {{ request.user.full_name|default:request.user.email|first|upper }}
+  </div>
+</aside>
 
-    <div id="layout-wrapper">
-        <!-- ── Sidebar ── -->
-        <aside class="sidebar" id="app-sidebar">
-            <div class="sidebar-brand"
-                style="border-bottom:1px solid var(--border); padding:1.25rem 1.5rem; display:flex; align-items:center; justify-content:center;">
-                <img src="{% static 'faculty-hub/images/image.png' %}" alt="CIET Logo"
-                    style="max-width:100%; max-height:56px; object-fit:contain;">
-            </div>
-
-            <div class="sidebar-content">
-                <div class="nav-section-label" style="padding-top:1.25rem;">Main Menu</div>
-                <nav>
-                    <a href="{% url 'faculty-dashboard' %}" class="nav-link active">
-                        <i data-lucide="layout-dashboard"></i>
-                        <span>Dashboard</span>
-                    </a>
-                    <a href="{% url 'faculty-cohorts' %}" class="nav-link">
-                        <i data-lucide="users"></i>
-                        <span>Cohorts</span>
-                    </a>
-                    <a href="{% url 'faculty-explore-students' %}" class="nav-link">
-                        <i data-lucide="search"></i>
-                        <span>Explore Students</span>
-                    </a>
-                    <a href="{% url 'faculty-courses' %}" class="nav-link">
-                        <i data-lucide="book-open"></i>
-                        <span>Courses</span>
-                    </a>
-                    <a href="{% url 'faculty-hod-updates' %}" class="nav-link hod-updates" id="nav-updates">
-                        <i data-lucide="bell-ring"></i>
-                        <span class="fw-semibold">HOD Updates</span>
-                        {% if hod_unread_count > 0 %}<span class="pulse-dot"></span>{% endif %}
-                    </a>
-                    <a href="#" class="nav-link" id="nav-chat-btn">
-                        <i data-lucide="message-circle"></i>
-                        <span>Chat</span>
-                    </a>
-                    <a href="{% url 'logout' %}" class="nav-link text-danger mt-auto">
-                        <i data-lucide="log-out"></i>
-                        <span>Logout</span>
-                    </a>
-
-                </nav>
-            </div>
-
-        </aside>
-
-        <!-- ── Main Content ── -->
-        <main class="main-content">
-
-            <!-- Top Navbar -->
-            <header class="top-navbar">
-                <div class="d-flex align-items-center gap-3 flex-grow-1">
-                    <button class="nav-action-btn border-0" id="sidebar-toggle" aria-label="Toggle Sidebar">
-                        <i data-lucide="menu"></i>
-                    </button>
-                    <div class="search-wrap d-none d-lg-block">
-                        <i data-lucide="search" class="search-icon"></i>
-                        <input type="text" placeholder="Search sections, students, courses…" id="global-search">
-                    </div>
-                </div>
-
-                <div class="navbar-actions">
-
-                    <!-- Notification Dropdown -->
-                    <div class="dropdown">
-                        <button class="nav-action-btn border-0 position-relative" data-bs-toggle="dropdown"
-                            aria-expanded="false" aria-label="Notifications">
-                            <i data-lucide="bell"></i>
-                            {% if hod_unread_count > 0 %}<span class="notif-badge"></span>{% endif %}
-                        </button>
-                        <div class="dropdown-menu dropdown-menu-end p-0 mt-2 overflow-hidden"
-                            style="width:320px; border-radius:var(--radius-lg);">
-                            <div class="notif-header">
-                                <div>
-                                    <p class="fw-bold mb-0 text-white" style="font-size:.9rem;">Notifications</p>
-                                    <small class="text-white opacity-75" style="font-size:.7rem;">HOD Department
-                                        Updates</small>
-                                </div>
-                                <span class="badge bg-white rounded-pill"
-                                    style="color:var(--primary);font-size:.7rem;">{{ hod_unread_count }} New</span>
-                            </div>
-                            <div id="nav-notifications-list" style="max-height:300px;overflow-y:auto;">
-                                <div class="p-4 text-center" id="nav-empty-notifications">
-                                    <i data-lucide="inbox" style="width:28px;height:28px;color:var(--text-muted);"
-                                        class="mb-2"></i>
-                                    <p class="small mb-0" style="color:var(--text-muted);">No new updates right now.</p>
-                                </div>
-                            </div>
-                            <div class="p-2 text-center border-top"
-                                style="border-color:var(--border)!important;background:var(--muted-bg);">
-                                <a href="{% url 'faculty-hod-updates' %}" class="small fw-bold text-decoration-none"
-                                    style="color:var(--primary);">View all notifications</a>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Profile Dropdown -->
-                    <div class="dropdown">
-                        <div class="profile-trigger" data-bs-toggle="dropdown" aria-expanded="false"
-                            style="cursor: pointer;">
-                            <div class="d-none d-sm-block profile-name-block text-end">
-                                <p class="pname mb-0">Dr. Rajesh Kumar</p>
-                                <span class="prole">Professor</span>
-                            </div>
-                            <div class="profile-avatar">
-                                <i data-lucide="user"></i>
-                            </div>
-                        </div>
-                        <ul class="dropdown-menu dropdown-menu-end mt-2 p-2"
-                            style="width:240px; border-radius:var(--radius-lg);">
-                            <li class="profile-user-block mb-2">
-                                <div class="d-flex align-items-center gap-2 mb-1">
-                                    <span class="fw-bold" style="font-size:.85rem;color:var(--text-primary);">Dr. Rajesh
-                                        Kumar</span>
-                                    <span class="badge badge-success" style="font-size:.6rem;">SECURE</span>
-                                </div>
-                                <small
-                                    style="color:var(--text-muted);font-size:.7rem;">rajesh.kumar@university.edu</small>
-                            </li>
-
-
-                            <li>
-                                <hr class="dropdown-divider opacity-50 mx-2">
-                            </li>
-                            <li><a class="dropdown-item text-danger" href="{% url 'logout' %}"><i data-lucide="log-out"
-                                        style="width:14px;"></i> Logout Session</a></li>
-                        </ul>
-                    </div>
-                </div>
-            </header>
-
-            <!-- Dashboard Content -->
-            <div class="page-content">
-
-                <!-- Profile Overview -->
-                <div class="card mb-4 fade-in-up profile-overview-card" style="background:#fcfafb; border:1px solid #f3ecef; border-radius:16px;">
-                    <div class="card-body p-4 position-relative">
-                        <button id="edit-profile-btn" class="btn-icon position-absolute" style="top:24px; right:24px; background:white; border:1px solid #eee; color:var(--text-muted); z-index:2; box-shadow:0 2px 4px rgba(0,0,0,0.05);" data-bs-toggle="modal" data-bs-target="#editProfileModal" title="Edit Profile">
-                            <i data-lucide="edit-2" style="width:16px;"></i>
-                        </button>
-
-                        <!-- TOP ROW: Avatar + Title + Stats -->
-                        <div class="d-flex flex-column flex-xl-row gap-4 align-items-xl-center">
-                            <!-- Avatar -->
-                            <div class="position-relative flex-shrink-0" style="width:110px;">
-                                <div id="profile-avatar-wrapper" style="width:110px; height:110px; border-radius:20px; background:#a71a3e; display:flex; align-items:center; justify-content:center; border:1px solid rgba(167,26,62,0.1); overflow:hidden; cursor:pointer;">
-                                    <span id="profile-initials-display" style="color:white; font-size:2.5rem; font-weight:bold;">RK</span>
-                                </div>
-                                <!-- Active Badge -->
-                                <div style="position:absolute; bottom:-12px; left:50%; transform:translateX(-50%); background:white; padding:4px 12px; border-radius:20px; display:flex; align-items:center; gap:6px; box-shadow:0 4px 12px rgba(0,0,0,0.08); border:1px solid #eee;">
-                                    <span style="width:6px; height:6px; background:#16A34A; border-radius:50%;"></span>
-                                    <span style="font-size:0.65rem; font-weight:800; color:#333;">Active</span>
-                                </div>
-                            </div>
-                            
-                            <!-- Name & Subtitle -->
-                            <div class="ms-xl-2">
-                                <h3 class="fw-bold mb-1" id="profile-display-name" style="color:#1a1a1a; letter-spacing:-0.5px;">Mentor Name</h3>
-                                <p class="mb-1" style="color:#a71a3e; font-weight:600; font-size:0.9rem;" id="profile-display-designation">Associate Professor</p>
-                                <p class="mb-0" style="color:#666; font-size:0.85rem;" id="profile-display-department">Computer Science & Engineering</p>
-                            </div>
-
-
-                        </div>
-
-                        <hr style="border-color:#eadee2; margin:30px 0;">
-
-                        <!-- BOTTOM ROW: Portfolio Info -->
-                        <div>
-                            <h6 style="font-size:0.75rem; font-weight:800; color:#666; text-transform:uppercase; letter-spacing:0.8px; margin-bottom:16px;">Professional Details</h6>
-                            <div class="row g-3">
-                                <!-- Designation -->
-                                <div class="col-md-6 col-lg-4">
-                                    <div style="background:white; border-radius:14px; padding:16px; display:flex; align-items:center; gap:16px; border:1px solid #f0e8eb;">
-                                        <div style="width:36px; height:36px; border-radius:8px; background:#f5f3f7; display:flex; align-items:center; justify-content:center;">
-                                            <i data-lucide="briefcase" style="color:#6b21a8; width:18px;"></i>
-                                        </div>
-                                        <div>
-                                            <p style="font-size:0.65rem; font-weight:700; color:#888; text-transform:uppercase; margin-bottom:2px;">Designation</p>
-                                            <p class="mb-0 fw-bold" style="color:#1a1a1a; font-size:0.95rem;" id="profile-display-designation-box">Associate Professor</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                <!-- Department -->
-                                <div class="col-md-6 col-lg-4">
-                                    <div style="background:white; border-radius:14px; padding:16px; display:flex; align-items:center; gap:16px; border:1px solid #f0e8eb;">
-                                        <div style="width:36px; height:36px; border-radius:8px; background:#f0f7fd; display:flex; align-items:center; justify-content:center;">
-                                            <i data-lucide="building-2" style="color:#2563eb; width:18px;"></i>
-                                        </div>
-                                        <div>
-                                            <p style="font-size:0.65rem; font-weight:700; color:#888; text-transform:uppercase; margin-bottom:2px;">Department</p>
-                                            <p class="mb-0 fw-bold text-truncate" style="color:#1a1a1a; font-size:0.95rem; max-width: 160px;" id="profile-display-department-box">Computer Science</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                <!-- Email Address -->
-                                <div class="col-md-6 col-lg-4">
-                                    <div style="background:white; border-radius:14px; padding:16px; display:flex; align-items:center; gap:16px; border:1px solid #f0e8eb;">
-                                        <div style="width:36px; height:36px; border-radius:8px; background:#fef4f2; display:flex; align-items:center; justify-content:center;">
-                                            <i data-lucide="mail" style="color:#c2410c; width:18px;"></i>
-                                        </div>
-                                        <div style="max-width:calc(100% - 52px);">
-                                            <p style="font-size:0.65rem; font-weight:700; color:#888; text-transform:uppercase; margin-bottom:2px;">Email Address</p>
-                                            <p class="mb-0 fw-bold text-truncate" style="color:#1a1a1a; font-size:0.95rem; width:100%; display:block;" id="profile-display-email" title="rajesh@university.edu">rajesh@university.edu</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                <!-- Experience -->
-                                <div class="col-md-6 col-lg-4">
-                                    <div style="background:white; border-radius:14px; padding:16px; display:flex; align-items:center; gap:16px; border:1px solid #f0e8eb;">
-                                        <div style="width:36px; height:36px; border-radius:8px; background:#fdf5f7; display:flex; align-items:center; justify-content:center;">
-                                            <i data-lucide="clock" style="color:#a71a3e; width:18px;"></i>
-                                        </div>
-                                        <div>
-                                            <p style="font-size:0.65rem; font-weight:700; color:#888; text-transform:uppercase; margin-bottom:2px;">Experience</p>
-                                            <p class="mb-0 fw-bold" style="color:#1a1a1a; font-size:0.95rem;" id="profile-display-experience">15 Years</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                <!-- Qualification -->
-                                <div class="col-md-6 col-lg-4">
-                                    <div style="background:white; border-radius:14px; padding:16px; display:flex; align-items:center; gap:16px; border:1px solid #f0e8eb;">
-                                        <div style="width:36px; height:36px; border-radius:8px; background:#f0f7fd; display:flex; align-items:center; justify-content:center;">
-                                            <i data-lucide="award" style="color:#2563eb; width:18px;"></i>
-                                        </div>
-                                        <div style="max-width:calc(100% - 52px);">
-                                            <p style="font-size:0.65rem; font-weight:700; color:#888; text-transform:uppercase; margin-bottom:2px;">Qualification</p>
-                                            <p class="mb-0 fw-bold text-truncate" style="color:#1a1a1a; font-size:0.95rem; width:100%; display:block;" id="profile-display-qualification">Ph.D. in AI</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Stat Cards -->
-                <div class="row g-3 mb-4">
-                    <div class="col-12 col-sm-6 col-md-3 fade-in-up-1">
-                        <div class="stat-card card-hover" onclick="showDataModal('departments')"
-                            style="cursor:none;">
-                            <div class="d-flex align-items-center gap-3">
-                                <div class="stat-icon primary-icon">
-                                    <i data-lucide="building"></i>
-                                </div>
-                                <div>
-                                    <h3 class="fw-bold mb-0" id="count-depts"
-                                        style="font-size:1.8rem;color:var(--text-primary);">0</h3>
-                                    <p class="mb-0 mt-0" style="font-size:.8rem;color:var(--text-muted);">Departments
-                                    </p>
-                                </div>
-                            </div>
-                            <div class="mt-3 pt-2 border-top d-flex align-items-center justify-content-between"
-                                style="border-color:var(--border)!important;">
-                                <small style="color:var(--text-muted);font-size:.72rem;">All institutional departments</small>
-                                <small style="color:var(--primary);font-weight:600;font-size:.72rem;">View All →</small>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-12 col-sm-6 col-md-3 fade-in-up-2">
-                        <div class="stat-card card-hover" onclick="showDataModal('sections')" style="cursor:none;">
-                            <div class="d-flex align-items-center gap-3">
-                                <div class="stat-icon accent-icon">
-                                    <i data-lucide="users"></i>
-                                </div>
-                                <div>
-                                    <h3 class="fw-bold mb-0" id="count-sec"
-                                        style="font-size:1.8rem;color:var(--text-primary);">0</h3>
-                                    <p class="mb-0" style="font-size:.8rem;color:var(--text-muted);">Active Sections</p>
-                                </div>
-                            </div>
-                            <div class="mt-3 pt-2 border-top d-flex align-items-center justify-content-between"
-                                style="border-color:var(--border)!important;">
-                                <small style="color:var(--text-muted);font-size:.72rem;">Click to view all</small>
-                                <small style="color:var(--accent);font-weight:600;font-size:.72rem;">View →</small>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-12 col-sm-6 col-md-3 fade-in-up-3">
-                        <div class="stat-card card-hover" onclick="showDataModal('cohorts')" style="cursor:none;">
-                            <div class="d-flex align-items-center gap-3">
-                                <div class="stat-icon green-icon">
-                                    <i data-lucide="graduation-cap"></i>
-                                </div>
-                                <div>
-                                    <h3 class="fw-bold mb-0" id="count-cohort"
-                                        style="font-size:1.8rem;color:var(--text-primary);">0</h3>
-                                    <p class="mb-0" style="font-size:.8rem;color:var(--text-muted);">Active Cohorts</p>
-                                </div>
-                            </div>
-                            <div class="mt-3 pt-2 border-top d-flex align-items-center justify-content-between"
-                                style="border-color:var(--border)!important;">
-                                <small style="color:var(--text-muted);font-size:.72rem;">Click to view all</small>
-                                <small style="color:#16A34A;font-weight:600;font-size:.72rem;">View →</small>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-12 col-sm-6 col-md-3 fade-in-up-3">
-                        <div class="stat-card card-hover" onclick="showDataModal('completed-cohorts')"
-                            style="cursor:none; border-left: 3px solid #16A34A;">
-                            <div class="d-flex align-items-center gap-3">
-                                <div class="stat-icon" style="background:rgba(22,163,74,0.12);">
-                                    <i data-lucide="check-circle-2" style="color:#16A34A;"></i>
-                                </div>
-                                <div>
-                                    <h3 class="fw-bold mb-0" id="count-completed-cohorts"
-                                        style="font-size:1.8rem;color:#16A34A;">0</h3>
-                                    <p class="mb-0" style="font-size:.8rem;color:var(--text-muted);">Completed Cohorts
-                                    </p>
-                                </div>
-                            </div>
-                            <div class="mt-3 pt-2 border-top d-flex align-items-center justify-content-between"
-                                style="border-color:var(--border)!important;">
-                                <small style="color:var(--text-muted);font-size:.72rem;">Click to view all</small>
-                                <small style="color:#16A34A;font-weight:600;font-size:.72rem;">View →</small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Dynamic Analytics -->
-                <div id="dynamic-dashboard-content" class="mb-4">
-                    <div class="active-focus-panel mt-3">
-                        <!-- Panel Header -->
-                        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-4">
-                            <div class="d-flex align-items-center gap-3">
-                                <div
-                                    style="width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,rgba(var(--primary-rgb),0.15),rgba(var(--primary-rgb),0.05));border:1px solid rgba(var(--primary-rgb),0.15);display:flex;align-items:center;justify-content:center;">
-                                    <i data-lucide="layers" style="width:18px;color:var(--primary);"></i>
-                                </div>
-                                <div>
-                                    <h6 class="fw-bold mb-0"
-                                        style="color:var(--text-primary);font-size:.95rem;letter-spacing:-.2px;">Cohorts
-                                        &amp; Courses Overview</h6>
-                                    <small style="color:var(--text-muted);font-size:.7rem;">Live status of all your
-                                        academic activities</small>
-                                </div>
-                            </div>
-                            <div class="d-flex align-items-center gap-2">
-                                <span class="badge" id="active-focus-count"
-                                    style="background:rgba(var(--primary-rgb),0.1);color:var(--primary);border:1px solid rgba(var(--primary-rgb),0.2);font-size:.72rem;padding:.4em 1em;">0
-                                    Active</span>
-                                <span class="badge" id="completed-focus-count"
-                                    style="background:rgba(22,163,74,0.1);color:#16A34A;border:1px solid rgba(22,163,74,0.2);font-size:.72rem;padding:.4em 1em;">0
-                                    Completed</span>
-                            </div>
-                        </div>
-                        <!-- 2x2 Grid -->
-                        <div class="row g-3">
-                            <!-- Active Cohorts -->
-                            <div class="col-12 col-md-6 col-xl-3">
-                                <div class="d-flex align-items-center gap-2 mb-2">
-                                    <div style="width:6px;height:20px;border-radius:3px;background:var(--primary);">
-                                    </div>
-                                    <small class="fw-bold"
-                                        style="color:var(--text-secondary);font-size:.7rem;letter-spacing:.5px;text-transform:uppercase;">Active
-                                        Cohorts</small>
-                                    <span class="badge ms-auto" id="cnt-active-cohorts"
-                                        style="background:rgba(var(--primary-rgb),0.1);color:var(--primary);font-size:.62rem;">0</span>
-                                </div>
-                                <div class="active-focus-list" id="active-cohorts-list"></div>
-                            </div>
-                            <!-- Completed Cohorts -->
-                            <div class="col-12 col-md-6 col-xl-3">
-                                <div class="d-flex align-items-center gap-2 mb-2">
-                                    <div style="width:6px;height:20px;border-radius:3px;background:#16A34A;"></div>
-                                    <small class="fw-bold"
-                                        style="color:#16A34A;font-size:.7rem;letter-spacing:.5px;text-transform:uppercase;">Completed
-                                        Cohorts</small>
-                                    <span class="badge ms-auto" id="cnt-completed-cohorts"
-                                        style="background:rgba(22,163,74,0.1);color:#16A34A;font-size:.62rem;">0</span>
-                                </div>
-                                <div class="active-focus-list" id="completed-cohorts-list"></div>
-                            </div>
-                            <!-- Active Courses -->
-                            <div class="col-12 col-md-6 col-xl-3">
-                                <div class="d-flex align-items-center gap-2 mb-2">
-                                    <div style="width:6px;height:20px;border-radius:3px;background:#0891B2;"></div>
-                                    <small class="fw-bold"
-                                        style="color:#0891B2;font-size:.7rem;letter-spacing:.5px;text-transform:uppercase;">Active
-                                        Courses</small>
-                                    <span class="badge ms-auto" id="cnt-active-courses"
-                                        style="background:rgba(8,145,178,0.1);color:#0891B2;font-size:.62rem;">0</span>
-                                </div>
-                                <div class="active-focus-list" id="active-courses-list"></div>
-                            </div>
-                            <!-- Completed Courses -->
-                            <div class="col-12 col-md-6 col-xl-3">
-                                <div class="d-flex align-items-center gap-2 mb-2">
-                                    <div style="width:6px;height:20px;border-radius:3px;background:#7C3AED;"></div>
-                                    <small class="fw-bold"
-                                        style="color:#7C3AED;font-size:.7rem;letter-spacing:.5px;text-transform:uppercase;">Completed
-                                        Courses</small>
-                                    <span class="badge ms-auto" id="cnt-completed-courses"
-                                        style="background:rgba(124,58,237,0.1);color:#7C3AED;font-size:.62rem;">0</span>
-                                </div>
-                                <div class="active-focus-list" id="completed-courses-list"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-
-
-            </div><!-- /page-content -->
-        </main>
+<!-- Faculty Professional Details Card -->
+<div class="card portal-panel motion-rise delay-1" style="margin-bottom: 24px; padding: 24px;">
+  <div class="card-header-custom" style="padding: 0 0 16px 0; border-bottom: 1px solid var(--border); margin-bottom: 16px;">
+    <h2 class="portal-panel-title">Professional Details</h2>
+    <a href="{% url 'faculty-settings' %}" class="portal-panel-link">Edit Settings &rarr;</a>
+  </div>
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+    <div style="padding: 16px; background: var(--bg); border: 1px solid var(--border); border-radius: 14px;">
+      <div style="font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase;">Designation</div>
+      <div class="js-profile-designation" style="font-size: 14px; font-weight: 700; color: var(--text); margin-top: 4px;">{{ request.user.role }}</div>
     </div>
+    <div style="padding: 16px; background: var(--bg); border: 1px solid var(--border); border-radius: 14px;">
+      <div style="font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase;">Department</div>
+      <div id="js-dashboard-department" style="font-size: 14px; font-weight: 700; color: var(--text); margin-top: 4px;">Computer Science & Engineering</div>
+    </div>
+    <div style="padding: 16px; background: var(--bg); border: 1px solid var(--border); border-radius: 14px;">
+      <div style="font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase;">Email Address</div>
+      <div id="js-dashboard-email" style="font-size: 14px; font-weight: 700; color: var(--text); margin-top: 4px;">{{ request.user.email }}</div>
+    </div>
+    <div style="padding: 16px; background: var(--bg); border: 1px solid var(--border); border-radius: 14px;">
+      <div style="font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase;">Experience</div>
+      <div id="js-dashboard-experience" style="font-size: 14px; font-weight: 700; color: var(--text); margin-top: 4px;">12 Years</div>
+    </div>
+  </div>
+</div>
 
-    <!-- ── Data Modal ── -->
-    <div class="modal fade" id="dataListModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="dataListModalTitle">Data Overview</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="row g-3" id="dataListModalContent"></div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                </div>
+<!-- Stats Grid -->
+<div class="row g-3 mb-4 motion-rise delay-2">
+  <div class="col-12 col-md-4">
+    <div class="card portal-panel" style="padding: 20px;">
+      <div class="card-label">Active Cohorts</div>
+      <div style="font-size: 32px; font-weight: 800; color: var(--primary); margin-top: 8px;">
+        {{ my_cohorts.count }}
+      </div>
+      <div style="font-size: 12px; color: var(--muted); margin-top: 4px;">Assigned student development groups</div>
+    </div>
+  </div>
+  <div class="col-12 col-md-4">
+    <div class="card portal-panel" style="padding: 20px;">
+      <div class="card-label">My Courses</div>
+      <div style="font-size: 32px; font-weight: 800; color: var(--primary); margin-top: 8px;">
+        {{ my_courses.count }}
+      </div>
+      <div style="font-size: 12px; color: var(--muted); margin-top: 4px;">Institutional & special syllabus tracks</div>
+    </div>
+  </div>
+  <div class="col-12 col-md-4">
+    <div class="card portal-panel" style="padding: 20px;">
+      <div class="card-label">Assigned Subjects</div>
+      <div style="font-size: 32px; font-weight: 800; color: var(--primary); margin-top: 8px;">
+        {{ my_subjects.count }}
+      </div>
+      <div style="font-size: 12px; color: var(--muted); margin-top: 4px;">Curriculum subjects allocated by HOD</div>
+    </div>
+  </div>
+</div>
+
+<!-- Syllabus Coverage and Analytics -->
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px; align-items: start;" class="motion-rise delay-3">
+  <!-- Syllabus Tracking Panel -->
+  <section class="card portal-panel">
+    <div class="card-header-custom">
+      <h2 class="portal-panel-title">Syllabus Coverage Tracker</h2>
+    </div>
+    <div class="card-body" style="display: flex; flex-direction: column; gap: 16px;">
+      {% if syllabus_by_subject %}
+        {% for subject_id, data in syllabus_by_subject.items %}
+        <div style="padding: 16px; border: 1px solid var(--border); border-radius: 16px; background: rgba(255,255,255,0.4);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <div>
+              <strong style="color: var(--text); font-size: 14px;">{{ data.subject.name }}</strong>
+              <div style="font-size: 11px; color: var(--muted);">{{ data.subject.code }} · Sem {{ data.subject.semester }}</div>
             </div>
+            <span class="tag tag-primary">{{ data.pct }}% Done</span>
+          </div>
+
+          <div style="width: 100%; height: 8px; background: rgba(0,0,0,0.06); border-radius: 99px; overflow: hidden; margin-bottom: 12px;">
+            <div data-progress-width="{{ data.pct }}" style="height: 100%; background: var(--primary); border-radius: 99px;"></div>
+          </div>
+
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 12px; color: var(--muted);">{{ data.covered }}/{{ data.total }} units completed</span>
+            <button class="btn-ghost" style="font-size: 11px; padding: 4px 12px;" data-bs-toggle="collapse" data-bs-target="#syllabusCollapse-{{ subject_id }}">
+              Update Progress &darr;
+            </button>
+          </div>
+
+          <!-- Collapse Progress Form -->
+          <div class="collapse mt-3" id="syllabusCollapse-{{ subject_id }}">
+            <form method="post" action="{% url 'faculty-dashboard' %}" class="p-3 rounded border" style="background: var(--bg); display: flex; flex-direction: column; gap: 10px;">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="update_syllabus">
+              <input type="hidden" name="subject_id" value="{{ data.subject.id }}">
+              
+              <div class="row g-2">
+                <div class="col-6">
+                  <label class="df-label">Unit Number</label>
+                  <input type="number" name="unit_number" class="df-input" min="1" max="10" required placeholder="e.g. 1">
+                </div>
+                <div class="col-6">
+                  <label class="df-label">Unit Title</label>
+                  <input type="text" name="unit_title" class="df-input" required placeholder="e.g. Intro to ML">
+                </div>
+              </div>
+
+              <div class="row g-2">
+                <div class="col-6">
+                  <label class="df-label">Total Topics</label>
+                  <input type="number" name="total_topics" class="df-input" min="1" required placeholder="Total topics">
+                </div>
+                <div class="col-6">
+                  <label class="df-label">Covered Topics</label>
+                  <input type="number" name="covered_topics" class="df-input" min="0" required placeholder="Covered topics">
+                </div>
+              </div>
+
+              <div class="df-group">
+                <label class="df-label">Remarks</label>
+                <input type="text" name="remarks" class="df-input" placeholder="Unit syllabus notes...">
+              </div>
+
+              <button type="submit" class="btn-primary" style="align-self: flex-end; padding: 6px 16px; font-size: 12px;">Save Progress</button>
+            </form>
+          </div>
         </div>
+        {% endfor %}
+      {% else %}
+        <div style="text-align: center; padding: 32px; color: var(--muted); font-size: 13px;">No syllabus topics assigned to you.</div>
+      {% endif %}
     </div>
+  </section>
 
-    <!-- ── Edit Profile Modal ── -->
-    <div class="modal fade" id="editProfileModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title fw-bold">Edit Profile</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="editProfileForm">
-                        <div class="mb-3">
-                            <label class="form-label">Profile Picture (Optional)</label>
-                            <input type="file" id="prof-edit-picture" class="form-control" accept="image/*">
-                            <small class="text-muted" style="font-size:0.75rem;">Select a new picture to upload from your files.</small>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Full Name</label>
-                            <input type="text" id="prof-edit-name" class="form-control" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Email (Gmail)</label>
-                            <input type="email" id="prof-edit-email" class="form-control" required>
-                        </div>
-                        <div class="row g-3 mb-3">
-                            <div class="col-12 col-md-6">
-                                <label class="form-label">Designation</label>
-                                <input type="text" id="prof-edit-designation" class="form-control" required>
-                            </div>
-                            <div class="col-12 col-md-6">
-                                <label class="form-label">Department</label>
-                                <input type="text" id="prof-edit-department" class="form-control" required>
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Experience</label>
-                            <input type="text" id="prof-edit-experience" class="form-control" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Qualification</label>
-                            <input type="text" id="prof-edit-qualification" class="form-control" required>
-                        </div>
-                        <div class="d-flex justify-content-end gap-2 pt-2">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                            <button type="submit" class="btn btn-primary px-4">Save Profile</button>
-                        </div>
-                    </form>
-                </div>
+  <!-- Performance overview -->
+  <section class="card portal-panel">
+    <div class="card-header-custom">
+      <h2 class="portal-panel-title">Marks Performance</h2>
+    </div>
+    <div class="card-body">
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        {% if subject_performance %}
+          {% for sp in subject_performance %}
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid var(--border);">
+            <div>
+              <strong style="font-size: 13px; color: var(--text);">{{ sp.subject.code }}</strong>
+              <div style="font-size: 11px; color: var(--muted);">{{ sp.count }} Students Graded</div>
             </div>
-        </div>
-    </div>
-
-    <!-- ── Update Detail Modal ── -->
-    <div class="modal fade" id="updateDetailModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title fw-bold" id="update-modal-title">Announcement</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="d-flex align-items-center gap-2 mb-3 flex-wrap">
-                        <span id="update-modal-badge" class="badge">Priority</span>
-                        <small style="color:var(--text-muted);" id="update-modal-dept">Department</small>
-                        <span class="ms-auto" style="font-size:.8rem;color:var(--text-muted);"
-                            id="update-modal-date">Date</span>
-                    </div>
-                    <p id="update-modal-content" style="color:var(--text-secondary);line-height:1.7;"></p>
-                    <div class="p-3 rounded-3 mt-3"
-                        style="background:rgba(var(--primary-rgb),0.06);border-left:4px solid var(--primary);">
-                        <small style="color:var(--text-muted);">Message from:</small>
-                        <p class="fw-bold mb-0" style="color:var(--primary);">Head of Department (HOD)</p>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-primary px-4" data-bs-dismiss="modal">Acknowledged</button>
-                </div>
+            <div style="text-align: right;">
+              <span class="tag tag-green" style="font-size: 12px;">{{ sp.avg }} Avg</span>
             </div>
-        </div>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div style="text-align: center; padding: 32px; color: var(--muted); font-size: 13px;">No student score data available.</div>
+        {% endif %}
+      </div>
     </div>
+  </section>
+</div>
+{% endblock %}
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    {{ faculty_hub_data|json_script:"faculty-hub-data" }}
-    <script>
-        window.FACULTY_HUB_DATA = JSON.parse(document.getElementById('faculty-hub-data').textContent);
-    </script>
-    <script src="{% static 'faculty-hub/js/data.js' %}"></script>
-    <script src="{% static 'faculty-hub/js/scripts.js' %}"></script>
-    <script>
-        lucide.createIcons();
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Apply dynamic progress bar widths
+    document.querySelectorAll('[data-progress-width]').forEach(function(el) {
+      el.style.width = el.getAttribute('data-progress-width') + '%';
+    });
 
-        const deptFilter = document.getElementById('dept-select-filter');
-        const yearFilter = document.getElementById('year-select-filter');
-        const summaryArea = document.getElementById('text-summary-area');
-        const activeCohortsList = document.getElementById('active-cohorts-list');
-        const activeCoursesList = document.getElementById('active-courses-list');
-        const activeFocusCount = document.getElementById('active-focus-count');
-
-        // Populate dept select
-        if (deptFilter) {
-            deptFilter.innerHTML = '<option value="all">All Departments</option>' +
-                departments.map(d => `<option value="${d.id}">${d.name}</option>`).join('');
+    // Populate details card from localStorage if customized
+    const saved = localStorage.getItem('facultyProfile');
+    if (saved) {
+      try {
+        const profile = JSON.parse(saved);
+        if (profile.department) {
+          const deptEl = document.getElementById('js-dashboard-department');
+          if (deptEl) deptEl.textContent = profile.department;
         }
-
-        function renderActiveFocus(filteredCohorts, allFilteredCourses) {
-            const activeCohorts = filteredCohorts.filter(c => c.status !== 'closed');
-            const completedCohorts = filteredCohorts.filter(c => c.status === 'closed');
-            const activeCourses = allFilteredCourses.filter(c => c.status !== 'closed');
-            const completedCourses = allFilteredCourses.filter(c => c.status === 'closed');
-
-            // Update count badges
-            if (activeFocusCount) activeFocusCount.textContent = `${activeCohorts.length + activeCourses.length} Active`;
-            const completedCount = document.getElementById('completed-focus-count');
-            if (completedCount) completedCount.textContent = `${completedCohorts.length + completedCourses.length} Completed`;
-            const setCount = (id, n) => { const el = document.getElementById(id); if (el) el.textContent = n; };
-            setCount('cnt-active-cohorts', activeCohorts.length);
-            setCount('cnt-completed-cohorts', completedCohorts.length);
-            setCount('cnt-active-courses', activeCourses.length);
-            setCount('cnt-completed-courses', completedCourses.length);
-
-            // ── Cohort card builder ────────────────────────────────
-            const cohortCard = (c, isCompleted) => {
-                const dept = departments.find(d => d.id === c.departmentId);
-                const studs = students.filter(s => s.cohortId === c.id);
-                const iconColor = isCompleted ? '#16A34A' : 'var(--primary)';
-                const iconBg = isCompleted ? 'rgba(22,163,74,0.12)' : 'rgba(var(--primary-rgb),0.12)';
-                const borderStyle = isCompleted ? 'border-color:rgba(22,163,74,0.25);' : '';
-                return `<div class="active-chip" style="${borderStyle}">
-                    <div style="width:34px;height:34px;border-radius:10px;background:${iconBg};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                        <i data-lucide="${isCompleted ? 'check-circle-2' : 'graduation-cap'}" style="width:15px;color:${iconColor};"></i>
-                    </div>
-                    <div class="flex-grow-1 overflow-hidden">
-                        <p class="mb-0 fw-bold text-truncate" style="font-size:.82rem;color:var(--text-primary);">${c.name}</p>
-                        <div class="d-flex gap-2 mt-1 flex-wrap" style="font-size:.7rem;color:var(--text-muted);">
-                            <span>${dept ? dept.code : 'N/A'}</span>
-                            <span>&bull;</span>
-                            <span>${studs.length} students</span>
-                            ${isCompleted ? `<span>&bull;</span><span style="color:#16A34A;font-weight:600;">Completed</span>` : ''}
-                        </div>
-                    </div>
-                </div>`;
-            };
-
-            // ── Course card builder ────────────────────────────────
-            const courseCard = (course, isCompleted) => {
-                const dept = departments.find(d => d.id === course.departmentId);
-                const isInst = course.isInstitutional;
-                const studs = students.filter(s =>
-                    (course.sectionIds || []).includes(s.sectionId) ||
-                    (course.cohortIds || []).includes(s.cohortId)
-                );
-                const linked = activeCohorts.filter(c => (course.cohortIds || []).includes(c.id));
-                const cohortLabel = linked.length ? linked.map(c => c.name).join(', ') : (isInst ? 'Institutional' : '');
-                const iconColor = isCompleted ? '#7C3AED' : '#0891B2';
-                const iconBg = isCompleted ? 'rgba(124,58,237,0.12)' : 'rgba(8,145,178,0.12)';
-                const borderStyle = isCompleted ? 'border-color:rgba(124,58,237,0.25);' : '';
-
-                // Use Roman numerals for year
-                const YEAR_MAP = ["", "I", "II", "III", "IV"];
-                const romanYear = YEAR_MAP[course.year] || course.year;
-
-                return `<div class="active-chip course" style="${borderStyle}">
-                    <div style="width:34px;height:34px;border-radius:10px;background:${iconBg};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                        <i data-lucide="${isCompleted ? 'book-check' : (isInst ? 'landmark' : 'book-open')}" style="width:15px;color:${iconColor};"></i>
-                    </div>
-                    <div class="flex-grow-1 overflow-hidden">
-                        <div class="d-flex align-items-center gap-1">
-                            <p class="mb-0 fw-bold text-truncate" style="font-size:.82rem;color:var(--text-primary);">${course.name}</p>
-                            ${isInst ? '<span style="font-size:.58rem;background:rgba(8,145,178,0.1);color:#0891B2;border-radius:5px;padding:.1em .45em;font-weight:700;flex-shrink:0;border:1px solid rgba(8,145,178,0.2);">INST</span>' : ''}
-                            ${isCompleted ? '<span style="font-size:.58rem;background:rgba(124,58,237,0.1);color:#7C3AED;border-radius:5px;padding:.1em .45em;font-weight:700;flex-shrink:0;border:1px solid rgba(124,58,237,0.2);">DONE</span>' : ''}
-                        </div>
-                        <div class="d-flex gap-2 mt-1 flex-wrap" style="font-size:.7rem;color:var(--text-muted);">
-                            <span class="fw-bold" style="color:var(--text-secondary);">${dept ? dept.code : 'N/A'}</span>
-                            <span>&bull;</span>
-                            <span>Year ${romanYear}</span>
-                            <span>&bull;</span>
-                            <span>${studs.length} students</span>
-                        </div>
-                    </div>
-                </div>`;
-            };
-
-            const emptyCard = (icon, msg) =>
-                `<div class="active-empty"><i data-lucide="${icon}" style="width:18px;opacity:0.35;"></i><p class="mb-0 mt-1" style="font-size:.78rem;">${msg}</p></div>`;
-
-            if (activeCohortsList) {
-                activeCohortsList.innerHTML = activeCohorts.length
-                    ? activeCohorts.map(c => cohortCard(c, false)).join('')
-                    : emptyCard('users', 'No active cohorts');
-            }
-
-            const completedList = document.getElementById('completed-cohorts-list');
-            if (completedList) {
-                completedList.innerHTML = completedCohorts.length
-                    ? completedCohorts.map(c => cohortCard(c, true)).join('')
-                    : emptyCard('check-circle-2', 'No completed cohorts yet');
-            }
-
-            if (activeCoursesList) {
-                activeCoursesList.innerHTML = activeCourses.length
-                    ? activeCourses.map(c => courseCard(c, false)).join('')
-                    : emptyCard('book-open', 'No active courses');
-            }
-
-            const completedCoursesList = document.getElementById('completed-courses-list');
-            if (completedCoursesList) {
-                completedCoursesList.innerHTML = completedCourses.length
-                    ? completedCourses.map(c => courseCard(c, true)).join('')
-                    : emptyCard('book-check', 'No completed courses yet');
-            }
-
-            lucide.createIcons();
+        if (profile.email) {
+          const emailEl = document.getElementById('js-dashboard-email');
+          if (emailEl) emailEl.textContent = profile.email;
         }
-
-        // ── Dashboard Update ──────────────────────────────────────
-        function updateDashboard() {
-            const dId = deptFilter?.value || 'all';
-            const year = parseInt(yearFilter?.value || '0');
-
-            let filteredDepts = dId === 'all' ? departments : departments.filter(d => d.id === dId);
-
-            let totalStudents = 0, totalCourses = 0, totalCohorts = 0, totalCompleted = 0;
-            const filteredCohortsForFocus = [];
-            const filteredCoursesForFocus = [];
-
-            filteredDepts.forEach(dept => {
-                const deptCohorts = cohorts.filter(c => c.departmentId === dept.id && (year === 0 || c.year === year));
-                // Regular courses only for the stat card count
-                const deptRegularCourses = courses.filter(c => c.departmentId === dept.id && !c.isInstitutional && (year === 0 || c.year === year));
-                // All courses (including institutional) for the focus panel
-                const deptAllCourses = [
-                    ...courses.filter(c => c.departmentId === dept.id && (year === 0 || c.year === year)),
-                    ...institutionCourses
-                        .filter(ic => {
-                            const secMatch = (ic.sectionIds || []).some(sId => {
-                                const sec = sections.find(s => s.id === sId);
-                                return sec && sec.departmentId === dept.id && (year === 0 || sec.year === year);
-                            });
-                            return secMatch && !courses.some(c => c.name === ic.name && c.isInstitutional);
-                        })
-                        .map(ic => ({ ...ic, id: `inst-${ic.id}`, isInstitutional: true, departmentId: dept.id, year: year || 1 }))
-                ];
-                const deptStuds = students.filter(s => s.departmentId === dept.id && (year === 0 || (sections.find(sec => sec.id === s.sectionId)?.year === year)));
-
-                filteredCohortsForFocus.push(...deptCohorts);
-                filteredCoursesForFocus.push(...deptAllCourses);
-
-                totalStudents += deptStuds.length;
-                totalCourses += deptRegularCourses.length;
-                totalCohorts += deptCohorts.filter(c => c.status !== 'closed').length;
-                totalCompleted += deptCohorts.filter(c => c.status === 'closed').length;
-            });
-
-            // De-duplicate courses in focus list by id
-            const seenIds = new Set();
-            const uniqueCourses = filteredCoursesForFocus.filter(c => {
-                if (seenIds.has(c.id)) return false;
-                seenIds.add(c.id);
-                return true;
-            });
-            filteredCoursesForFocus.length = 0;
-            filteredCoursesForFocus.push(...uniqueCourses);
-
-            const countCompleted = document.getElementById('count-completed-cohorts');
-            if (countCompleted) countCompleted.textContent = totalCompleted;
-
-            // Sync all top cards with filtered data
-            const cDepts = document.getElementById('count-depts');
-            const cSecs = document.getElementById('count-sec');
-            const cCohorts = document.getElementById('count-cohort');
-
-            if (cDepts) cDepts.textContent = departments.length;
-            if (cCohorts) cCohorts.textContent = totalCohorts;
-
-            // Calculate filtered sections
-            let filteredSectionsCount = 0;
-            if (dId === 'all' && year === 0) {
-                filteredSectionsCount = sections.length;
-            } else {
-                filteredSectionsCount = sections.filter(s =>
-                    (dId === 'all' || s.departmentId === dId) &&
-                    (year === 0 || s.year === year)
-                ).length;
-            }
-            if (cSecs) cSecs.textContent = filteredSectionsCount;
-
-
-
-            lucide.createIcons();
-            renderActiveFocus(filteredCohortsForFocus, filteredCoursesForFocus);
-            renderHODUpdates();
+        if (profile.experience) {
+          const expEl = document.getElementById('js-dashboard-experience');
+          if (expEl) expEl.textContent = profile.experience;
         }
-
-        // ── HOD Updates ───────────────────────────────────────────
-        function renderHODUpdates() {
-            const updatesList = document.getElementById('hod-updates-list');
-            if (!updatesList) return;
-
-            const dId = deptFilter?.value || 'all';
-            const filteredUpdates = dId === 'all' ? hodUpdates : hodUpdates.filter(u => u.departmentId === dId);
-
-            if (!filteredUpdates.length) {
-                updatesList.innerHTML = `
-                <div class="col-12 text-center py-5">
-                    <i data-lucide="inbox" style="width:40px;height:40px;color:var(--text-muted);"></i>
-                    <p class="mt-3 mb-0" style="color:var(--text-muted);">No updates found for this selection.</p>
-                </div>`;
-                lucide.createIcons();
-                return;
-            }
-
-            updatesList.innerHTML = filteredUpdates.map(update => {
-                const dept = departments.find(d => d.id === update.departmentId);
-                const prioClass = update.priority === 'high' ? 'danger' : update.priority === 'medium' ? 'warning' : 'success';
-                const prioBarClass = update.priority === 'high' ? 'high' : update.priority === 'medium' ? 'medium' : 'low';
-                const prioIcon = update.priority === 'high' ? 'alert-triangle' : 'bell';
-
-                return `
-                <div class="col-12 col-lg-6">
-                    <div class="update-card" onclick="showUpdateDetail('${update.id}')" style="cursor:none;padding-left:1.5rem;">
-                        <div class="priority-bar ${prioBarClass}"></div>
-                        <div class="d-flex align-items-start gap-3">
-                            <div class="flex-shrink-0 d-flex align-items-center justify-content-center rounded-3"
-                                style="width:40px;height:40px;background:rgba(var(--primary-rgb),0.1);">
-                                <i data-lucide="${prioIcon}" style="width:18px;color:var(--primary);"></i>
-                            </div>
-                            <div class="flex-grow-1 overflow-hidden">
-                                <div class="d-flex justify-content-between align-items-start gap-2 mb-1">
-                                    <h6 class="fw-bold mb-0 text-truncate" style="color:var(--text-primary);">${update.title}</h6>
-                                    <small class="flex-shrink-0" style="color:var(--text-muted);font-size:.7rem;">${update.date}</small>
-                                </div>
-                                <p class="mb-3 text-truncate" style="color:var(--text-secondary);font-size:.82rem;">${update.content}</p>
-                                <div class="d-flex align-items-center gap-2 flex-wrap">
-                                    <span class="badge badge-${prioClass}" style="font-size:.65rem;">${update.priority.toUpperCase()}</span>
-                                    <span class="badge badge-muted" style="font-size:.65rem;">${dept ? dept.code : 'System'}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>`;
-            }).join('');
-            lucide.createIcons();
-        }
-
-        // ── Update Detail ─────────────────────────────────────────
-        function showUpdateDetail(updateId) {
-            const update = hodUpdates.find(u => u.id === updateId);
-            if (!update) return;
-            const dept = departments.find(d => d.id === update.departmentId);
-            const badge = document.getElementById('update-modal-badge');
-            document.getElementById('update-modal-title').textContent = update.title;
-            document.getElementById('update-modal-content').textContent = update.content;
-            document.getElementById('update-modal-dept').textContent = dept ? dept.name : 'All Departments';
-            document.getElementById('update-modal-date').textContent = update.date;
-            badge.textContent = update.priority.toUpperCase();
-            badge.className = `badge badge-${update.priority === 'high' ? 'danger' : update.priority === 'medium' ? 'warning' : 'success'}`;
-            new bootstrap.Modal(document.getElementById('updateDetailModal')).show();
-        }
-
-        // ── Notifications Dropdown ────────────────────────────────
-        function populateNavNotifications() {
-            const notifList = document.getElementById('nav-notifications-list');
-            if (!notifList) return;
-            const recent = hodUpdates.slice(0, 4);
-            if (!recent.length) return;
-            document.getElementById('nav-empty-notifications')?.remove();
-            notifList.innerHTML = recent.map(u => {
-                const icon = u.priority === 'high' ? 'alert-triangle' : 'bell';
-                const color = u.priority === 'high' ? 'var(--primary)' : u.priority === 'medium' ? '#CA8A04' : '#16A34A';
-                return `
-                <div class="p-3 d-flex gap-3 align-items-start transition-all" onclick="showUpdateDetail('${u.id}')"
-                    style="cursor:none;border-bottom:1px solid var(--border);">
-                    <div class="flex-shrink-0 d-flex align-items-center justify-content-center rounded-2"
-                        style="width:34px;height:34px;background:rgba(var(--primary-rgb),0.1);">
-                        <i data-lucide="${icon}" style="width:14px;color:${color};"></i>
-                    </div>
-                    <div class="overflow-hidden">
-                        <p class="fw-bold mb-0 text-truncate" style="font-size:.8rem;color:var(--text-primary);">${u.title}</p>
-                        <p class="mb-0 text-truncate" style="font-size:.72rem;color:var(--text-muted);">${u.content}</p>
-                        <small style="font-size:.65rem;color:var(--text-muted);opacity:.6;">${u.date}</small>
-                    </div>
-                </div>`;
-            }).join('');
-            lucide.createIcons();
-        }
-
-        // ── Stat Card Counts ──────────────────────────────────────
-
-
-        // ── Data Modal ────────────────────────────────────────────
-        function showDataModal(type) {
-            const titleEl = document.getElementById('dataListModalTitle');
-            const contentEl = document.getElementById('dataListModalContent');
-            let html = '';
-
-            if (type === 'departments') {
-                titleEl.textContent = 'Departments Overview';
-                html = departments.map(d => {
-                    const deptSecs = sections.filter(s => s.departmentId === d.id);
-                    const deptStuds = students.filter(s => s.departmentId === d.id);
-                    const deptCohorts = cohorts.filter(c => c.departmentId === d.id);
-                    const deptCourses = courses.filter(c => c.departmentId === d.id && !c.isInstitutional);
-                    return `
-                <div class="col-12 col-md-6">
-                    <div class="dept-analytics-card" style="padding:1rem;">
-                        <div class="d-flex align-items-center gap-3 mb-3">
-                            <div class="dept-code-badge" style="font-size:.8rem;">${d.code}</div>
-                            <div>
-                                <h6 class="fw-bold mb-0" style="font-size:.9rem;color:var(--text-primary);">${d.name}</h6>
-                                <small style="color:var(--text-muted);font-size:.7rem;">Department</small>
-                            </div>
-                        </div>
-                        <div class="d-flex gap-3 flex-wrap" style="font-size:.78rem;">
-                            <span style="color:var(--text-muted);"><strong style="color:var(--text-primary);">${deptSecs.length}</strong> Sections</span>
-                            <span style="color:var(--text-muted);"><strong style="color:var(--text-primary);">${deptStuds.length}</strong> Students</span>
-                            <span style="color:var(--text-muted);"><strong style="color:var(--text-primary);">${deptCohorts.length}</strong> Cohorts</span>
-                            <span style="color:var(--text-muted);"><strong style="color:var(--text-primary);">${deptCourses.length}</strong> Courses</span>
-                        </div>
-                    </div>
-                </div>`;
-                }).join('');
-
-            } else if (type === 'sections') {
-                titleEl.textContent = 'Active Sections Breakdown';
-                html = sections.map(s => {
-                    const dept = departments.find(d => d.id === s.departmentId);
-                    const secStudents = students.filter(st => st.sectionId === s.id);
-                    const secCourses = courses.filter(c => (c.sectionIds || []).includes(s.id) && !c.isInstitutional);
-                    return `
-                <div class="col-12 col-md-4">
-                    <div class="dept-analytics-card" style="padding:1rem;">
-                        <div class="d-flex align-items-center justify-content-between mb-2">
-                            <h6 class="fw-bold mb-0" style="color:var(--primary);">Section ${s.name}</h6>
-                            <span class="badge badge-muted">Year ${YEAR_LABELS[s.year] || s.year}</span>
-                        </div>
-                        <p class="mb-2" style="font-size:.78rem;color:var(--text-muted);">${dept ? dept.name : 'Unknown Dept'}</p>
-                        <div class="d-flex gap-3" style="font-size:.78rem;">
-                            <span><strong>${secStudents.length}</strong> Students</span>
-                            <span><strong>${secCourses.length}</strong> Courses</span>
-                        </div>
-                    </div>
-                </div>`;
-                }).join('');
-
-            } else if (type === 'cohorts') {
-                titleEl.textContent = 'Active Cohorts';
-                const activeCohorts = cohorts.filter(c => c.status !== 'closed');
-                if (!activeCohorts.length) {
-                    html = '<div class="col-12 text-center py-4" style="color:var(--text-muted);"><p>No active cohorts found.</p></div>';
-                } else {
-                    html = activeCohorts.map(c => {
-                        const dept = departments.find(d => d.id === c.departmentId);
-                        const cohortStudents = students.filter(s => s.cohortId === c.id);
-                        const cohortSecs = sections.filter(s => (c.sectionIds || []).includes(s.id));
-                        return `
-                    <div class="col-12 col-md-6">
-                        <div class="dept-analytics-card" style="padding:1rem;">
-                            <div class="d-flex align-items-center gap-2 mb-2">
-                                <i data-lucide="graduation-cap" style="width:16px;color:var(--primary);"></i>
-                                <h6 class="fw-bold mb-0" style="color:var(--text-primary);">${c.name}</h6>
-                                <span class="badge badge-success ms-auto" style="font-size:.6rem;">Active</span>
-                            </div>
-                            <p class="mb-1" style="font-size:.78rem;color:var(--text-muted);">Dept: ${dept ? dept.code : 'N/A'} &bull; Semester ${c.semester || 'N/A'}</p>
-                            <div class="d-flex gap-3" style="font-size:.78rem;">
-                                <span><strong>${cohortStudents.length}</strong> Students</span>
-                                <span><strong>${cohortSecs.length}</strong> Sections</span>
-                            </div>
-                        </div>
-                    </div>`;
-                    }).join('');
-                }
-
-            } else if (type === 'completed-cohorts') {
-                titleEl.textContent = 'Completed Cohorts';
-                const completed = cohorts.filter(c => c.status === 'closed');
-                if (!completed.length) {
-                    html = '<div class="col-12 text-center py-4" style="color:var(--text-muted);"><i data-lucide="check-circle-2" style="width:40px;height:40px;opacity:0.3;"></i><p class="mt-3">No cohorts completed yet.</p></div>';
-                } else {
-                    html = completed.map(c => {
-                        const dept = departments.find(d => d.id === c.departmentId);
-                        const cohortStudents = students.filter(s => s.cohortId === c.id);
-                        return `
-                    <div class="col-12 col-md-6">
-                        <div class="dept-analytics-card" style="padding:1rem;border-left:3px solid #16A34A;">
-                            <div class="d-flex align-items-center gap-2 mb-2">
-                                <i data-lucide="check-circle-2" style="width:16px;color:#16A34A;"></i>
-                                <h6 class="fw-bold mb-0" style="color:var(--text-primary);">${c.name}</h6>
-                                <span class="badge ms-auto" style="background:#dcfce7;color:#16A34A;font-size:.6rem;">Completed</span>
-                            </div>
-                            <p class="mb-1" style="font-size:.78rem;color:var(--text-muted);">Dept: ${dept ? dept.code : 'N/A'} &bull; Semester ${c.semester || 'N/A'}</p>
-                            <p style="font-size:.78rem;color:var(--text-muted);">
-                                <strong>${cohortStudents.length}</strong> students &bull;
-                                <strong>${cohortStudents.filter(s => s.final_grade).length}</strong> graded
-                            </p>
-                            ${cohortStudents.filter(s => s.final_grade).length ? `
-                            <div class="d-flex gap-1 flex-wrap mt-1">
-                                ${['A+', 'A', 'B', 'C', 'D', 'F'].map(g => {
-                            const cnt = cohortStudents.filter(s => s.final_grade === g).length;
-                            return cnt ? `<span class="badge badge-muted" style="font-size:.65rem;">${g}: ${cnt}</span>` : '';
-                        }).join('')}
-                            </div>` : ''}
-                        </div>
-                    </div>`;
-                    }).join('');
-                }
-            }
-
-            contentEl.innerHTML = html || '<div class="col-12 text-center py-4" style="color:var(--text-muted);">No data found.</div>';
-            lucide.createIcons();
-            new bootstrap.Modal(document.getElementById('dataListModal')).show();
-        }
-
-        // ── Profile Logic ─────────────────────────────────────────
-        const DEFAULT_PROFILE = {
-            name: "Dr. Rajesh Kumar",
-            email: "rajesh.kumar@university.edu",
-            designation: "Professor",
-            department: "Computer Science",
-            experience: "15 Years",
-            qualification: "Ph.D. in AI"
-        };
-
-        function getInitials(name) {
-            const parts = name.trim().split(' ').filter(Boolean);
-            if (parts.length >= 2) return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
-            if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
-            return "FA";
-        }
-
-        function loadProfile() {
-            let saved = localStorage.getItem('facultyProfile');
-            let profile = saved ? JSON.parse(saved) : DEFAULT_PROFILE;
-            
-            // Update Overview Card
-            if(document.getElementById('profile-display-name')) document.getElementById('profile-display-name').textContent = profile.name;
-            if(document.getElementById('profile-display-email')) document.getElementById('profile-display-email').textContent = profile.email;
-            if(document.getElementById('profile-display-email')) document.getElementById('profile-display-email').title = profile.email;
-            if(document.getElementById('profile-display-designation')) document.getElementById('profile-display-designation').textContent = profile.designation;
-            if(document.getElementById('profile-display-designation-box')) document.getElementById('profile-display-designation-box').textContent = profile.designation;
-            if(document.getElementById('profile-display-department')) document.getElementById('profile-display-department').textContent = profile.department;
-            if(document.getElementById('profile-display-department-box')) document.getElementById('profile-display-department-box').textContent = profile.department;
-            if(document.getElementById('profile-display-experience')) document.getElementById('profile-display-experience').textContent = profile.experience;
-            if(document.getElementById('profile-display-qualification')) document.getElementById('profile-display-qualification').textContent = profile.qualification;
-            if(document.getElementById('profile-initials-display')) document.getElementById('profile-initials-display').textContent = getInitials(profile.name);
-
-            // Update Top Right Navbar Profile Dropdown Info
-            const navNames = document.querySelectorAll('.pname');
-            const navRoles = document.querySelectorAll('.prole');
-            const navEmails = document.querySelectorAll('.profile-user-block small');
-            const navDropdownNames = document.querySelectorAll('.profile-user-block .fw-bold');
-
-            navNames.forEach(el => el.textContent = profile.name);
-            navRoles.forEach(el => el.textContent = profile.designation);
-            navEmails.forEach(el => el.textContent = profile.email);
-            navDropdownNames.forEach(el => el.textContent = profile.name);
-            
-            const avatarWrapper = document.getElementById('profile-avatar-wrapper');
-            if (avatarWrapper) {
-                if (profile.picture) {
-                    avatarWrapper.innerHTML = `<img src="${profile.picture}" style="width:100%; height:100%; object-fit:cover;" alt="Profile Picture">`;
-                } else {
-                    avatarWrapper.innerHTML = `<span id="profile-initials-display" style="color:white; font-size:2.5rem; font-weight:bold;">${getInitials(profile.name)}</span>`;
-                }
-            }
-
-            const navAvatars = document.querySelectorAll('.profile-avatar');
-            navAvatars.forEach(el => {
-                if (profile.picture) {
-                    el.innerHTML = `<img src="${profile.picture}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;" alt="Profile">`;
-                    el.style.background = 'transparent';
-                } else {
-                    el.innerHTML = `<span style="font-weight:700; color:var(--primary); font-size:0.85rem;">${getInitials(profile.name)}</span>`;
-                    el.style.background = 'rgba(var(--primary-rgb), 0.1)';
-                }
-            });
-
-            lucide.createIcons();
-        }
-
-        const editProfileModalEl = document.getElementById('editProfileModal');
-        if(editProfileModalEl) {
-            editProfileModalEl.addEventListener('show.bs.modal', function () {
-                let saved = localStorage.getItem('facultyProfile');
-                let profile = saved ? JSON.parse(saved) : DEFAULT_PROFILE;
-                document.getElementById('prof-edit-name').value = profile.name;
-                document.getElementById('prof-edit-email').value = profile.email;
-                document.getElementById('prof-edit-designation').value = profile.designation;
-                document.getElementById('prof-edit-department').value = profile.department;
-                document.getElementById('prof-edit-experience').value = profile.experience;
-                document.getElementById('prof-edit-qualification').value = profile.qualification;
-            });
-        }
-
-        const editProfileForm = document.getElementById('editProfileForm');
-        if(editProfileForm) {
-            editProfileForm.addEventListener('submit', function (e) {
-                e.preventDefault();
-                
-                const fileInput = document.getElementById('prof-edit-picture');
-                let saved = localStorage.getItem('facultyProfile');
-                let existingProfile = saved ? JSON.parse(saved) : DEFAULT_PROFILE;
-
-                const saveProfileData = (pictureData) => {
-                    const newProfile = {
-                        name: document.getElementById('prof-edit-name').value,
-                        email: document.getElementById('prof-edit-email').value,
-                        designation: document.getElementById('prof-edit-designation').value,
-                        department: document.getElementById('prof-edit-department').value,
-                        experience: document.getElementById('prof-edit-experience').value,
-                        qualification: document.getElementById('prof-edit-qualification').value,
-                        picture: pictureData
-                    };
-                    localStorage.setItem('facultyProfile', JSON.stringify(newProfile));
-                    const modal = bootstrap.Modal.getInstance(editProfileModalEl);
-                    if(modal) modal.hide();
-                    loadProfile();
-                };
-
-                if (fileInput && fileInput.files.length > 0) {
-                    const reader = new FileReader();
-                    reader.onload = function(evt) {
-                        const img = new Image();
-                        img.onload = function() {
-                            const canvas = document.createElement('canvas');
-                            const MAX_WIDTH = 250;
-                            const MAX_HEIGHT = 250;
-                            let width = img.width;
-                            let height = img.height;
-
-                            if (width > height) {
-                              if (width > MAX_WIDTH) {
-                                height *= MAX_WIDTH / width;
-                                width = MAX_WIDTH;
-                              }
-                            } else {
-                              if (height > MAX_HEIGHT) {
-                                width *= MAX_HEIGHT / height;
-                                height = MAX_HEIGHT;
-                              }
-                            }
-                            canvas.width = width;
-                            canvas.height = height;
-                            const ctx = canvas.getContext('2d');
-                            ctx.drawImage(img, 0, 0, width, height);
-                            
-                            const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
-                            saveProfileData(dataUrl);
-                        };
-                        img.src = evt.target.result;
-                    };
-                    reader.readAsDataURL(fileInput.files[0]);
-                } else {
-                    saveProfileData(existingProfile.picture || null);
-                }
-            });
-        }
-
-        // ── Init ──────────────────────────────────────────────────
-        deptFilter?.addEventListener('change', updateDashboard);
-        yearFilter?.addEventListener('change', updateDashboard);
-        document.getElementById('refresh-dashboard')?.addEventListener('click', updateDashboard);
-
-        loadProfile();
-        updateDashboard();
-        populateNavNotifications();
-    </script>
-</body>
-
-</html>
+      } catch (e) {
+        console.error(e);
+      }
+    }
+  });
+</script>
+{% endblock %}

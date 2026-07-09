@@ -1,0 +1,284 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="CIET ERP Faculty Hub portal for managing curriculum syllabus coverage, course materials, student performance metrics, and mastermind cohorts.">
+  <link rel="canonical" href="{{ request.build_absolute_uri }}">
+  <title>{% block portal_tab_title %}Faculty Hub{% endblock %} | CIET</title>
+
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <!-- Bootstrap for styles and modals -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- CIET Portal Custom CSS (burgundy theme) -->
+  <link href="{% static 'css/portal.css' %}?v=5" rel="stylesheet">
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    .modal-backdrop { z-index: 1040; }
+    .modal { z-index: 1050; }
+    .drawer-overlay { z-index: 1060; }
+    .drawer { z-index: 1070; }
+    
+    /* Extra customizations for bottom nav active states */
+    .nav-item i {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+      opacity: 0.75;
+      margin-bottom: 2px;
+      transition: stroke .2s;
+    }
+    .nav-item:hover i { opacity: 1; }
+    .nav-item.active i { stroke: var(--primary); opacity: 1; }
+    
+    /* Override top navbar actions for layout spacing */
+    .topbar-right .user-chip {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+  </style>
+  {% block extra_head %}{% endblock %}
+</head>
+<body class="student-portal-shell">
+<div class="portal-ambient portal-ambient-one" aria-hidden="true"></div>
+<div class="portal-ambient portal-ambient-two" aria-hidden="true"></div>
+<div class="portal-ambient portal-ambient-three" aria-hidden="true"></div>
+<div class="portal-ambient portal-ambient-four" aria-hidden="true"></div>
+<div class="portal-ambient portal-ambient-five" aria-hidden="true"></div>
+
+<div class="app-wrapper">
+
+  <!-- ═══ BOTTOM NAVIGATION ═══ -->
+  <nav class="bottom-nav" aria-label="Faculty portal navigation">
+    <div class="bottom-nav-scroll">
+      <a class="nav-item {% if request.resolver_match.url_name == 'faculty-dashboard' %}active{% endif %}"
+         href="{% url 'faculty-dashboard' %}" data-label="Home" title="Home" aria-label="Home">
+        <i data-lucide="layout-dashboard"></i>
+        Home
+      </a>
+      <a class="nav-item {% if request.resolver_match.url_name == 'faculty-cohorts' %}active{% endif %}"
+         href="{% url 'faculty-cohorts' %}" data-label="Cohort" title="Cohorts" aria-label="Cohorts">
+        <i data-lucide="users"></i>
+        Cohort
+      </a>
+      <a class="nav-item {% if request.resolver_match.url_name == 'faculty-explore-students' %}active{% endif %}"
+         href="{% url 'faculty-explore-students' %}" data-label="Explore" title="Explore Students" aria-label="Explore Students">
+        <i data-lucide="search"></i>
+        Explore
+      </a>
+      <a class="nav-item {% if request.resolver_match.url_name == 'faculty-courses' %}active{% endif %}"
+         href="{% url 'faculty-courses' %}" data-label="Courses" title="Courses" aria-label="Courses">
+        <i data-lucide="book-open"></i>
+        Courses
+      </a>
+      {% if request.user.is_mentor %}
+      <a class="nav-item {% if request.resolver_match.url_name == 'faculty-mentor' %}active{% endif %}"
+         href="{% url 'faculty-mentor' %}" data-label="Mentoring" title="Mentoring" aria-label="Mentoring">
+        <i data-lucide="user-check"></i>
+        Mentoring
+      </a>
+      {% endif %}
+      <a class="nav-item {% if request.resolver_match.url_name == 'faculty-hod-updates' %}active{% endif %}"
+         href="{% url 'faculty-hod-updates' %}" style="position:relative;" data-label="Updates" title="HOD Updates" aria-label="HOD Updates">
+        <i data-lucide="bell"></i>
+        Updates
+        {% if hod_unread_count > 0 %}
+        <span class="nav-badge" id="nav-badge-updates">{{ hod_unread_count }}</span>
+        {% endif %}
+      </a>
+      <a class="nav-item" href="#chat-widget-container" id="nav-chat-btn" data-label="Chat" title="Chat Widget" aria-label="Chat Widget">
+        <i data-lucide="message-square"></i>
+        Chat
+      </a>
+      <a class="nav-item {% if request.resolver_match.url_name == 'faculty-settings' %}active{% endif %}"
+         href="{% url 'faculty-settings' %}" data-label="Profile" title="Profile Settings" aria-label="Profile Settings">
+        <i data-lucide="user"></i>
+        Profile
+      </a>
+      <a class="nav-item danger" href="{% url 'logout' %}" data-label="Exit" title="Sign Out" aria-label="Sign Out">
+        <i data-lucide="log-out"></i>
+        Exit
+      </a>
+    </div>
+  </nav>
+
+  <!-- ═══ MAIN AREA ═══ -->
+  <div style="flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden;">
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <a href="{% url 'faculty-dashboard' %}" class="portal-brand" aria-label="CIET Faculty home">
+          <img src="{% static 'images/ciet_logo.svg' %}" alt="CIET Logo" class="portal-brand-logo" style="width:46px; height:46px;">
+          <span style="font-weight:800; font-size:1.1rem; margin-left:10px; color:var(--text);">CIET Faculty Hub</span>
+        </a>
+      </div>
+      <div class="topbar-right">
+        <div style="display:flex;align-items:center;gap:12px;margin-right:12px;">
+          {% if request.user.role == 'HOD' %}
+          <a href="{% url 'hod-dashboard' %}" class="btn btn-sm btn-outline-primary d-flex align-items-center gap-1 px-3 py-1 fw-bold" style="border-radius:20px; font-size:0.75rem; border-color:var(--primary); color:var(--primary); text-decoration:none;">
+            <i data-lucide="shield" style="width:12px; height:12px;"></i>
+            <span>HOD Portal</span>
+          </a>
+          {% endif %}
+          <a href="{% url 'faculty-hod-updates' %}" class="icon-btn" style="position:relative;" title="HOD Updates">
+            <i data-lucide="bell"></i>
+            {% if hod_unread_count > 0 %}
+            <span class="topbar-dot"></span>
+            {% endif %}
+          </a>
+        </div>
+        <a href="{% url 'faculty-settings' %}" class="user-chip" style="text-decoration:none;">
+          <div class="user-chip-info">
+            <div class="name">{{ request.user.full_name|default:request.user.email }}</div>
+            <div class="role">{{ request.user.role }}</div>
+          </div>
+          <div class="avatar">
+            {{ request.user.full_name|first|default:"F"|upper }}
+          </div>
+        </a>
+      </div>
+    </header>
+
+    <!-- PAGE CONTENT -->
+    <main class="main-content">
+      <!-- Django Messages -->
+      {% if messages %}
+      <div style="margin-bottom:16px;">
+        {% for message in messages %}
+        {% if message.tags == 'error' %}
+        <div class="portal-message portal-message-error">
+        {% elif message.tags == 'success' %}
+        <div class="portal-message portal-message-success">
+        {% else %}
+        <div class="portal-message">
+        {% endif %}
+          {{ message }}
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      {% block portal_content %}{% endblock %}
+    </main>
+  </div>
+</div>
+
+{% include 'messaging/widget.html' %}
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+  window.USER_ROLE = "{{ request.user.role|escapejs }}";
+  window.USER_EMAIL = "{{ request.user.email|escapejs }}";
+  window.USER_ID = "{{ request.user.id|escapejs }}";
+
+  // Initialize Lucide icons
+  lucide.createIcons();
+
+  // Sync profile details cached in localStorage across all pages dynamically
+  function syncFacultyProfile() {
+      const saved = localStorage.getItem('facultyProfile');
+      let profile = {
+          name: "{{ request.user.full_name|default:request.user.email|escapejs }}",
+          role: "{{ request.user.role|escapejs }}",
+          email: "{{ request.user.email|escapejs }}",
+          designation: "Professor",
+          department: "Computer Science & Engineering",
+          experience: "15 Years",
+          qualification: "Ph.D. in AI",
+          bio: "",
+          picture: ""
+      };
+      if (saved) {
+          try {
+              const parsed = JSON.parse(saved);
+              profile = { ...profile, ...parsed };
+          } catch (e) {
+              console.error("Error parsing profile settings", e);
+          }
+      }
+      
+      localStorage.setItem('facultyProfile', JSON.stringify(profile));
+
+      function getInitials(name) {
+          const parts = name.trim().split(' ').filter(Boolean);
+          if (parts.length >= 2) return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+          if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+          return "FA";
+      }
+
+      const initials = getInitials(profile.name);
+      document.querySelectorAll('.user-chip .name').forEach(el => el.textContent = profile.name);
+      document.querySelectorAll('.user-chip .role').forEach(el => el.textContent = `${profile.designation} · ${profile.department}`);
+      document.querySelectorAll('.user-chip .avatar').forEach(el => {
+          if (profile.picture) {
+              el.innerHTML = `<img src="${profile.picture}" class="portal-avatar-img" alt="Profile Picture" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">`;
+          } else {
+              el.innerHTML = initials;
+          }
+      });
+
+      // Sync specific dashboard overview tags if page loaded
+      document.querySelectorAll('#profile-display-name').forEach(el => el.textContent = profile.name);
+      document.querySelectorAll('#profile-display-designation').forEach(el => el.textContent = profile.designation);
+      document.querySelectorAll('#profile-display-designation-box').forEach(el => el.textContent = profile.designation);
+      document.querySelectorAll('#profile-display-department').forEach(el => el.textContent = profile.department);
+      document.querySelectorAll('#profile-display-department-box').forEach(el => el.textContent = profile.department);
+      document.querySelectorAll('#profile-display-email').forEach(el => {
+          el.textContent = profile.email;
+          el.title = profile.email;
+      });
+      document.querySelectorAll('#profile-display-experience').forEach(el => el.textContent = profile.experience);
+      document.querySelectorAll('#profile-display-qualification').forEach(el => el.textContent = profile.qualification);
+      document.querySelectorAll('#profile-avatar-wrapper').forEach(el => {
+          if (profile.picture) {
+              el.innerHTML = `<img src="${profile.picture}" style="width:100%; height:100%; object-fit:cover; border-radius:20px;" alt="Avatar">`;
+          } else {
+              el.innerHTML = `<span id="profile-initials-display" style="color:white; font-size:2.5rem; font-weight:bold;">${initials}</span>`;
+          }
+      });
+  }
+
+  document.addEventListener('DOMContentLoaded', syncFacultyProfile);
+
+  // Re-enable Lucide after any local re-renderings
+  window.retriggerLucide = function() {
+      lucide.createIcons();
+  }
+
+  // Handle chat button overlay toggle
+  const chatBtn = document.getElementById('nav-chat-btn');
+  if (chatBtn) {
+      chatBtn.addEventListener('click', function(e) {
+          e.preventDefault();
+          // Find standard direct message widget triggers or show standard chat widget modal
+          const widgetTrigger = document.querySelector('[data-message-open]');
+          if (widgetTrigger) {
+              widgetTrigger.click();
+          } else {
+              const chatWidget = document.getElementById('chat-widget-container') || document.querySelector('.direct-messaging-widget');
+              if (chatWidget) {
+                  chatWidget.classList.toggle('active');
+                  chatWidget.classList.toggle('d-none');
+              } else {
+                  alert('Chat widget is currently unavailable.');
+              }
+          }
+      });
+  }
+</script>
+
+{% block modals %}{% endblock %}
+{% block extra_js %}{% endblock %}
+
+</body>
+</html>

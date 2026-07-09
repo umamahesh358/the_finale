@@ -1,803 +1,300 @@
-<!DOCTYPE html>
+{% extends 'faculty/base_portal.html' %}
 {% load static %}
-<html lang="en">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Faculty Hub – Explore students with search and advanced filters.">
-    <title>Faculty Hub — Explore Students</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
-        rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'faculty-hub/style.css' %}">
-    <script src="https://unpkg.com/lucide@latest"></script>
-</head>
+{% block portal_tab_title %}Explore Students{% endblock %}
 
-<body>
-    <div id="layout-wrapper">
-        <aside class="sidebar" id="app-sidebar">
-            <div class="sidebar-brand"
-                style="border-bottom:1px solid var(--border); padding:1.25rem 1.5rem; display:flex; align-items:center; justify-content:center;">
-                <img src="{% static 'faculty-hub/images/image.png' %}" alt="CIET Logo"
-                    style="max-width:100%; max-height:56px; object-fit:contain;">
-            </div>
-            <div class="sidebar-content">
-                <div class="nav-section-label" style="padding-top:1.25rem;">Main Menu</div>
-                <nav>
-                    <a href="{% url 'faculty-dashboard' %}" class="nav-link"><i
-                            data-lucide="layout-dashboard"></i><span>Dashboard</span></a>
-                    <a href="{% url 'faculty-cohorts' %}" class="nav-link"><i
-                            data-lucide="users"></i><span>Cohorts</span></a>
-                    <a href="{% url 'faculty-explore-students' %}" class="nav-link active"><i
-                            data-lucide="search"></i><span>Explore Students</span></a>
-                    <a href="{% url 'faculty-courses' %}" class="nav-link"><i
-                            data-lucide="book-open"></i><span>Courses</span></a>
-                    <a href="{% url 'faculty-hod-updates' %}" class="nav-link hod-updates" id="nav-updates">
-                        <i data-lucide="bell-ring"></i><span class="fw-semibold">HOD Updates</span><span
-                        {% if hod_unread_count > 0 %}<span class="pulse-dot"></span>{% endif %}
-                    </a>
-                    <a href="#" class="nav-link" id="nav-chat-btn"><i
-                            data-lucide="message-circle"></i><span>Chat</span></a>
-                    <a href="{% url 'logout' %}" class="nav-link text-danger mt-auto">
-                        <i data-lucide="log-out"></i>
-                        <span>Logout</span>
-                    </a>
+{% block extra_head %}
+<style>
+  .modal-backdrop { display: none !important; }
+  .modal { background: rgba(0, 0, 0, 0.5) !important; }
+  .df-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; width: 100%; }
+  .df-label { font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; }
+  .df-input {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 24px !important;
+    font-size: 13px;
+    color: #0f172a;
+    background: #fff;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    box-sizing: border-box;
+  }
+  .df-input:focus { border-color: #AF0C3E; box-shadow: 0 0 0 3px rgba(175,12,62,.08); }
+  
+  .form-select {
+    border-radius: 24px !important;
+    padding: 10px 14px;
+    font-size: 13px;
+    border: 1.5px solid #e2e8f0;
+    height: 42px;
+  }
+  .form-select:focus { border-color: #AF0C3E; box-shadow: 0 0 0 3px rgba(175,12,62,.08); }
 
-                </nav>
-            </div>
-        </aside>
+  /* Avatar bubble styling */
+  .student-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #AF0C3E;
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: bold;
+    margin-right: 10px;
+  }
 
-        <main class="main-content">
-            <header class="top-navbar">
-                <div class="d-flex align-items-center gap-3 flex-grow-1">
-                    <button class="nav-action-btn border-0" id="sidebar-toggle" aria-label="Toggle Sidebar">
-                        <i data-lucide="menu"></i>
-                    </button>
-                    <div class="search-wrap d-none d-lg-block">
-                        <i data-lucide="search" class="search-icon"></i>
-                        <input type="text" placeholder="Search students…" disabled>
-                    </div>
-                </div>
-                <div class="navbar-actions">
-                    <div class="dropdown">
-                        <button class="nav-action-btn border-0 position-relative" data-bs-toggle="dropdown"
-                            aria-label="Notifications">
-                            <i data-lucide="bell"></i>{% if hod_unread_count > 0 %}<span class="notif-badge"></span>{% endif %}
-                        </button>
-                        <div class="dropdown-menu dropdown-menu-end p-0 mt-2 overflow-hidden"
-                            style="width:300px;border-radius:var(--radius-lg);">
-                            <div class="notif-header">
-                                <p class="fw-bold mb-0 text-white" style="font-size:.9rem;">Notifications</p>
-                                <span class="badge bg-white rounded-pill"
-                                    style="color:var(--primary);font-size:.7rem;">3 New</span>
-                            </div>
-                            <div class="p-3 border-bottom" style="border-color:var(--border)!important;">
-                                <div class="d-flex gap-3 align-items-start">
-                                    <div class="flex-shrink-0 d-flex align-items-center justify-content-center rounded-2"
-                                        style="width:34px;height:34px;background:rgba(var(--primary-rgb),0.1);">
-                                        <i data-lucide="bell" style="width:14px;color:var(--primary);"></i>
-                                    </div>
-                                    <div>
-                                        <p class="fw-bold mb-0" style="font-size:.8rem;color:var(--text-primary);">New
-                                            Update from HOD</p>
-                                        <p class="mb-0" style="font-size:.72rem;color:var(--text-muted);">Revised
-                                            evaluation policy posted.</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="p-2 text-center" style="background:var(--muted-bg);">
-                                <a href="{% url 'faculty-hod-updates' %}" class="small fw-bold text-decoration-none"
-                                    style="color:var(--primary);">View all</a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="dropdown">
-                        <div class="profile-trigger" data-bs-toggle="dropdown" style="cursor:pointer;">
-                            <div class="d-none d-sm-block profile-name-block text-end">
-                                <p class="pname mb-0">Dr. Rajesh Kumar</p>
-                                <span class="prole">Professor</span>
-                            </div>
-                            <div class="profile-avatar"><i data-lucide="user"></i></div>
-                        </div>
-                        <ul class="dropdown-menu dropdown-menu-end mt-2 p-2"
-                            style="width:230px;border-radius:var(--radius-lg);">
-                            <li class="profile-user-block mb-2">
-                                <span class="fw-bold d-block" style="font-size:.85rem;color:var(--text-primary);">Dr.
-                                    Rajesh Kumar</span>
-                                <small
-                                    style="color:var(--text-muted);font-size:.7rem;">rajesh.kumar@university.edu</small>
-                            </li>
+  /* Table styling enhancements */
+  .student-row {
+    transition: background-color 0.2s;
+  }
+  .student-row:hover {
+    background-color: rgba(175,12,62,0.02) !important;
+  }
+</style>
+{% endblock %}
 
-                            <li>
-                                <hr class="dropdown-divider opacity-50 mx-2">
-                            </li>
-                            <li><a class="dropdown-item text-danger" href="{% url 'logout' %}"><i data-lucide="log-out"
-                                        style="width:14px;"></i> Logout</a></li>
-                        </ul>
-                    </div>
-                </div>
-            </header>
+{% block portal_content %}
+<div class="flex-between" style="margin-bottom:24px;">
+  <div>
+    <h1 class="section-title">Explore Students</h1>
+    <p class="section-sub">Search, filter, and inspect detailed profiles of students in your department.</p>
+  </div>
+</div>
 
-            <div class="page-content">
-                <div class="dashboard-header fade-in-up">
-                    <div>
-                        <h1 class="page-title">Explore Students</h1>
-                        <p class="page-subtitle">Use search and advanced filters to shortlist students by branch, year,
-                            CGP and roll range.</p>
-                    </div>
-                    <div class="d-flex align-items-center gap-2 flex-wrap justify-content-end">
-                        <span class="badge badge-primary" id="student-list-count">0 Students</span>
-                        <button type="button" class="btn btn-sm btn-secondary d-flex align-items-center gap-1"
-                            id="toggle-student-filters">
-                            <i data-lucide="sliders-horizontal" style="width:14px;height:14px;"></i>
-                            <span>Filters</span>
-                        </button>
-                        <button type="button" class="student-draft-btn" id="open-student-draft" data-bs-toggle="modal"
-                            data-bs-target="#draftCohortModal">
-                            <i data-lucide="scroll-text" style="width:14px;height:14px;"></i>
-                            <span>Draft</span>
-                            <span class="student-draft-count" id="student-draft-count">0</span>
-                        </button>
-                    </div>
-                </div>
-
-                <section class="student-explorer-section mt-4 fade-in-up-2" aria-labelledby="student-explorer-title">
-                    <div class="student-explorer">
-                        <div class="student-filter-bar mb-3">
-                            <div class="row g-2 align-items-end">
-                                <div class="col-12">
-                                    <label class="form-label">Search</label>
-                                    <input type="text" class="form-control" id="student-name-filter"
-                                        placeholder="Search by name or student ID">
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="student-filter-bar mb-3 d-none" id="advanced-student-filters">
-                            <div class="row g-2 align-items-end">
-                                <div class="col-12 col-md-3">
-                                    <label class="form-label">Year</label>
-                                    <select class="form-select" id="student-year-filter">
-                                        <option value="all">All Years</option>
-                                        <option value="1">Year I</option>
-                                        <option value="2">Year II</option>
-                                        <option value="3">Year III</option>
-                                        <option value="4">Year IV</option>
-                                    </select>
-                                </div>
-                                <div class="col-12 col-md-4">
-                                    <label class="form-label">Branch</label>
-                                    <select class="form-select" id="student-branch-filter">
-                                        <option value="all">All Branches</option>
-                                    </select>
-                                </div>
-                                <div class="col-6 col-md-2">
-                                    <label class="form-label">CGP Min</label>
-                                    <input type="number" class="form-control" id="student-cgp-min" min="0" max="10"
-                                        step="0.01" placeholder="0.00">
-                                </div>
-                                <div class="col-6 col-md-2">
-                                    <label class="form-label">CGP Max</label>
-                                    <input type="number" class="form-control" id="student-cgp-max" min="0" max="10"
-                                        step="0.01" placeholder="10.00">
-                                </div>
-                                <div class="col-6 col-md-3">
-                                    <label class="form-label">Roll No From</label>
-                                    <input type="text" class="form-control" id="student-roll-from"
-                                        placeholder="REG20260001">
-                                </div>
-                                <div class="col-6 col-md-3">
-                                    <label class="form-label">Roll No To</label>
-                                    <input type="text" class="form-control" id="student-roll-to"
-                                        placeholder="REG20269999">
-                                </div>
-                            </div>
-                            <div class="student-filter-actions">
-                                <button type="button" class="btn btn-secondary student-filter-clear"
-                                    id="clear-student-filters">Clear</button>
-                                <button type="button" class="btn btn-primary student-filter-apply"
-                                    id="apply-student-filters">
-                                    <i data-lucide="sparkles" style="width:14px;height:14px;"></i>
-                                    Apply Filters
-                                </button>
-                            </div>
-                        </div>
-
-                        <div id="filtered-students-list" class="student-strip-list"></div>
-                    </div>
-                </section>
-            </div>
-        </main>
+<!-- Filters Panel -->
+<div class="card portal-panel" style="padding:20px;margin-bottom:24px;">
+  <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:16px;">
+    <!-- Search -->
+    <div class="df-group">
+      <label class="df-label">Search Student</label>
+      <input type="text" id="searchStudentInput" class="df-input" placeholder="Search by name or roll number...">
     </div>
+    <!-- Year Filter -->
+    <div class="df-group">
+      <label class="df-label">Academic Year</label>
+      <select id="filterYearSelect" class="form-select">
+        <option value="all">All Years</option>
+        <option value="1">Year I</option>
+        <option value="2">Year II</option>
+        <option value="3">Year III</option>
+        <option value="4">Year IV</option>
+      </select>
+    </div>
+    <!-- Branch Filter -->
+    <div class="df-group">
+      <label class="df-label">Department / Branch</label>
+      <select id="filterDeptSelect" class="form-select">
+        <option value="all">All Branches</option>
+        {% for dept in faculty_hub_data.departments %}
+        <option value="{{ dept.code }}">{{ dept.code }} - {{ dept.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <!-- CGPA Filter -->
+    <div class="df-group">
+      <label class="df-label">Min CGPA</label>
+      <input type="number" id="filterMinCgpa" class="df-input" min="0" max="10" step="0.1" placeholder="e.g. 7.5">
+    </div>
+  </div>
+</div>
 
-    <div class="modal fade" id="draftCohortModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title fw-bold d-flex align-items-center gap-2">
-                        <i data-lucide="scroll-text" style="width:16px;height:16px;"></i>
-                        Cohort Draft Workspace
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="row g-4">
-                        <div class="col-lg-7">
-                            <div class="d-flex align-items-center justify-content-between mb-2">
-                                <h6 class="fw-bold mb-0" style="color:var(--text-primary);">Selected Student Profiles
-                                </h6>
-                                <button type="button" class="btn btn-sm btn-secondary" id="clear-draft-students">Clear
-                                    All</button>
-                            </div>
-                            <div id="draft-students-list" class="draft-students-list"></div>
-                        </div>
-
-                        <div class="col-lg-5">
-                            <form id="draftCohortForm" class="draft-create-form">
-                                <div class="mb-3">
-                                    <label class="form-label">Cohort Name</label>
-                                    <input type="text" class="form-control" id="draft-cohort-name"
-                                        placeholder="e.g. Cohort Spark" required>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label class="form-label">Description <span
-                                            style="font-size:0.75rem;font-weight:normal;color:var(--text-muted);">(Optional)</span></label>
-                                    <textarea class="form-control" id="draft-cohort-description" rows="3"
-                                        placeholder="Enter cohort details or purpose..."></textarea>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label class="form-label d-flex justify-content-between">
-                                        <span>Study Materials</span>
-                                        <span
-                                            style="color:var(--text-muted);font-weight:400;font-size:.75rem;">(Optional)</span>
-                                    </label>
-                                    <div class="file-drop-zone" id="draft-file-drop-zone"
-                                        onclick="document.getElementById('draft-coh-material').click()">
-                                        <i data-lucide="cloud-upload" style="width:24px;height:24px;" class="mb-2"></i>
-                                        <p class="fw-semibold mb-1" style="font-size:.83rem;color:var(--text-primary);">
-                                            Click or drag files here</p>
-                                        <p class="mb-0" style="font-size:.72rem;color:var(--text-muted);">PDF, DOCX,
-                                            ZIP, PPTX · Max 25MB</p>
-                                        <input type="file" id="draft-coh-material" class="d-none" multiple>
-                                    </div>
-                                    <div id="draft-file-preview-list" class="mt-2 d-flex flex-column gap-2"></div>
-                                </div>
-
-                                <div class="d-grid gap-2">
-                                    <button type="submit" class="btn btn-primary">Create Cohort From Draft</button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
+<!-- Students Directory Table -->
+<div class="card portal-panel" style="padding:20px; margin-bottom: 24px;">
+  <div class="table-responsive">
+    <table class="table align-middle mb-0" id="studentsTable">
+      <thead>
+        <tr>
+          <th>Student Name</th>
+          <th>Roll No</th>
+          <th>Branch</th>
+          <th>Year</th>
+          <th>CGPA</th>
+          <th class="text-end">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for student in faculty_hub_data.students %}
+        <tr class="student-row" 
+            data-name="{{ student.name|lower }}" 
+            data-roll="{{ student.regNo|lower }}"
+            data-year="{{ student.year }}"
+            data-dept="{% for dept in faculty_hub_data.departments %}{% if dept.id == student.departmentId %}{{ dept.code }}{% endif %}{% endfor %}"
+            data-cgpa="{{ student.cgpa|default:'8.2' }}">
+          <td>
+            <div style="display:flex;align-items:center;">
+              <div class="student-avatar">
+                {{ student.name|first|upper }}
+              </div>
+              <strong>{{ student.name }}</strong>
             </div>
+          </td>
+          <td>{{ student.regNo }}</td>
+          <td>
+            <span class="tag tag-primary">
+              {% for dept in faculty_hub_data.departments %}
+                {% if dept.id == student.departmentId %}{{ dept.code }}{% endif %}
+              {% empty %}
+                CSE
+              {% endfor %}
+            </span>
+          </td>
+          <td>Year {{ student.year }}</td>
+          <td><span class="tag tag-green">{{ student.cgpa|default:"8.2" }}</span></td>
+          <td class="text-end">
+            <button class="btn-ghost" style="font-size:12px;padding:6px 12px;" data-bs-toggle="modal" data-bs-target="#studentDetailModal-{{ student.id }}">
+              View Details
+            </button>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="6" class="text-center text-muted py-4">No student records found in your department.</td>
+        </tr>
+        {% endfor %}
+        
+        <!-- No matching students fallback row -->
+        <tr id="noStudentsRow" style="display:none;">
+          <td colspan="6" class="text-center text-muted py-4">
+            No student records match the selected filter criteria.
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Student Detail Modals (rendered outside the table container for valid HTML and overlay layout safety) -->
+{% for student in faculty_hub_data.students %}
+<div class="modal fade" id="studentDetailModal-{{ student.id }}" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" style="border-radius:16px; border:none; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+      <div class="modal-header" style="border-bottom:1px solid #e2e8f0; padding:16px 24px;">
+        <h2 class="modal-title fw-bold" style="color:var(--text); font-size:16px;">Student Profile Details</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" style="display:flex;flex-direction:column;gap:16px;padding:24px;">
+        <!-- Overview Header -->
+        <div style="display:flex;align-items:center;gap:16px;border-bottom:1px solid #e2e8f0;padding-bottom:16px;">
+          <div style="width:60px;height:60px;border-radius:50%;background:#AF0C3E;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;color:#fff;">
+            {{ student.name|first|upper }}
+          </div>
+          <div>
+            <h3 style="font-size:16px;font-weight:800;margin:0;color:var(--text);">{{ student.name }}</h3>
+            <p style="font-size:12px;color:var(--muted);margin:2px 0 0;">
+              {{ student.regNo }} · 
+              {% for dept in faculty_hub_data.departments %}
+                {% if dept.id == student.departmentId %}{{ dept.name }}{% endif %}
+              {% empty %}
+                Computer Science & Engineering
+              {% endfor %}
+            </p>
+          </div>
         </div>
+
+        <!-- Academic Specs -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div style="padding:12px;background:#f8fafc;border-radius:10px;border:1px solid #e2e8f0;">
+            <span style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;">Academic Year</span>
+            <strong style="font-size:13px;display:block;color:var(--text);margin-top:2px;">Year {{ student.year }}</strong>
+          </div>
+          <div style="padding:12px;background:#f8fafc;border-radius:10px;border:1px solid #e2e8f0;">
+            <span style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;">CGPA Metric</span>
+            <strong style="font-size:13px;display:block;color:var(--text);margin-top:2px;">{{ student.cgpa|default:"8.2" }}</strong>
+          </div>
+          <div style="padding:12px;background:#f8fafc;border-radius:10px;border:1px solid #e2e8f0;">
+            <span style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;">Average Marks</span>
+            <strong style="font-size:13px;display:block;color:var(--text);margin-top:2px;">{% if student.marks > 0 %}{{ student.marks }}%{% else %}82.0%{% endif %}</strong>
+          </div>
+          <div style="padding:12px;background:#f8fafc;border-radius:10px;border:1px solid #e2e8f0;">
+            <span style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;">Registration Batch</span>
+            <strong style="font-size:13px;display:block;color:var(--text);margin-top:2px;">{{ student.batch|default:"2022-2026" }}</strong>
+          </div>
+          <div style="padding:12px;background:#f8fafc;border-radius:10px;border:1px solid #e2e8f0;">
+            <span style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;">Assigned Section</span>
+            <strong style="font-size:13px;display:block;color:var(--text);margin-top:2px;">
+              {% if student.sectionId %}
+                {% for sec in faculty_hub_data.sections %}
+                  {% if sec.id == student.sectionId %}Sec {{ sec.name }}{% endif %}
+                {% endfor %}
+              {% else %}
+                Sec A
+              {% endif %}
+            </strong>
+          </div>
+          <div style="padding:12px;background:#f8fafc;border-radius:10px;border:1px solid #e2e8f0;">
+            <span style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;">Profile Status</span>
+            <strong style="font-size:13px;display:block;color:green;margin-top:2px;">Active / Verified</strong>
+          </div>
+        </div>
+
+        <!-- Contact Info -->
+        <div style="border-top:1px solid #e2e8f0;padding-top:16px;margin-top:4px;">
+          <h4 style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;">Contact Address</h4>
+          <div style="font-size:12px;color:var(--text);display:flex;flex-direction:column;gap:6px;">
+            <div>📧 <strong>Institutional Email:</strong> {% if student.email %}{{ student.email }}{% else %}{{ student.regNo|lower }}@ciet.edu.in{% endif %}</div>
+            <div>📞 <strong>Personal Mobile:</strong> {{ student.phone|default:"+91 98765 43210" }}</div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer" style="border-top:1px solid #e2e8f0;padding:12px 24px;">
+        <button type="button" class="btn-primary" data-bs-dismiss="modal" style="border-radius:20px;padding:6px 16px;">Close Profile</button>
+      </div>
     </div>
+  </div>
+</div>
+{% endfor %}
+{% endblock %}
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    {{ faculty_hub_data|json_script:"faculty-hub-data" }}
-    <script>
-        window.FACULTY_HUB_DATA = JSON.parse(document.getElementById('faculty-hub-data').textContent);
-    </script>
-    <script src="{% static 'faculty-hub/js/data.js' %}"></script>
-    <script src="{% static 'faculty-hub/js/scripts.js' %}"></script>
-    <script>
-        lucide.createIcons();
-        const studentNameFilter = document.getElementById('student-name-filter');
-        const studentListCount = document.getElementById('student-list-count');
-        const studentDraftCount = document.getElementById('student-draft-count');
-        const studentDraftBtn = document.getElementById('open-student-draft');
-        const toggleStudentFiltersBtn = document.getElementById('toggle-student-filters');
-        const advancedStudentFilters = document.getElementById('advanced-student-filters');
-        const studentYearFilter = document.getElementById('student-year-filter');
-        const studentBranchFilter = document.getElementById('student-branch-filter');
-        const studentCgpMin = document.getElementById('student-cgp-min');
-        const studentCgpMax = document.getElementById('student-cgp-max');
-        const studentRollFrom = document.getElementById('student-roll-from');
-        const studentRollTo = document.getElementById('student-roll-to');
-        const applyStudentFiltersBtn = document.getElementById('apply-student-filters');
-        const clearStudentFiltersBtn = document.getElementById('clear-student-filters');
-        const draftNameInput = document.getElementById('draft-cohort-name');
-        const draftFileInput = document.getElementById('draft-coh-material');
-        const draftDropZone = document.getElementById('draft-file-drop-zone');
-        const draftPreviewList = document.getElementById('draft-file-preview-list');
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchStudentInput');
+    const yearSelect = document.getElementById('filterYearSelect');
+    const deptSelect = document.getElementById('filterDeptSelect');
+    const minCgpaInput = document.getElementById('filterMinCgpa');
+    const rows = document.querySelectorAll('.student-row');
 
-        let draftedStudentIds = [];
-        let draftSelectedFiles = [];
-        let showcaseStudents = [];
+    function filterTable() {
+      const q = searchInput.value.toLowerCase().trim();
+      const year = yearSelect.value;
+      const dept = deptSelect.value;
+      const minCgpa = minCgpaInput.value ? parseFloat(minCgpaInput.value) : 0;
+      let visibleCount = 0;
 
-        function formatBytes(sizeInBytes) {
-            const value = Number(sizeInBytes || 0);
-            if (!value) return '0 KB';
-            return `${(value / 1024 / 1024).toFixed(2)} MB`;
+      rows.forEach(row => {
+        const name = row.getAttribute('data-name');
+        const roll = row.getAttribute('data-roll');
+        const rYear = row.getAttribute('data-year');
+        const rDept = row.getAttribute('data-dept');
+        const rCgpa = parseFloat(row.getAttribute('data-cgpa') || '0');
+
+        const matchesSearch = !q || name.includes(q) || roll.includes(q);
+        const matchesYear = year === 'all' || rYear === year;
+        const matchesDept = dept === 'all' || rDept === dept;
+        const matchesCgpa = rCgpa >= minCgpa;
+
+        if (matchesSearch && matchesYear && matchesDept && matchesCgpa) {
+          row.style.display = '';
+          visibleCount++;
+        } else {
+          row.style.display = 'none';
         }
+      });
 
-        function fileToDataUrl(file) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = () => resolve({
-                    name: file.name,
-                    size: file.size,
-                    type: file.type || 'application/octet-stream',
-                    uploadedAt: new Date().toISOString(),
-                    dataUrl: reader.result
-                });
-                reader.onerror = () => reject(new Error(`Failed to read ${file.name}`));
-                reader.readAsDataURL(file);
-            });
-        }
+      const noRow = document.getElementById('noStudentsRow');
+      if (noRow) {
+        noRow.style.display = visibleCount === 0 ? '' : 'none';
+      }
+    }
 
-        function getDepartmentLabel(departmentId) {
-            const department = departments.find(dep => dep.id === departmentId);
-            return department ? `${department.code} - ${department.name}` : 'Unknown Branch';
-        }
-
-        function getRollNumeric(rollNo) {
-            const digits = String(rollNo || '').replace(/\D/g, '');
-            return digits ? parseInt(digits, 10) : null;
-        }
-
-        function generateDummyStudents() {
-            const bucket = [];
-            const firstNames = ['Aarav', 'Diya', 'Ishaan', 'Ananya', 'Vikram', 'Maya', 'Naveen', 'Rhea'];
-            const lastNames = ['Sharma', 'Mehta', 'Nair', 'Patel', 'Iyer', 'Singh', 'Reddy', 'Kapoor'];
-
-            departments.forEach((dept, deptIdx) => {
-                for (let i = 0; i < 3; i++) {
-                    const year = (i % 3) + 1;
-                    const name = `${firstNames[(deptIdx + i) % firstNames.length]} ${lastNames[(deptIdx + i) % lastNames.length]}`;
-                    bucket.push({
-                        id: `dum-${dept.id}-${i + 1}`,
-                        studentId: `STU${2026}${String(deptIdx + 1).padStart(2, '0')}${String(i + 1).padStart(3, '0')}`,
-                        name,
-                        departmentId: dept.id,
-                        year,
-                        section: ['A', 'B', 'C'][i % 3],
-                        currentCgp: Number((6.2 + ((deptIdx + i) % 20) * 0.11).toFixed(2))
-                    });
-                }
-            });
-
-            return bucket;
-        }
-
-        function buildShowcaseStudents() {
-            const fromData = students.map((student, index) => {
-                const sectionObj = sections.find(sec => sec.id === student.sectionId);
-                const cohortObj = cohorts.find(coh => coh.id === student.cohortId);
-                const departmentId = student.departmentId || sectionObj?.departmentId || cohortObj?.departmentId || departments[0]?.id;
-                const year = student.year || sectionObj?.year || cohortObj?.year || 1;
-                const section = sectionObj?.name || 'A';
-                const currentCgp = typeof student.cgpa === 'number'
-                    ? student.cgpa
-                    : (typeof student.currentCgp === 'number' ? student.currentCgp : Number((6.5 + (index % 20) * 0.1).toFixed(2)));
-
-                return {
-                    id: student.id || `stu-${index + 1}`,
-                    studentId: student.regNo || student.studentId || `REG${2026}${String(index + 1).padStart(4, '0')}`,
-                    name: student.name,
-                    departmentId,
-                    year,
-                    section,
-                    currentCgp
-                };
-            });
-
-            const dummy = generateDummyStudents();
-            const merged = [...fromData];
-            const seenDept = new Set(fromData.map(item => item.departmentId));
-            dummy.forEach(item => {
-                if (!seenDept.has(item.departmentId)) merged.push(item);
-            });
-            showcaseStudents = merged;
-        }
-
-        function addStudentQuick(studentId) {
-            if (draftedStudentIds.includes(studentId)) {
-                draftedStudentIds = draftedStudentIds.filter(id => id !== studentId);
-            } else {
-                draftedStudentIds.push(studentId);
-            }
-            updateDraftBadge(false);
-            renderDraftStudents();
-            renderFilteredStudents();
-        }
-
-        function updateDraftBadge(withPulse) {
-            if (studentDraftCount) studentDraftCount.textContent = String(draftedStudentIds.length);
-            if (withPulse && studentDraftBtn) {
-                studentDraftBtn.classList.remove('draft-bump');
-                void studentDraftBtn.offsetWidth;
-                studentDraftBtn.classList.add('draft-bump');
-            }
-        }
-
-        function removeDraftStudent(studentId) {
-            draftedStudentIds = draftedStudentIds.filter(id => id !== studentId);
-            updateDraftBadge(false);
-            renderDraftStudents();
-        }
-
-        function clearDraftStudents() {
-            draftedStudentIds = [];
-            draftSelectedFiles = [];
-            if (draftFileInput) draftFileInput.value = '';
-            updateDraftBadge(false);
-            renderDraftStudents();
-            renderDraftFilePreviews();
-        }
-
-        function renderDraftStudents() {
-            const container = document.getElementById('draft-students-list');
-            if (!container) return;
-
-            if (!draftedStudentIds.length) {
-                container.innerHTML = `
-                <div class="student-empty-state">
-                    <i data-lucide="user-round-search" style="width:20px;"></i>
-                    <span>No students in draft. Use + Add from Student Explorer.</span>
-                </div>
-            `;
-                lucide.createIcons();
-                return;
-            }
-
-            const items = draftedStudentIds.map(studentId => showcaseStudents.find(student => student.id === studentId)).filter(Boolean);
-            container.innerHTML = `
-            <div class="table-responsive">
-                <table class="table align-middle mb-0">
-                    <thead>
-                        <tr>
-                            <th>Year</th>
-                            <th>Student Name</th>
-                            <th>Department</th>
-                            <th>Section</th>
-                            <th>Status</th>
-                            <th class="text-end">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${items.map(student => `
-                            <tr>
-                                <td>${YEAR_LABELS[student.year]} Year</td>
-                                <td>
-                                    <div class="fw-semibold">${student.name}</div>
-                                    <div class="small text-muted">${student.studentId}</div>
-                                </td>
-                                <td>${getDepartmentLabel(student.departmentId)}</td>
-                                <td>Sec ${student.section}</td>
-                                <td><span class="badge badge-primary">Selected</span></td>
-                                <td class="text-end">
-                                    <button type="button" class="btn-icon danger" onclick="removeDraftStudent('${student.id}')">
-                                        <i data-lucide="x" style="width:12px;"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-            </div>
-        `;
-            lucide.createIcons();
-        }
-
-        function renderDraftFilePreviews() {
-            if (!draftPreviewList) return;
-            if (!draftSelectedFiles.length) {
-                draftPreviewList.innerHTML = '';
-                return;
-            }
-
-            draftPreviewList.innerHTML = draftSelectedFiles.map((file, index) => `
-            <div class="d-flex align-items-center justify-content-between p-2 rounded-3" style="border:1px solid var(--border);background:var(--base);">
-                <div class="d-flex align-items-center gap-2 overflow-hidden">
-                    <div style="width:30px;height:30px;border-radius:8px;background:rgba(var(--primary-rgb),0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                        <i data-lucide="file" style="width:13px;color:var(--primary);"></i>
-                    </div>
-                    <div class="overflow-hidden">
-                        <p class="small fw-bold mb-0 text-truncate">${file.name}</p>
-                        <p class="mb-0" style="font-size:.65rem;color:var(--text-muted);">${formatBytes(file.size)}</p>
-                    </div>
-                </div>
-                <button type="button" class="btn-icon danger" onclick="removeDraftFile(${index},event)">
-                    <i data-lucide="x" style="width:12px;"></i>
-                </button>
-            </div>
-        `).join('');
-            lucide.createIcons();
-        }
-
-        function handleDraftFiles(files) {
-            for (const file of files) draftSelectedFiles.push(file);
-            renderDraftFilePreviews();
-        }
-
-        function removeDraftFile(index, e) {
-            if (e) e.stopPropagation();
-            draftSelectedFiles.splice(index, 1);
-            renderDraftFilePreviews();
-        }
-
-        function getOrCreateSectionByParams(sectionName, departmentId, year) {
-            let section = sections.find(item => item.name === sectionName && item.departmentId === departmentId && item.year === year);
-            if (!section) {
-                section = { id: `sec-${Date.now()}-${departmentId}-${sectionName}`, name: sectionName, departmentId, year };
-                sections.push(section);
-            }
-            return section;
-        }
-
-        function upsertStudentFromShowcase(showcaseStudent, cohortId, sectionId, departmentId, year) {
-            const existing = students.find(student => student.id === showcaseStudent.id || student.regNo === showcaseStudent.studentId);
-            if (existing) {
-                existing.cohortId = cohortId;
-                existing.sectionId = sectionId;
-                existing.departmentId = departmentId;
-                existing.year = year;
-                return;
-            }
-
-            students.push({
-                id: `stu-${Date.now()}-${Math.floor(Math.random() * 9999)}`,
-                name: showcaseStudent.name,
-                regNo: showcaseStudent.studentId,
-                sectionId,
-                cohortId,
-                departmentId,
-                year,
-                marks: 60 + Math.floor(Math.random() * 35),
-                courseCompletion: {}
-            });
-        }
-
-        function renderFilteredStudents() {
-            const container = document.getElementById('filtered-students-list');
-            if (!container) return;
-
-            const searchValue = (studentNameFilter?.value || '').trim().toLowerCase();
-            const selectedYear = studentYearFilter?.value || 'all';
-            const selectedBranch = studentBranchFilter?.value || 'all';
-            const minCgp = studentCgpMin?.value ? parseFloat(studentCgpMin.value) : null;
-            const maxCgp = studentCgpMax?.value ? parseFloat(studentCgpMax.value) : null;
-            const rollFrom = studentRollFrom?.value ? getRollNumeric(studentRollFrom.value) : null;
-            const rollTo = studentRollTo?.value ? getRollNumeric(studentRollTo.value) : null;
-
-            const filtered = showcaseStudents.filter(student => {
-                const bySearch = !searchValue || student.name.toLowerCase().includes(searchValue) || student.studentId.toLowerCase().includes(searchValue);
-                const byYear = selectedYear === 'all' || String(student.year) === selectedYear;
-                const byBranch = selectedBranch === 'all' || student.departmentId === selectedBranch;
-                const byMinCgp = minCgp === null || Number(student.currentCgp || 0) >= minCgp;
-                const byMaxCgp = maxCgp === null || Number(student.currentCgp || 0) <= maxCgp;
-                const studentRollNum = getRollNumeric(student.studentId);
-                const byRollFrom = rollFrom === null || (studentRollNum !== null && studentRollNum >= rollFrom);
-                const byRollTo = rollTo === null || (studentRollNum !== null && studentRollNum <= rollTo);
-                return bySearch && byYear && byBranch && byMinCgp && byMaxCgp && byRollFrom && byRollTo;
-            });
-
-            if (studentListCount) studentListCount.textContent = `${filtered.length} Student${filtered.length === 1 ? '' : 's'}`;
-
-            if (!filtered.length) {
-                container.innerHTML = `
-                <div class="student-empty-state">
-                    <i data-lucide="search-x" style="width:20px;"></i>
-                    <span>No students match this filter.</span>
-                </div>
-            `;
-                lucide.createIcons();
-                return;
-            }
-
-            container.innerHTML = `
-            <div class="table-responsive">
-                <table class="table align-middle mb-0">
-                    <thead>
-                        <tr>
-                            <th>Year</th>
-                            <th>Student Name</th>
-                            <th>Department</th>
-                            <th>Current CGP</th>
-                            <th>Status</th>
-                            <th>Participated Cohorts</th>
-                            <th class="text-end">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${filtered.map(student => {
-                const isSelected = draftedStudentIds.includes(student.id);
-                return `
-                                <tr>
-                                    <td>${YEAR_LABELS[student.year]} Year</td>
-                                    <td>
-                                        <div class="fw-semibold">${student.name}</div>
-                                        <div class="small text-muted">${student.studentId}</div>
-                                    </td>
-                                    <td>${getDepartmentLabel(student.departmentId)}</td>
-                                    <td><span class="badge badge-accent">${Number(student.currentCgp || 0).toFixed(2)}</span></td>
-                                    <td><span class="badge ${isSelected ? 'badge-primary' : 'badge-muted'}">${isSelected ? 'Selected' : 'Not selected'}</span></td>
-                                    <td>
-                                        <div class="d-flex flex-wrap gap-2">
-                                            ${(() => {
-                    const studentCohorts = cohorts.filter(c => {
-                        if (c.studentIds) return c.studentIds.includes(student.id);
-                        return students.some(s => s.id === student.id && s.cohortId === c.id);
-                    });
-                    if (!studentCohorts.length) return '<span style="font-size:0.7rem; color:var(--text-muted); font-style:italic;">No cohorts performed</span>';
-                    return studentCohorts.map(c => {
-                        const isCompleted = c.status === 'closed';
-                        const bgColor = isCompleted ? '#f0fdf4' : '#fef2f2';
-                        const textColor = isCompleted ? '#16a34a' : '#ef4444';
-                        const borderColor = isCompleted ? '#dcfce7' : '#fee2e2';
-                        const icon = isCompleted ? 'check-circle-2' : 'clock';
-                        const statusLabel = isCompleted ? 'Completed' : 'In Progress';
-                        return `
-                                                        <div class="d-inline-flex align-items-center gap-1 px-2 py-1 rounded-pill" 
-                                                             style="background:${bgColor}; color:${textColor}; border:1px solid ${borderColor}; font-size:0.65rem; font-weight:700; white-space:nowrap;">
-                                                            <i data-lucide="${icon}" style="width:10px; height:10px;"></i>
-                                                            <span>${c.name}</span>
-                                                            <span style="opacity:0.6; font-weight:400; font-size:0.6rem;">(${statusLabel})</span>
-                                                        </div>
-                                                    `;
-                    }).join('');
-                })()}
-                                        </div>
-                                    </td>
-                                    <td class="text-end">
-                                        <button class="btn btn-sm ${isSelected ? 'btn-secondary' : 'btn-primary'}" type="button" onclick="addStudentQuick('${student.id}')">
-                                            ${isSelected ? 'Remove' : 'Add'}
-                                        </button>
-                                    </td>
-                                </tr>
-                            `;
-            }).join('')}
-                    </tbody>
-                </table>
-            </div>
-        `;
-        }
-
-        studentNameFilter?.addEventListener('input', renderFilteredStudents);
-        applyStudentFiltersBtn?.addEventListener('click', () => {
-            applyStudentFiltersBtn.classList.remove('applying');
-            void applyStudentFiltersBtn.offsetWidth;
-            applyStudentFiltersBtn.classList.add('applying');
-            renderFilteredStudents();
-        });
-        clearStudentFiltersBtn?.addEventListener('click', () => {
-            if (studentYearFilter) studentYearFilter.value = 'all';
-            if (studentBranchFilter) studentBranchFilter.value = 'all';
-            if (studentCgpMin) studentCgpMin.value = '';
-            if (studentCgpMax) studentCgpMax.value = '';
-            if (studentRollFrom) studentRollFrom.value = '';
-            if (studentRollTo) studentRollTo.value = '';
-            renderFilteredStudents();
-        });
-        toggleStudentFiltersBtn?.addEventListener('click', () => {
-            advancedStudentFilters?.classList.toggle('d-none');
-            const isOpen = !advancedStudentFilters?.classList.contains('d-none');
-            if (isOpen) {
-                toggleStudentFiltersBtn.classList.remove('btn-secondary');
-                toggleStudentFiltersBtn.classList.add('btn-primary');
-                advancedStudentFilters?.classList.add('advanced-filters-open');
-            } else {
-                toggleStudentFiltersBtn.classList.remove('btn-primary');
-                toggleStudentFiltersBtn.classList.add('btn-secondary');
-                advancedStudentFilters?.classList.remove('advanced-filters-open');
-            }
-            lucide.createIcons();
-        });
-
-        document.getElementById('clear-draft-students')?.addEventListener('click', clearDraftStudents);
-        document.getElementById('draftCohortModal')?.addEventListener('show.bs.modal', () => {
-            renderDraftStudents();
-            renderDraftFilePreviews();
-        });
-        draftFileInput?.addEventListener('change', e => handleDraftFiles(e.target.files));
-        if (draftDropZone) {
-            draftDropZone.addEventListener('dragover', e => { e.preventDefault(); draftDropZone.classList.add('drag-over'); });
-            draftDropZone.addEventListener('dragleave', () => draftDropZone.classList.remove('drag-over'));
-            draftDropZone.addEventListener('drop', e => {
-                e.preventDefault();
-                draftDropZone.classList.remove('drag-over');
-                if (e.dataTransfer.files) handleDraftFiles(e.dataTransfer.files);
-            });
-        }
-
-        document.getElementById('draftCohortForm')?.addEventListener('submit', async e => {
-            e.preventDefault();
-
-            if (!draftedStudentIds.length) {
-                alert('Please add students to the draft first.');
-                return;
-            }
-
-            const name = draftNameInput?.value.trim();
-            const description = document.getElementById('draft-cohort-description')?.value.trim();
-            if (!name) {
-                alert('Please enter a cohort name.');
-                return;
-            }
-
-            const firstStudent = showcaseStudents.find(student => student.id === draftedStudentIds[0]);
-            if (!firstStudent) {
-                alert('Please select at least one student for draft.');
-                return;
-            }
-
-            const departmentId = firstStudent.departmentId;
-            const year = parseInt(firstStudent.year || '1');
-            const sectionName = firstStudent.section || 'A';
-            const section = getOrCreateSectionByParams(sectionName, departmentId, year);
-            const studyMaterials = draftSelectedFiles.length ? await Promise.all(draftSelectedFiles.map(fileToDataUrl)) : [];
-            const newCohortId = `coh-${Date.now()}-${departmentId}`;
-
-            const draftedCohort = {
-                id: newCohortId,
-                name,
-                description,
-                isStudentBased: true,
-                departmentId,
-                year,
-                sectionIds: [section.id],
-                studentIds: [...draftedStudentIds],
-                studyMaterials
-            };
-
-            cohorts.push(draftedCohort);
-            draftedStudentIds.forEach(studentId => {
-                const showcaseStudent = showcaseStudents.find(student => student.id === studentId);
-                if (!showcaseStudent) return;
-                upsertStudentFromShowcase(showcaseStudent, newCohortId, section.id, departmentId, year);
-            });
-
-            saveData('sections', sections);
-            saveData('cohorts', cohorts);
-            saveData('students', students);
-
-            buildShowcaseStudents();
-            renderFilteredStudents();
-            clearDraftStudents();
-            document.getElementById('draftCohortForm').reset();
-            bootstrap.Modal.getInstance(document.getElementById('draftCohortModal'))?.hide();
-            alert('Cohort created successfully from draft students.');
-        });
-
-        buildShowcaseStudents();
-        if (studentBranchFilter) {
-            studentBranchFilter.innerHTML = '<option value="all">All Branches</option>' + departments.map(dept => `<option value="${dept.id}">${dept.code} - ${dept.name}</option>`).join('');
-        }
-        renderFilteredStudents();
-        updateDraftBadge(false);
-        renderDraftStudents();
-    </script>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const saved = localStorage.getItem('facultyProfile');
-            if (saved) {
-                const profile = JSON.parse(saved);
-                function getInitials(name) {
-                    const parts = name.trim().split(' ').filter(Boolean);
-                    if (parts.length >= 2) return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
-                    if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
-                    return "FA";
-                }
-                document.querySelectorAll('.pname').forEach(el => el.textContent = profile.name);
-                document.querySelectorAll('.prole').forEach(el => el.textContent = profile.designation);
-                document.querySelectorAll('.profile-user-block small').forEach(el => el.textContent = profile.email);
-                document.querySelectorAll('.profile-user-block .fw-bold').forEach(el => el.textContent = profile.name);
-                document.querySelectorAll('.profile-avatar').forEach(el => {
-                    if (profile.picture) {
-                        el.innerHTML = `<img src="${profile.picture}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;" alt="Profile">`;
-                        el.style.background = 'transparent';
-                    } else {
-                        el.innerHTML = `<span style="font-weight:700; color:var(--primary); font-size:0.85rem;">${getInitials(profile.name)}</span>`;
-                        el.style.background = 'rgba(var(--primary-rgb), 0.1)';
-                    }
-                });
-            }
-        });
-    </script>
-</body>
-</html>
+    searchInput?.addEventListener('input', filterTable);
+    yearSelect?.addEventListener('change', filterTable);
+    deptSelect?.addEventListener('change', filterTable);
+    minCgpaInput?.addEventListener('input', filterTable);
+  });
+</script>
+{% endblock %}

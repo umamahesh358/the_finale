@@ -1,6 +1,7 @@
 {
   "python.defaultInterpreterPath": "C:\\Python314\\python.exe",
   "python.analysis.extraPaths": [
-    "${workspaceFolder}"
+    "${workspaceFolder}",
+    "${workspaceFolder}/Ciet_erp"
   ]
 }

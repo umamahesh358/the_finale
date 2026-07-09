@@ -19,6 +19,7 @@ from apps.students.models import (
 )
 from apps.accounts.models import OTPRecord
 from apps.academics.models import Subject, Marks
+from apps.faculty.models import InstitutionCourse
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -647,8 +648,14 @@ class StudentCoursesView(LoginRequiredMixin, View):
             return redirect('dashboard')
         profile = get_object_or_404(StudentProfile, user=request.user)
         courses = Course.objects.filter(student=profile).order_by('-created_at')
+        inst_courses = InstitutionCourse.objects.filter(
+            enrolled_students=profile,
+            is_deleted=False
+        ).prefetch_related('materials', 'links')
         return render(request, 'student_portal/courses.html', {
-            'profile': profile, 'courses': courses,
+            'profile': profile,
+            'courses': courses,
+            'inst_courses': inst_courses,
         })
 
     def post(self, request):
@@ -736,6 +743,8 @@ class StudentEducationView(LoginRequiredMixin, View):
         })
 
     def post(self, request):
+        if request.user.role != 'Student':
+            return redirect('dashboard')
         profile = get_object_or_404(StudentProfile, user=request.user)
         action = request.POST.get('action')
         edu_type = request.POST.get('edu_type')
@@ -751,7 +760,8 @@ class StudentEducationView(LoginRequiredMixin, View):
                 'board_university': request.POST.get('board_university', ''),
                 'year_of_passing': request.POST.get('year_of_passing') or None,
                 'score': request.POST.get('score', ''),
-                'score_type': request.POST.get('score_type', '%'),
+                'score_type': request.POST.get('score_type', 'Percentage'),
+                'is_verified': False,  # Reset verification status upon edit/creation
             }
         )
         messages.success(request, 'Education details updated successfully.')

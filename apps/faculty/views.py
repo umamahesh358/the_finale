@@ -16,7 +16,7 @@ from apps.students.models import StudentProfile
 from apps.faculty.models import (
     StudentMentorAssignment, LessonPlan, Timetable, AcademicCalendar,
     TrainingProgram, SyllabusCoverage, Cohort, InstitutionCourse,
-    CourseMaterial, CourseAssessment, StudentCourseScore
+    CourseMaterial, CourseAssessment, StudentCourseScore, CourseLink
 )
 from apps.core.models import Announcement
 from apps.notifications.models import Notification, NotificationRecipient
@@ -164,15 +164,23 @@ def build_faculty_hub_data(user):
         department__in=departments_qs,
         is_deleted=False
     ).select_related('user', 'department', 'section')
-    cohorts_qs = Cohort.objects.filter(
-        department__in=departments_qs,
-        is_deleted=False
-    )
-    subjects_qs = Subject.objects.filter(department__in=departments_qs)
-    institution_courses_qs = InstitutionCourse.objects.filter(
-        Q(created_by=user) | Q(created_by__is_superuser=True) | Q(cohorts__department__in=departments_qs),
-        is_deleted=False,
-    ).distinct()
+
+    # ── Role Isolation Logic (Exclude non-HOD from department-wide view/edit access) ──
+    is_hod = user.role == 'HOD' or user.is_superuser
+    if is_hod:
+        cohorts_qs = Cohort.objects.filter(
+            department__in=departments_qs,
+            is_deleted=False
+        )
+        subjects_qs = Subject.objects.filter(department__in=departments_qs)
+        institution_courses_qs = InstitutionCourse.objects.filter(
+            Q(created_by=user) | Q(created_by__is_superuser=True) | Q(cohorts__department__in=departments_qs),
+            is_deleted=False,
+        ).distinct()
+    else:
+        cohorts_qs = Cohort.objects.filter(created_by=user, is_deleted=False)
+        subjects_qs = Subject.objects.filter(faculty=user, is_deleted=False)
+        institution_courses_qs = InstitutionCourse.objects.filter(created_by=user, is_deleted=False)
 
     departments = [
         {'id': str(dept.id), 'name': dept.name, 'code': dept.code}
@@ -196,6 +204,7 @@ def build_faculty_hub_data(user):
             'year': _student_year_from_batch(cohort.batch),
             'status': 'active' if cohort.is_active else 'closed',
             'students_count': cohort.students.count(),
+            'isOwner': cohort.created_by_id == user.id,
         }
         for cohort in cohorts_qs
     ]
@@ -209,6 +218,7 @@ def build_faculty_hub_data(user):
             'year': max(min(int((subject.semester + 1) / 2), 4), 1),
             'published': True,
             'status': 'active',
+            'isOwner': subject.faculty_id == user.id,
         }
         for subject in subjects_qs
     ]
@@ -216,12 +226,36 @@ def build_faculty_hub_data(user):
         {
             'id': str(course.id),
             'name': course.name,
-            'category': course.get_category_display(),
+            'category': course.category,
+            'category_display': course.get_category_display(),
             'sectionIds': [],
             'cohortIds': [str(cohort.id) for cohort in course.cohorts.all()],
+            'departmentId': str(course.department_id) if course.department_id else '',
+            'studentIds': [str(s.id) for s in course.enrolled_students.all()],
+            'students_count': course.enrolled_students.count(),
+            'description': course.description,
             'year': 1,
             'published': course.is_published_to_profile,
-            'status': 'active',
+            'status': 'active' if course.is_published_to_profile else 'closed',
+            'isOwner': course.created_by_id == user.id,
+            'studyMaterials': [
+                {
+                    'id': str(m.id),
+                    'name': m.title,
+                    'type': 'file',
+                    'url': m.file.url if m.file else ''
+                }
+                for m in course.materials.all()
+            ],
+            'links': [
+                {
+                    'id': str(l.id),
+                    'name': l.title,
+                    'type': 'link',
+                    'url': l.url
+                }
+                for l in course.links.all()
+            ]
         }
         for course in institution_courses_qs
     ]
@@ -238,6 +272,7 @@ def build_faculty_hub_data(user):
             'cohortId': str(cohort.id) if cohort else '',
             'departmentId': str(student.department_id),
             'year': _student_year_from_batch(student.batch),
+            'batch': student.batch,
             'marks': round(float(avg_marks), 1),
             'courseCompletion': {},
         })
@@ -312,7 +347,7 @@ class HODDashboardView(RoleRequiredMixin, View):
         ).annotate(subject_count=Count('subjects_taught'))
 
         # ── Mentor list for assignment ──
-        mentors = User.objects.filter(departments=dept, role='Mentor', is_active=True)
+        mentors = User.objects.filter(departments=dept, role__in=['Faculty', 'Mentor'], is_active=True)
 
         current_year = f"{now().year}-{now().year + 1}"
 
@@ -321,7 +356,7 @@ class HODDashboardView(RoleRequiredMixin, View):
         faculty_list = list(faculty_list)
         for member in faculty_list:
             member.mentoring_assignment_display = None
-            if member.role == 'Mentor':
+            if member.role in ['Faculty', 'Mentor']:
                 assignment = StudentMentorAssignment.objects.filter(
                     mentor=member,
                     academic_year=current_year
@@ -773,13 +808,21 @@ class HODDashboardView(RoleRequiredMixin, View):
 # ══════════════════════════════════════════════════════════════════════════════
 # MENTOR DASHBOARD
 # ══════════════════════════════════════════════════════════════════════════════
-class MentorDashboardView(RoleRequiredMixin, View):
-    allowed_roles = ['Mentor']
+class FacultyHubMentoringView(RoleRequiredMixin, View):
+    allowed_roles = ['Faculty', 'Mentor', 'HOD']
 
-    def get(self, request):
+    def get(self, request, *args, **kwargs):
+        user = request.user
         current_year = f"{now().year}-{now().year + 1}"
+        
+        # Verify if they are a mentor
+        is_mentor = user.role in ['Mentor', 'HOD'] or StudentMentorAssignment.objects.filter(mentor=user, academic_year=current_year).exists()
+        if not is_mentor:
+            messages.error(request, "You are not assigned as a mentor to any class/students.")
+            return redirect('faculty-dashboard')
+
         direct_students = StudentProfile.objects.filter(
-            direct_mentor_assignments__mentor=request.user,
+            direct_mentor_assignments__mentor=user,
             direct_mentor_assignments__academic_year=current_year,
             is_deleted=False
         ).select_related('user', 'department', 'section').distinct()
@@ -798,6 +841,7 @@ class MentorDashboardView(RoleRequiredMixin, View):
                 'att_pct':    att_pct,
                 'cgpa':       s.cgpa,
             })
+            
         mentor_chart_data = [
             {
                 'name': row['student'].user.full_name or row['student'].roll_no,
@@ -810,24 +854,47 @@ class MentorDashboardView(RoleRequiredMixin, View):
 
         # ── Subjects mentor can upload marks for ──
         subjects = Subject.objects.filter(
-            department__in=request.user.departments.all()
-        ).select_related('department') if request.user.departments.exists() else Subject.objects.none()
+            department__in=user.departments.all()
+        ).select_related('department') if user.departments.exists() else Subject.objects.all()
 
         # ── Institution courses published to this mentor's dashboard ──
         inst_courses = InstitutionCourse.objects.filter(
             cohorts__students__in=students
         ).distinct()
 
-        return render(request, 'faculty/mentor_dashboard.html', {
+        # Build notification unread count for base_portal layout compatibility
+        user_departments = list(user.departments.all())
+        if user.role == 'HOD' and not user_departments:
+            hod_dept = Department.objects.filter(hod=user).first()
+            if hod_dept:
+                user_departments = [hod_dept]
+        
+        dept_filter = Q(target_department__isnull=True)
+        if user_departments:
+            dept_filter = dept_filter | Q(target_department__in=user_departments)
+            
+        total_relevant = Notification.objects.filter(
+            Q(is_global=True) |
+            (
+                (Q(target_role='All') | Q(target_role=user.role)) &
+                dept_filter
+            )
+        ).count()
+        
+        read_count = NotificationRecipient.objects.filter(user=user, is_read=True).count()
+        unread_count = max(0, total_relevant - read_count)
+
+        return render(request, 'faculty/mentor.html', {
             'student_stats':  student_stats,
             'subjects':       subjects,
             'assignments':    [],
             'inst_courses':   inst_courses,
             'current_year':   current_year,
             'mentor_chart_data': mentor_chart_data,
+            'hod_unread_count': unread_count,
         })
 
-    def post(self, request):
+    def post(self, request, *args, **kwargs):
         """Upload marks or attendance for mentored students."""
         action = request.POST.get('action')
 
@@ -844,6 +911,7 @@ class MentorDashboardView(RoleRequiredMixin, View):
                     defaults={'internal': internal, 'external': external,
                               'total': total, 'grade': grade}
                 )
+                messages.success(request, "Marks uploaded successfully.")
 
         elif action == 'upload_attendance':
             student_id  = request.POST.get('student_id')
@@ -855,8 +923,9 @@ class MentorDashboardView(RoleRequiredMixin, View):
                     student_id=student_id, subject_id=subject_id, date=date_str,
                     defaults={'is_present': is_present, 'recorded_by': request.user}
                 )
+                messages.success(request, "Attendance uploaded successfully.")
 
-        return redirect('mentor-dashboard')
+        return redirect('faculty-mentor')
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -923,22 +992,33 @@ class FacultyDashboardView(RoleRequiredMixin, View):
                 'pct':     round((covered / total * 100) if total else 0),
             }
 
-        # ── Cohorts in my department (including admin-created) ──
-        if departments.exists():
+        # ── Cohorts (role-isolated) ──
+        is_hod = user.role == 'HOD' or user.is_superuser
+        if is_hod and departments.exists():
             my_cohorts = Cohort.objects.filter(
                 department__in=departments,
                 is_deleted=False,
                 is_active=True
             ).annotate(student_count=Count('students'))
         else:
-            my_cohorts = Cohort.objects.none()
+            my_cohorts = Cohort.objects.filter(
+                created_by=user,
+                is_deleted=False,
+                is_active=True
+            ).annotate(student_count=Count('students'))
 
-        # ── Institution courses (own + admin + dept cohorts) ──
-        my_courses = InstitutionCourse.objects.filter(
-            Q(created_by=user) |
-            Q(created_by__is_superuser=True) |
-            Q(cohorts__department__in=departments)
-        ).filter(is_deleted=False).distinct()
+        # ── Institution courses (role-isolated) ──
+        if is_hod:
+            my_courses = InstitutionCourse.objects.filter(
+                Q(created_by=user) |
+                Q(created_by__is_superuser=True) |
+                Q(cohorts__department__in=departments)
+            ).filter(is_deleted=False).distinct()
+        else:
+            my_courses = InstitutionCourse.objects.filter(
+                created_by=user,
+                is_deleted=False
+            ).distinct()
 
         # ── Student performance in my subjects ──
         subject_performance = []
@@ -1039,38 +1119,66 @@ class FacultyDashboardView(RoleRequiredMixin, View):
                     cohort.save(update_fields=['name', 'cohort_type', 'batch', 'description', 'department', 'updated_at'])
                     cohort.students.set(stud_ids)
 
+        # ── Delete Cohort ──
+        elif action == 'delete_cohort':
+            cohort_id = request.POST.get('cohort_id')
+            if cohort_id:
+                cohort = get_object_or_404(Cohort, id=cohort_id, is_deleted=False)
+                if cohort.created_by == request.user or request.user.is_superuser:
+                    cohort.is_deleted = True
+                    cohort.save(update_fields=['is_deleted', 'updated_at'])
+
         # ── Create Institution Course ──
         elif action == 'create_course':
-            name        = request.POST.get('name', '').strip()
-            category    = request.POST.get('category', 'other')
-            description = request.POST.get('description', '')
-            publish     = request.POST.get('is_published_to_profile') == 'on'
-            cohort_ids  = request.POST.getlist('cohort_ids')
+            name          = request.POST.get('name', '').strip()
+            category      = request.POST.get('category', 'other')
+            description   = request.POST.get('description', '')
+            publish       = request.POST.get('is_published_to_profile') == 'on'
+            department_id = request.POST.get('department_id')
+            student_ids   = request.POST.getlist('student_ids')
             if name:
+                department = None
+                if department_id:
+                    department = Department.objects.filter(id=department_id).first()
                 course = InstitutionCourse.objects.create(
                     name=name, category=category, created_by=request.user,
+                    department=department,
                     description=description, is_published_to_profile=publish
                 )
-                if cohort_ids:
-                    course.cohorts.set(cohort_ids)
+                if student_ids:
+                    course.enrolled_students.set(student_ids)
 
         # ── Update Institution Course ──
         elif action == 'update_course':
-            course_id  = request.POST.get('course_id')
-            name        = request.POST.get('name', '').strip()
-            category    = request.POST.get('category', 'other')
-            description = request.POST.get('description', '')
-            publish     = request.POST.get('is_published_to_profile') == 'on'
-            cohort_ids  = request.POST.getlist('cohort_ids')
+            course_id     = request.POST.get('course_id')
+            name          = request.POST.get('name', '').strip()
+            category      = request.POST.get('category', 'other')
+            description   = request.POST.get('description', '')
+            publish       = request.POST.get('is_published_to_profile') == 'on'
+            department_id = request.POST.get('department_id')
+            student_ids   = request.POST.getlist('student_ids')
             if course_id and name:
                 course = get_object_or_404(InstitutionCourse, id=course_id, is_deleted=False)
                 if course.created_by == request.user or course.created_by.is_superuser:
+                    department = None
+                    if department_id:
+                        department = Department.objects.filter(id=department_id).first()
                     course.name = name
                     course.category = category
+                    course.department = department
                     course.description = description
                     course.is_published_to_profile = publish
-                    course.save(update_fields=['name', 'category', 'description', 'is_published_to_profile', 'updated_at'])
-                    course.cohorts.set(cohort_ids)
+                    course.save(update_fields=['name', 'category', 'department', 'description', 'is_published_to_profile', 'updated_at'])
+                    course.enrolled_students.set(student_ids or [])
+
+        # ── Delete Institution Course ──
+        elif action == 'delete_course':
+            course_id = request.POST.get('course_id')
+            if course_id:
+                course = get_object_or_404(InstitutionCourse, id=course_id, is_deleted=False)
+                if course.created_by == request.user or course.created_by.is_superuser:
+                    course.is_deleted = True
+                    course.save(update_fields=['is_deleted', 'updated_at'])
 
         # ── Upload Course Material ──
         elif action == 'upload_material':
@@ -1081,6 +1189,32 @@ class FacultyDashboardView(RoleRequiredMixin, View):
                 course = get_object_or_404(InstitutionCourse, id=course_id)
                 if course.created_by == request.user or course.created_by.is_superuser:
                     CourseMaterial.objects.create(course=course, title=title, file=f)
+
+        # ── Delete Course Material ──
+        elif action == 'delete_material':
+            material_id = request.POST.get('material_id')
+            if material_id:
+                material = get_object_or_404(CourseMaterial, id=material_id)
+                if material.course.created_by == request.user or material.course.created_by.is_superuser:
+                    material.delete()
+
+        # ── Add Course Link ──
+        elif action == 'add_link':
+            course_id = request.POST.get('course_id')
+            title     = request.POST.get('title', '').strip()
+            url       = request.POST.get('url', '').strip()
+            if course_id and title and url:
+                course = get_object_or_404(InstitutionCourse, id=course_id)
+                if course.created_by == request.user or course.created_by.is_superuser:
+                    CourseLink.objects.create(course=course, title=title, url=url)
+
+        # ── Delete Course Link ──
+        elif action == 'delete_link':
+            link_id = request.POST.get('link_id')
+            if link_id:
+                link = get_object_or_404(CourseLink, id=link_id)
+                if link.course.created_by == request.user or link.course.created_by.is_superuser:
+                    link.delete()
 
         # ── Add Assessment ──
         elif action == 'add_assessment':
@@ -1130,7 +1264,7 @@ class FacultyDashboardView(RoleRequiredMixin, View):
                               'total': total, 'grade': grade}
                 )
 
-        return redirect('faculty-dashboard')
+        return redirect(request.META.get('HTTP_REFERER', 'faculty-dashboard'))
 
 
 # ── SCORE TEMPLATE DOWNLOAD ────────────────────────────────────────────────────

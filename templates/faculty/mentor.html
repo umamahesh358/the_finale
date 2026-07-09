@@ -1,0 +1,392 @@
+{% extends 'faculty/base_portal.html' %}
+{% load static %}
+
+{% block portal_tab_title %}Mentoring{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+  .modal-backdrop { display: none !important; }
+  .modal { background: rgba(0, 0, 0, 0.5) !important; }
+  .df-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; width: 100%; }
+  .df-label { font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; }
+  .df-input {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 24px !important;
+    font-size: 13px;
+    color: #0f172a;
+    background: #fff;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    box-sizing: border-box;
+  }
+  .df-input:focus { border-color: #AF0C3E; box-shadow: 0 0 0 3px rgba(175,12,62,.08); }
+  
+  .form-select {
+    border-radius: 24px !important;
+    padding: 10px 14px;
+    font-size: 13px;
+    border: 1.5px solid #e2e8f0;
+    height: 42px;
+  }
+  .form-select:focus { border-color: #AF0C3E; box-shadow: 0 0 0 3px rgba(175,12,62,.08); }
+
+  .stat-card {
+    padding: 20px;
+    border-radius: 16px;
+    background: #fff;
+    border: 1px solid var(--border);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.02);
+  }
+</style>
+{% endblock %}
+
+{% block portal_content %}
+<div class="flex-between" style="margin-bottom:24px;">
+  <div>
+    <h1 class="section-title">Mentoring Center</h1>
+    <p class="section-sub">Track academic performance, log attendance, and manage student milestones.</p>
+  </div>
+  <div class="tag tag-primary">Academic Year: {{ current_year }}</div>
+</div>
+
+<!-- Stats Grid -->
+<div class="row g-3 mb-4">
+  <div class="col-12 col-md-4">
+    <div class="stat-card">
+      <div style="font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em;">Total Mentees</div>
+      <div style="font-size: 32px; font-weight: 800; color: var(--primary); margin-top: 8px;">
+        {{ student_stats|length }}
+      </div>
+      <div style="font-size: 12px; color: var(--muted); margin-top: 4px;">Assigned students under your guidance</div>
+    </div>
+  </div>
+  <div class="col-12 col-md-4">
+    <div class="stat-card">
+      <div style="font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em;">Class Performance</div>
+      <div id="average-cgpa" style="font-size: 32px; font-weight: 800; color: var(--primary); margin-top: 8px;">
+        --
+      </div>
+      <div style="font-size: 12px; color: var(--muted); margin-top: 4px;">Average CGPA across all mentees</div>
+    </div>
+  </div>
+  <div class="col-12 col-md-4">
+    <div class="stat-card">
+      <div style="font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em;">Attendance Alerts</div>
+      <div id="attendance-alerts" style="font-size: 32px; font-weight: 800; color: #dc3545; margin-top: 8px;">
+        0
+      </div>
+      <div style="font-size: 12px; color: var(--muted); margin-top: 4px;">Mentees with attendance below 75%</div>
+    </div>
+  </div>
+</div>
+
+<!-- Chart and Overview -->
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px; align-items: start; margin-bottom: 24px;">
+  <!-- Student Progress Chart -->
+  <section class="card portal-panel" style="padding: 24px;">
+    <div class="card-header-custom" style="padding-bottom: 16px; margin-bottom: 16px; border-bottom: 1px solid var(--border);">
+      <h2 class="portal-panel-title">Mentees Academic Overview</h2>
+    </div>
+    <div style="height: 300px; position: relative;">
+      <canvas id="menteeChart"></canvas>
+    </div>
+  </section>
+
+  <!-- Special Training Tracks -->
+  <section class="card portal-panel" style="padding: 24px;">
+    <div class="card-header-custom" style="padding-bottom: 16px; margin-bottom: 16px; border-bottom: 1px solid var(--border);">
+      <h2 class="portal-panel-title">Special Institutional Tracks</h2>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 12px;">
+      {% for course in inst_courses %}
+      <div style="padding: 12px; border: 1px solid var(--border); border-radius: 12px; background: rgba(0,0,0,0.01);">
+        <strong style="font-size: 13px; color: var(--text);">{{ course.name }}</strong>
+        <div style="font-size: 11px; color: var(--muted); margin-top: 4px;">Category: {{ course.get_category_display }}</div>
+      </div>
+      {% empty %}
+      <div style="text-align: center; padding: 24px; color: var(--muted); font-size: 12px;">No special courses assigned to your mentees.</div>
+      {% endfor %}
+    </div>
+  </section>
+</div>
+
+<!-- Student List Table -->
+<section class="card portal-panel" style="padding: 24px; margin-bottom: 40px;">
+  <div class="card-header-custom" style="padding-bottom: 16px; margin-bottom: 16px; border-bottom: 1px solid var(--border);">
+    <h2 class="portal-panel-title">Mentees Roster</h2>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table align-middle" style="margin-bottom: 0;">
+      <thead>
+        <tr style="font-size: 11px; text-transform: uppercase; color: var(--muted); border-bottom: 2px solid var(--border);">
+          <th>Student Info</th>
+          <th>Class Details</th>
+          <th>CGPA</th>
+          <th>Attendance</th>
+          <th>Avg Marks</th>
+          <th class="text-end">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in student_stats %}
+        <tr style="border-bottom: 1px solid var(--border);" class="mentee-row-item" data-cgpa="{{ row.cgpa|default:0 }}" data-attendance="{{ row.att_pct }}">
+          <td>
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <div style="width: 36px; height: 36px; border-radius: 50%; background: rgba(175,12,62,0.1); color: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px;">
+                {{ row.student.user.full_name|first|upper|default:"S" }}
+              </div>
+              <div>
+                <a href="{% url 'student-detail' row.student.id %}" style="font-weight: 700; color: var(--text); text-decoration: none;" class="hover-opacity">
+                  {{ row.student.user.full_name|default:row.student.user.email }}
+                </a>
+                <div style="font-size: 11px; color: var(--muted);">{{ row.student.roll_no }}</div>
+              </div>
+            </div>
+          </td>
+          <td>
+            <div style="font-size: 13px; color: var(--text);">{{ row.student.department.code }}</div>
+            <div style="font-size: 11px; color: var(--muted);">Sec {{ row.student.section.name|default:"N/A" }} · Batch {{ row.student.batch }}</div>
+          </td>
+          <td>
+            <span style="font-weight: 700; color: var(--text);">{{ row.cgpa|default:"0.0" }}</span>
+          </td>
+          <td>
+            <span class="badge {% if row.att_pct >= 75 %}bg-success{% else %}bg-danger{% endif %}" style="font-size: 11px; padding: 4px 8px;">
+              {{ row.att_pct }}%
+            </span>
+          </td>
+          <td>
+            <span style="font-weight: 600; color: var(--text);">{{ row.avg_marks }}</span>
+          </td>
+          <td class="text-end">
+            <div style="display: flex; gap: 8px; justify-content: flex-end;">
+              <button class="btn btn-sm btn-outline-primary" style="border-radius: 20px; font-size: 11px; padding: 4px 12px;" data-bs-toggle="modal" data-bs-target="#marksModal" data-student-id="{{ row.student.id }}" data-student-name="{{ row.student.user.full_name|default:row.student.roll_no }}">
+                📊 Log Marks
+              </button>
+              <button class="btn btn-sm btn-outline-secondary" style="border-radius: 20px; font-size: 11px; padding: 4px 12px;" data-bs-toggle="modal" data-bs-target="#attendanceModal" data-student-id="{{ row.student.id }}" data-student-name="{{ row.student.user.full_name|default:row.student.roll_no }}">
+                📅 Log Attendance
+              </button>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="6" class="text-center text-muted" style="padding: 40px 0;">No assigned mentees found.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- Log Marks Modal -->
+<div class="modal fade" id="marksModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" style="border-radius: 16px; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.15);">
+      <div class="modal-header" style="border-bottom: 1px solid var(--border);">
+        <h3 class="modal-title fw-bold" style="font-size: 1.15rem; color: var(--text);">Log Academic Marks</h3>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="post" action="{% url 'faculty-mentor' %}">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="upload_marks">
+        <input type="hidden" name="student_id" id="marksStudentId">
+        
+        <div class="modal-body" style="display: flex; flex-direction: column; gap: 14px;">
+          <div style="padding: 12px; background: rgba(0,0,0,0.02); border-radius: 12px;">
+            <div style="font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase;">Mentee</div>
+            <strong id="marksStudentName" style="color: var(--primary); font-size: 14px;">--</strong>
+          </div>
+
+          <div class="df-group">
+            <label class="df-label">Select Subject</label>
+            <select name="subject_id" class="form-select" required>
+              <option value="">Choose a subject...</option>
+              {% for s in subjects %}
+              <option value="{{ s.id }}">{{ s.name }} ({{ s.code }})</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="row g-2">
+            <div class="col-6">
+              <label class="df-label">Internal Marks</label>
+              <input type="number" name="internal" class="df-input" step="0.1" min="0" max="40" required placeholder="0 - 40">
+            </div>
+            <div class="col-6">
+              <label class="df-label">External Marks</label>
+              <input type="number" name="external" class="df-input" step="0.1" min="0" max="60" required placeholder="0 - 60">
+            </div>
+          </div>
+
+          <div class="df-group">
+            <label class="df-label">Grade</label>
+            <input type="text" name="grade" class="df-input" placeholder="e.g. A+, B, C">
+          </div>
+        </div>
+        
+        <div class="modal-footer" style="border-top: 1px solid var(--border);">
+          <button type="button" class="btn-ghost" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn-primary">Save Marks</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Log Attendance Modal -->
+<div class="modal fade" id="attendanceModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" style="border-radius: 16px; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.15);">
+      <div class="modal-header" style="border-bottom: 1px solid var(--border);">
+        <h3 class="modal-title fw-bold" style="font-size: 1.15rem; color: var(--text);">Log Attendance Record</h3>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="post" action="{% url 'faculty-mentor' %}">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="upload_attendance">
+        <input type="hidden" name="student_id" id="attendanceStudentId">
+        
+        <div class="modal-body" style="display: flex; flex-direction: column; gap: 14px;">
+          <div style="padding: 12px; background: rgba(0,0,0,0.02); border-radius: 12px;">
+            <div style="font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase;">Mentee</div>
+            <strong id="attendanceStudentName" style="color: var(--primary); font-size: 14px;">--</strong>
+          </div>
+
+          <div class="df-group">
+            <label class="df-label">Select Subject</label>
+            <select name="subject_id" class="form-select" required>
+              <option value="">Choose a subject...</option>
+              {% for s in subjects %}
+              <option value="{{ s.id }}">{{ s.name }} ({{ s.code }})</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="df-group">
+            <label class="df-label">Date</label>
+            <input type="date" name="date" class="df-input" required value="{% now 'Y-m-d' %}">
+          </div>
+
+          <div class="form-check form-switch" style="padding-left: 2.5em; margin-top: 8px;">
+            <input class="form-check-input" type="checkbox" name="is_present" id="isPresentSwitch" checked style="cursor: pointer; accent-color: var(--primary);">
+            <label class="form-check-label fw-bold text-dark" for="isPresentSwitch" style="cursor: pointer;">Mark Student as Present</label>
+          </div>
+        </div>
+        
+        <div class="modal-footer" style="border-top: 1px solid var(--border);">
+          <button type="button" class="btn-ghost" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn-primary">Save Attendance</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ mentor_chart_data|json_script:"mentor-chart-data" }}
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    // Populate modals with dynamic student details
+    const marksModal = document.getElementById('marksModal');
+    if (marksModal) {
+      marksModal.addEventListener('show.bs.modal', function (event) {
+        const button = event.relatedTarget;
+        const studentId = button.getAttribute('data-student-id');
+        const studentName = button.getAttribute('data-student-name');
+        
+        document.getElementById('marksStudentId').value = studentId;
+        document.getElementById('marksStudentName').textContent = studentName;
+      });
+    }
+
+    const attendanceModal = document.getElementById('attendanceModal');
+    if (attendanceModal) {
+      attendanceModal.addEventListener('show.bs.modal', function (event) {
+        const button = event.relatedTarget;
+        const studentId = button.getAttribute('data-student-id');
+        const studentName = button.getAttribute('data-student-name');
+        
+        document.getElementById('attendanceStudentId').value = studentId;
+        document.getElementById('attendanceStudentName').textContent = studentName;
+      });
+    }
+
+    // Calculations of average CGPA and alerts count
+    let totalCgpa = 0;
+    let validCgpaCount = 0;
+    let alertsCount = 0;
+    
+    document.querySelectorAll('.mentee-row-item').forEach(function (row) {
+      const cgpa = parseFloat(row.getAttribute('data-cgpa')) || 0;
+      const att = parseFloat(row.getAttribute('data-attendance')) || 0;
+      
+      if (cgpa > 0) {
+        totalCgpa += cgpa;
+        validCgpaCount++;
+      }
+      
+      if (att > 0 && att < 75) {
+        alertsCount++;
+      }
+    });
+
+    const averageCgpaEl = document.getElementById('average-cgpa');
+    if (averageCgpaEl && validCgpaCount > 0) {
+      averageCgpaEl.textContent = (totalCgpa / validCgpaCount).toFixed(2);
+    }
+    
+    const alertsEl = document.getElementById('attendance-alerts');
+    if (alertsEl) {
+      alertsEl.textContent = alertsCount;
+    }
+
+    // Chart.js rendering
+    const rawChartData = JSON.parse(document.getElementById('mentor-chart-data').textContent);
+    const canvas = document.getElementById('menteeChart');
+    if (canvas && rawChartData.length > 0) {
+      new Chart(canvas, {
+        type: 'bar',
+        data: {
+          labels: rawChartData.map(s => s.name.length > 12 ? s.name.slice(0, 10) + '..' : s.name),
+          datasets: [
+            {
+              label: 'CGPA',
+              data: rawChartData.map(s => s.cgpa),
+              backgroundColor: '#AF0C3E',
+              borderRadius: 6,
+              yAxisID: 'y'
+            },
+            {
+              label: 'Avg Marks / 10',
+              data: rawChartData.map(s => s.avg_marks / 10),
+              backgroundColor: '#3b82f6',
+              borderRadius: 6,
+              yAxisID: 'y'
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom' }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              max: 10,
+              title: { display: true, text: 'Scale (0 - 10)' }
+            }
+          }
+        }
+      });
+    }
+  });
+</script>
+{% endblock %}

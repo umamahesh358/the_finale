@@ -67,9 +67,9 @@ class EducationBackground(BaseModel):
     institution    = models.CharField(max_length=300, blank=True, default='')
     board_university = models.CharField(max_length=200, blank=True, default='')
     year_of_passing = models.PositiveIntegerField(null=True, blank=True)
-    score          = models.CharField(max_length=20, blank=True, default='')  # % or GPA or Rank
-    score_type     = models.CharField(max_length=10, default='%',
-                        choices=[('%', 'Percentage'), ('GPA', 'GPA'), ('Rank', 'Rank')])
+    score          = models.CharField(max_length=50, blank=True, default='')  # % or GPA or Rank
+    score_type     = models.CharField(max_length=15, default='Percentage',
+                        choices=[('Percentage', 'Percentage'), ('CGPA', 'CGPA'), ('Rank', 'Rank')])
     is_verified    = models.BooleanField(default=False)
     verified_by    = models.ForeignKey('accounts.User', null=True, blank=True,
                         on_delete=models.SET_NULL, related_name='edu_verifications')
