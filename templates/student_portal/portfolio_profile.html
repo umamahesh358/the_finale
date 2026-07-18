@@ -184,7 +184,7 @@
         </div>
 
         <h1 class="hero-name reveal reveal-delay-1" id="hero-name">
-          <span class="text-slate-900">{{ first_name }}</span>{% if last_name %} <span class="gradient-text">{{ last_name }}</span>{% endif %}
+          <span class="text-slate-900 dark:text-white">{{ first_name }}</span>{% if last_name %} <span class="gradient-text">{{ last_name }}</span>{% endif %}
         </h1>
 
         <p class="hero-title reveal reveal-delay-2">
@@ -318,21 +318,21 @@
       <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 reveal">
         {% if profile.show_email_on_profile %}
         <div class="card p-5">
-          <div class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">Email</div>
-          <div class="font-semibold text-slate-900 break-all">{{ profile.user.email }}</div>
+          <div class="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-2">Email</div>
+          <div class="font-semibold text-slate-900 dark:text-slate-100 break-all">{{ profile.user.email }}</div>
         </div>
         {% endif %}
         <div class="card p-5">
-          <div class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">Department</div>
-          <div class="font-semibold text-slate-900">{{ profile.department.name|default:"Not set" }}</div>
+          <div class="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-2">Department</div>
+          <div class="font-semibold text-slate-900 dark:text-slate-100">{{ profile.department.name|default:"Not set" }}</div>
         </div>
         <div class="card p-5">
-          <div class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">Batch</div>
-          <div class="font-semibold text-slate-900">{{ profile.batch|default:"Not set" }}</div>
+          <div class="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-2">Batch</div>
+          <div class="font-semibold text-slate-900 dark:text-slate-100">{{ profile.batch|default:"Not set" }}</div>
         </div>
         <div class="card p-5">
-          <div class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">Roll No</div>
-          <div class="font-semibold text-slate-900">{{ profile.roll_no|default:"Not set" }}</div>
+          <div class="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-2">Roll No</div>
+          <div class="font-semibold text-slate-900 dark:text-slate-100">{{ profile.roll_no|default:"Not set" }}</div>
         </div>
       </div>
     </section>
@@ -377,7 +377,7 @@
           </div>
         </article>
         {% empty %}
-        <div class="card p-8 text-slate-500 reveal" style="grid-column: 1 / -1;">
+        <div class="card p-8 text-slate-500 dark:text-slate-400 reveal" style="grid-column: 1 / -1;">
           No projects have been added yet.
         </div>
         {% endfor %}
@@ -424,7 +424,7 @@
           </div>
         </div>
         {% empty %}
-        <div class="card p-8 text-slate-500 reveal">No internship or work experience has been added yet.</div>
+        <div class="card p-8 text-slate-500 dark:text-slate-400 reveal">No internship or work experience has been added yet.</div>
         {% endfor %}
       </div>
     </section>
@@ -441,14 +441,14 @@
         <div class="card p-5 reveal">
           <div class="flex items-center justify-between gap-3">
             <div>
-              <div class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">Skill</div>
-              <div class="font-semibold text-slate-900">{{ skill.name }}</div>
+              <div class="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-2">Skill</div>
+              <div class="font-semibold text-slate-900 dark:text-slate-100">{{ skill.name }}</div>
             </div>
-            <span class="text-xs font-bold text-slate-500">{{ skill.count }}</span>
+            <span class="text-xs font-bold text-slate-500 dark:text-slate-400">{{ skill.count }}</span>
           </div>
         </div>
         {% empty %}
-        <div class="card p-8 text-slate-500 reveal" style="grid-column: 1 / -1;">No technologies have been inferred yet.</div>
+        <div class="card p-8 text-slate-500 dark:text-slate-400 reveal" style="grid-column: 1 / -1;">No technologies have been inferred yet.</div>
         {% endfor %}
       </div>
     </section>
@@ -465,25 +465,25 @@
         <article class="card p-6 reveal">
           <div class="flex items-start justify-between gap-4 flex-wrap">
             <div>
-              <div class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">{{ edu.get_edu_type_display }}</div>
-              <h3 class="text-lg font-bold text-slate-900 mb-1">{{ edu.institution|default:"Institution not set" }}</h3>
-              <p class="text-sm text-slate-500">{{ edu.board_university|default:"Board / university not set" }}</p>
+              <div class="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-2">{{ edu.get_edu_type_display }}</div>
+              <h3 class="text-lg font-bold text-slate-900 dark:text-slate-100 mb-1">{{ edu.institution|default:"Institution not set" }}</h3>
+              <p class="text-sm text-slate-500 dark:text-slate-400">{{ edu.board_university|default:"Board / university not set" }}</p>
               {% if edu.year_of_passing %}
-              <p class="text-xs text-slate-400 font-semibold mt-2">Year of passing: {{ edu.year_of_passing }}</p>
+              <p class="text-xs text-slate-400 dark:text-slate-500 font-semibold mt-2">Year of passing: {{ edu.year_of_passing }}</p>
               {% endif %}
             </div>
             <div class="text-right">
               {% if edu.score %}
-              <div class="text-sm font-bold text-slate-900">{{ edu.score }} {{ edu.get_score_type_display }}</div>
+              <div class="text-sm font-bold text-slate-900 dark:text-slate-100">{{ edu.score }} {{ edu.get_score_type_display }}</div>
               {% endif %}
               {% if edu.is_verified %}
-              <span class="text-[10px] font-bold uppercase px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 inline-block mt-2">Verified</span>
+              <span class="text-[10px] font-bold uppercase px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400 inline-block mt-2">Verified</span>
               {% endif %}
             </div>
           </div>
         </article>
         {% empty %}
-        <div class="card p-8 text-slate-500 reveal">No education records have been added yet.</div>
+        <div class="card p-8 text-slate-500 dark:text-slate-400 reveal">No education records have been added yet.</div>
         {% endfor %}
       </div>
     </section>
@@ -498,20 +498,20 @@
       <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
         {% for cert in certifications %}
         <article class="card p-5 reveal">
-          <div class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">{{ cert.cert_type|default:"Certification" }}</div>
-          <h3 class="text-base font-bold text-slate-900 mb-1">{{ cert.title }}</h3>
-          <p class="text-sm text-slate-500">{{ cert.issuer }}{% if cert.issued_date %} | {{ cert.issued_date|date:"M Y" }}{% endif %}</p>
+          <div class="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-2">{{ cert.cert_type|default:"Certification" }}</div>
+          <h3 class="text-base font-bold text-slate-900 dark:text-slate-100 mb-1">{{ cert.title }}</h3>
+          <p class="text-sm text-slate-500 dark:text-slate-400">{{ cert.issuer }}{% if cert.issued_date %} | {{ cert.issued_date|date:"M Y" }}{% endif %}</p>
           <div class="mt-3 flex items-center gap-2 flex-wrap">
             {% if cert.is_verified %}
-            <span class="text-[10px] font-bold uppercase px-3 py-1 rounded-full bg-emerald-50 text-emerald-700">Verified</span>
+            <span class="text-[10px] font-bold uppercase px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400">Verified</span>
             {% endif %}
             {% if cert.cert_url %}
-            <a href="{{ cert.cert_url }}" target="_blank" rel="noopener" class="text-xs font-bold text-[#000000] no-underline">Open link</a>
+            <a href="{{ cert.cert_url }}" target="_blank" rel="noopener" class="text-xs font-bold text-primary dark:text-accent hover:underline">Open link</a>
             {% endif %}
           </div>
         </article>
         {% empty %}
-        <div class="card p-8 text-slate-500 reveal" style="grid-column: 1 / -1;">No certifications have been added yet.</div>
+        <div class="card p-8 text-slate-500 dark:text-slate-400 reveal" style="grid-column: 1 / -1;">No certifications have been added yet.</div>
         {% endfor %}
       </div>
     </section>

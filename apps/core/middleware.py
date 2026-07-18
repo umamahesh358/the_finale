@@ -38,29 +38,8 @@ class DisableRightClickMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
-        response = self.get_response(request)
-        content_type = response.get('Content-Type', '')
-
-        if (
-            response.status_code == 200
-            and 'text/html' in content_type
-            and not getattr(response, 'streaming', False)
-            and hasattr(response, 'content')
-        ):
-            content = response.content
-            lower_content = content.lower()
-            body_index = lower_content.rfind(b'</body>')
-
-            if (
-                body_index != -1
-                and self.SCRIPT_MARKER not in content
-                and b'no_context_menu.js' not in content
-            ):
-                response.content = content[:body_index] + self.SCRIPT + content[body_index:]
-                if response.has_header('Content-Length'):
-                    response['Content-Length'] = str(len(response.content))
-
-        return response
+        # Right-click blocking disabled — pass through without modification
+        return self.get_response(request)
 
 
 class SiteThemeMiddleware:
@@ -76,7 +55,7 @@ class SiteThemeMiddleware:
     )
 
     EXCLUDED_PATHS = {'/'}
-    EXCLUDED_PREFIXES = ('/static/', '/media/', '/api/', '/faculty-portal/', '/faculty/')
+    EXCLUDED_PREFIXES = ('/static/', '/media/', '/api/', '/faculty-portal/', '/faculty/', '/student/')
 
     def __init__(self, get_response):
         self.get_response = get_response

@@ -130,7 +130,7 @@ body.admin-body {
   border-left: 4px solid var(--admin-primary);
   padding: 0.75rem 1rem;
   border-radius: 8px;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
 .messagelist li.error {
@@ -403,8 +403,8 @@ fieldset.module h2 {
 }
 
 /* Rounded, friendly inputs with focus rings */
-.form-row input:focus, 
-.form-row select:focus, 
+.form-row input:focus,
+.form-row select:focus,
 .form-row textarea:focus,
 .vTextField:focus {
   border-color: var(--admin-primary) !important;
@@ -416,7 +416,7 @@ fieldset.module h2 {
 .admin-card {
   border-radius: 12px !important;
   border: 1px solid var(--admin-border) !important;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05) !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
 }
 
 /* Premium Light Collapsible Sidebar Drawer - Perfectly Aligned with Student Portal Aesthetic */
@@ -428,14 +428,18 @@ fieldset.module h2 {
   height: 100vh !important;
   z-index: 1200 !important;
   transform: translateX(-100%);
-  background: #FFFFFF !important; /* Solid clean white background */
-  border-right: 1px solid #E2E8F0 !important; /* Subtle gray boundary */
-  color: #1E293B !important; /* Dark slate text */
+  background: #FFFFFF !important;
+  /* Solid clean white background */
+  border-right: 1px solid #E2E8F0 !important;
+  /* Subtle gray boundary */
+  color: #1E293B !important;
+  /* Dark slate text */
   display: flex !important;
   flex-direction: column !important;
   padding: 1.75rem 1.25rem !important;
   transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), background 0.3s ease !important;
-  box-shadow: 15px 0 30px rgba(15, 23, 42, 0.04) !important; /* Extremely soft shadow */
+  box-shadow: 15px 0 30px rgba(15, 23, 42, 0.04) !important;
+  /* Extremely soft shadow */
 }
 
 .admin-shell.sidebar-open .admin-sidebar {
@@ -448,7 +452,8 @@ fieldset.module h2 {
   flex: 1;
   display: flex;
   flex-direction: column;
-  background: #F8FAFC !important; /* High-end light slate canvas */
+  background: #F8FAFC !important;
+  /* High-end light slate canvas */
 }
 
 /* Overlay to close sidebar on tapping outside */
@@ -456,7 +461,8 @@ fieldset.module h2 {
   display: none;
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.3); /* Softer backdrop for light theme */
+  background: rgba(15, 23, 42, 0.3);
+  /* Softer backdrop for light theme */
   backdrop-filter: blur(4px);
   z-index: 1100;
   transition: opacity 0.3s ease;
@@ -488,8 +494,10 @@ fieldset.module h2 {
   height: 36px !important;
   display: grid !important;
   place-items: center !important;
-  border-radius: 50% !important; /* Perfectly circular logo badge */
-  background: var(--admin-primary) !important; /* Solid brand crimson */
+  border-radius: 50% !important;
+  /* Perfectly circular logo badge */
+  background: var(--admin-primary) !important;
+  /* Solid brand crimson */
   color: #FFFFFF !important;
   font-weight: 800 !important;
   font-size: 0.85rem !important;
@@ -533,7 +541,8 @@ fieldset.module h2 {
 }
 
 .sidebar-nav-wrapper .nav-link.dashboard-link {
-  color: #475569 !important; /* Soft dark-slate text */
+  color: #475569 !important;
+  /* Soft dark-slate text */
   display: flex !important;
   align-items: center !important;
   gap: 0.75rem !important;
@@ -547,7 +556,8 @@ fieldset.module h2 {
 
 .sidebar-nav-wrapper .nav-link.dashboard-link i {
   font-size: 1.1rem !important;
-  color: #94A3B8 !important; /* Muted silver-grey icons */
+  color: #94A3B8 !important;
+  /* Muted silver-grey icons */
   transition: color 0.2s ease !important;
 }
 
@@ -561,8 +571,10 @@ fieldset.module h2 {
 }
 
 .sidebar-nav-wrapper .nav-link.dashboard-link.active {
-  background: #FDF2F4 !important; /* Soft cherry-pink active background */
-  color: var(--admin-primary) !important; /* Crimson active text */
+  background: #FDF2F4 !important;
+  /* Soft cherry-pink active background */
+  color: var(--admin-primary) !important;
+  /* Crimson active text */
   font-weight: 600 !important;
 }
 
@@ -618,7 +630,8 @@ fieldset.module h2 {
 }
 
 .menu-category-title {
-  color: #94A3B8 !important; /* Muted Slate category dividers like "MAIN" and "CAREER" */
+  color: #94A3B8 !important;
+  /* Muted Slate category dividers like "MAIN" and "CAREER" */
   font-size: 0.72rem !important;
   letter-spacing: 0.08em !important;
   text-transform: uppercase !important;
@@ -631,7 +644,8 @@ fieldset.module h2 {
 .menu-item-link,
 .menu-item-link:link,
 .menu-item-link:visited {
-  color: #475569 !important; /* Soft dark-slate text */
+  color: #475569 !important;
+  /* Soft dark-slate text */
   display: flex !important;
   align-items: center !important;
   gap: 0.75rem !important;
@@ -646,7 +660,8 @@ fieldset.module h2 {
 
 .menu-item-link i {
   font-size: 1.1rem !important;
-  color: #94A3B8 !important; /* Muted silver-grey icons */
+  color: #94A3B8 !important;
+  /* Muted silver-grey icons */
   transition: color 0.2s ease !important;
 }
 
@@ -665,8 +680,10 @@ fieldset.module h2 {
 .menu-item-link.active,
 .menu-item-link.active:link,
 .menu-item-link.active:visited {
-  background: #FDF2F4 !important; /* Soft cherry-pink active background block */
-  color: var(--admin-primary) !important; /* Crimson active text */
+  background: #FDF2F4 !important;
+  /* Soft cherry-pink active background block */
+  color: var(--admin-primary) !important;
+  /* Crimson active text */
   font-weight: 600 !important;
 }
 
@@ -700,13 +717,14 @@ fieldset.module h2 {
 }
 
 .sidebar-footer button:hover {
-  background: #FDF2F4 !important; /* Soft crimson overlay on logout hover */
+  background: #FDF2F4 !important;
+  /* Soft crimson overlay on logout hover */
   border-color: #F8D7DA !important;
   color: var(--admin-primary) !important;
 }
 
 /* Wiping out Django default blue across all admin interior elements */
-a:link, 
+a:link,
 a:visited {
   color: var(--admin-primary) !important;
 }
@@ -716,8 +734,8 @@ a:hover {
 }
 
 /* Overriding default blue headers on changelists and inline groups */
-.module h2, 
-.module caption, 
+.module h2,
+.module caption,
 .inline-group h2,
 fieldset.module h2,
 .module h2 a,
@@ -817,8 +835,10 @@ button[type=submit].default {
   padding: 0.5rem 1rem !important;
   text-decoration: none !important;
   display: inline-block !important;
-  height: auto !important; /* Override legacy 15px height */
-  line-height: normal !important; /* Override legacy 15px line-height */
+  height: auto !important;
+  /* Override legacy 15px height */
+  line-height: normal !important;
+  /* Override legacy 15px line-height */
   box-sizing: border-box !important;
 }
 
@@ -1016,7 +1036,8 @@ button[type=submit].default {
   align-items: center !important;
   justify-content: center !important;
   color: var(--admin-primary) !important;
-  background: #FDF2F4 !important; /* Soft cherry pink background */
+  background: #FDF2F4 !important;
+  /* Soft cherry pink background */
   border: 1px solid rgba(175, 12, 62, 0.12) !important;
   border-radius: 8px !important;
   padding: 6px 14px !important;
@@ -1024,8 +1045,10 @@ button[type=submit].default {
   font-weight: 600 !important;
   text-decoration: none !important;
   margin-top: 10px !important;
-  height: auto !important; /* Override native 16px height */
-  overflow: visible !important; /* Override native overflow: hidden */
+  height: auto !important;
+  /* Override native 16px height */
+  overflow: visible !important;
+  /* Override native overflow: hidden */
   transition: all 0.2s ease !important;
   font-family: 'Outfit', sans-serif !important;
 }

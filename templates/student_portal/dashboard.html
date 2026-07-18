@@ -133,6 +133,14 @@
       <div><span>{{ profile.cgpa|default:"-" }}</span><small>CGPA</small></div>
       <div><span>{{ profile.batch }}</span><small>Batch</small></div>
       <div><span>{{ profile.department.code|default:profile.department.name|default:"-" }}</span><small>Branch</small></div>
+      {% if overall_attendance is not None %}
+      <div>
+        <span style="color:{% if overall_attendance >= 75 %}#065f46{% elif overall_attendance >= 60 %}#92400e{% else %}#991b1b{% endif %};">
+          {{ overall_attendance }}%
+        </span>
+        <small>Attendance</small>
+      </div>
+      {% endif %}
     </div>
   </section>
 

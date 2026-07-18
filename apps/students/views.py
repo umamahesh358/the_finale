@@ -18,7 +18,7 @@ from apps.students.models import (
     Project, Internship, Event, Course, Research, SemesterResult
 )
 from apps.accounts.models import OTPRecord
-from apps.academics.models import Subject, Marks
+from apps.academics.models import Subject, Marks, AttendanceSummary
 from apps.faculty.models import InstitutionCourse
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
@@ -334,6 +334,15 @@ class StudentPortalView(LoginRequiredMixin, View):
             'research': profile.research.order_by('-created_at').first(),
         }
 
+        # ── Overall attendance for dashboard ──
+        from django.utils.timezone import now as tz_now
+        current_year = f"{tz_now().year}-{tz_now().year + 1}"
+        att_pcts = list(
+            AttendanceSummary.objects.filter(student=profile, academic_year=current_year)
+            .values_list('percentage', flat=True)
+        )
+        overall_attendance = round(sum(float(p) for p in att_pcts) / len(att_pcts), 1) if att_pcts else None
+
         return render(request, 'student_portal/dashboard.html', {
             'profile': profile,
             'subject_stats': subject_stats,
@@ -345,6 +354,7 @@ class StudentPortalView(LoginRequiredMixin, View):
             'profile_completion': profile_completion,
             'filled_social_links': filled_social_links,
             'latest_records': latest_records,
+            'overall_attendance': overall_attendance,
         })
 
 
@@ -441,10 +451,45 @@ class StudentAcademicsView(LoginRequiredMixin, View):
                 'grade': grade,
             }
 
+        # ── Attendance data from AttendanceSummary ──
+        from django.utils.timezone import now as tz_now
+        current_year = f"{tz_now().year}-{tz_now().year + 1}"
+        att_summaries = AttendanceSummary.objects.filter(
+            student=profile, academic_year=current_year
+        ).select_related('subject')
+
+        attendance_by_subject = []
+        for att in att_summaries:
+            pct = float(att.percentage)
+            if pct >= 75:
+                color_class = 'att-good'
+                status_label = 'Good'
+            elif pct >= 60:
+                color_class = 'att-warning'
+                status_label = 'Low'
+            else:
+                color_class = 'att-danger'
+                status_label = 'Critical'
+            attendance_by_subject.append({
+                'subject_name': att.subject.name,
+                'subject_code': att.subject.code,
+                'percentage': pct,
+                'color_class': color_class,
+                'status_label': status_label,
+            })
+
+        overall_attendance = None
+        if attendance_by_subject:
+            overall_attendance = round(
+                sum(a['percentage'] for a in attendance_by_subject) / len(attendance_by_subject), 1
+            )
+
         return render(request, 'student_portal/academics.html', {
             'profile': profile,
             'marks': marks,
             'subject_stats': subject_stats,
+            'attendance_by_subject': attendance_by_subject,
+            'overall_attendance': overall_attendance,
         })
 
 

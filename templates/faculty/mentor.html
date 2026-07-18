@@ -164,11 +164,21 @@
           </td>
           <td class="text-end">
             <div style="display: flex; gap: 8px; justify-content: flex-end;">
-              <button class="btn btn-sm btn-outline-primary" style="border-radius: 20px; font-size: 11px; padding: 4px 12px;" data-bs-toggle="modal" data-bs-target="#marksModal" data-student-id="{{ row.student.id }}" data-student-name="{{ row.student.user.full_name|default:row.student.roll_no }}">
-                📊 Log Marks
+              <button class="btn btn-sm btn-outline-primary" style="border-radius: 20px; font-size: 11px; padding: 4px 12px;"
+                data-bs-toggle="modal" data-bs-target="#marksModal"
+                data-student-id="{{ row.student.id }}"
+                data-student-name="{{ row.student.user.full_name|default:row.student.roll_no }}"
+                data-marks='{{ row.marks_by_subject|default:"{}" }}'
+              >
+                📊 Edit Marks
               </button>
-              <button class="btn btn-sm btn-outline-secondary" style="border-radius: 20px; font-size: 11px; padding: 4px 12px;" data-bs-toggle="modal" data-bs-target="#attendanceModal" data-student-id="{{ row.student.id }}" data-student-name="{{ row.student.user.full_name|default:row.student.roll_no }}">
-                📅 Log Attendance
+              <button class="btn btn-sm btn-outline-secondary" style="border-radius: 20px; font-size: 11px; padding: 4px 12px;"
+                data-bs-toggle="modal" data-bs-target="#attendanceModal"
+                data-student-id="{{ row.student.id }}"
+                data-student-name="{{ row.student.user.full_name|default:row.student.roll_no }}"
+                data-attendance='{{ row.att_by_subject|default:"{}" }}'
+              >
+                📅 Update Attendance
               </button>
             </div>
           </td>
@@ -188,7 +198,7 @@
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content" style="border-radius: 16px; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.15);">
       <div class="modal-header" style="border-bottom: 1px solid var(--border);">
-        <h3 class="modal-title fw-bold" style="font-size: 1.15rem; color: var(--text);">Log Academic Marks</h3>
+        <h3 class="modal-title fw-bold" style="font-size: 1.15rem; color: var(--text);">Edit Academic Marks</h3>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <form method="post" action="{% url 'faculty-mentor' %}">
@@ -204,7 +214,7 @@
 
           <div class="df-group">
             <label class="df-label">Select Subject</label>
-            <select name="subject_id" class="form-select" required>
+            <select name="subject_id" id="marksSubjectSelect" class="form-select" required>
               <option value="">Choose a subject...</option>
               {% for s in subjects %}
               <option value="{{ s.id }}">{{ s.name }} ({{ s.code }})</option>
@@ -214,18 +224,28 @@
 
           <div class="row g-2">
             <div class="col-6">
-              <label class="df-label">Internal Marks</label>
-              <input type="number" name="internal" class="df-input" step="0.1" min="0" max="40" required placeholder="0 - 40">
+              <label class="df-label">Internal Marks (0–40)</label>
+              <input type="number" name="internal" id="marksInternal" class="df-input" step="0.1" min="0" max="40" required placeholder="0 – 40">
             </div>
             <div class="col-6">
-              <label class="df-label">External Marks</label>
-              <input type="number" name="external" class="df-input" step="0.1" min="0" max="60" required placeholder="0 - 60">
+              <label class="df-label">External Marks (0–60)</label>
+              <input type="number" name="external" id="marksExternal" class="df-input" step="0.1" min="0" max="60" required placeholder="0 – 60">
             </div>
           </div>
 
-          <div class="df-group">
-            <label class="df-label">Grade</label>
-            <input type="text" name="grade" class="df-input" placeholder="e.g. A+, B, C">
+          <div style="display:flex; gap: 10px; align-items: flex-end;">
+            <div style="flex:1;">
+              <label class="df-label">Grade <span style="font-weight:400; color:var(--muted);font-size:10px;">(auto-calculated, editable)</span></label>
+              <input type="text" name="grade" id="marksGrade" class="df-input" placeholder="A+, A, B …" style="font-weight:700; text-align:center; font-size:1.1rem;">
+            </div>
+            <div id="gradeInfo" style="padding: 8px 14px; background:#f8fafc; border-radius: 10px; border: 1px solid var(--border); text-align:center; min-width: 80px;">
+              <div style="font-size:9px; font-weight:700; color:var(--muted); text-transform:uppercase;">Points</div>
+              <div id="gradePoints" style="font-size:1.2rem; font-weight:800; color:var(--primary);">—</div>
+            </div>
+          </div>
+
+          <div style="font-size:11px; color:var(--muted); background:#f8fafc; border-radius:10px; padding:10px 12px; line-height:1.7;">
+            <strong>Grading Scale:</strong> A+(≥90) · A(≥80) · B(≥70) · C(≥60) · D(≥50) · P(≥40) · F(&lt;40)
           </div>
         </div>
         
@@ -238,18 +258,19 @@
   </div>
 </div>
 
-<!-- Log Attendance Modal -->
+<!-- Update Attendance Modal -->
 <div class="modal fade" id="attendanceModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content" style="border-radius: 16px; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.15);">
       <div class="modal-header" style="border-bottom: 1px solid var(--border);">
-        <h3 class="modal-title fw-bold" style="font-size: 1.15rem; color: var(--text);">Log Attendance Record</h3>
+        <h3 class="modal-title fw-bold" style="font-size: 1.15rem; color: var(--text);">Update Attendance %</h3>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <form method="post" action="{% url 'faculty-mentor' %}">
         {% csrf_token %}
         <input type="hidden" name="action" value="upload_attendance">
         <input type="hidden" name="student_id" id="attendanceStudentId">
+        <input type="hidden" name="academic_year" value="{{ current_year }}">
         
         <div class="modal-body" style="display: flex; flex-direction: column; gap: 14px;">
           <div style="padding: 12px; background: rgba(0,0,0,0.02); border-radius: 12px;">
@@ -259,22 +280,32 @@
 
           <div class="df-group">
             <label class="df-label">Select Subject</label>
-            <select name="subject_id" class="form-select" required>
+            <select name="subject_id" id="attendanceSubjectSelect" class="form-select" required>
               <option value="">Choose a subject...</option>
               {% for s in subjects %}
-              <option value="{{ s.id }}">{{ s.name }} ({{ s.code }})</option>
+              <option value="{{ s.id }}" data-subject-id="{{ s.id }}">{{ s.name }} ({{ s.code }})</option>
               {% endfor %}
             </select>
           </div>
 
           <div class="df-group">
-            <label class="df-label">Date</label>
-            <input type="date" name="date" class="df-input" required value="{% now 'Y-m-d' %}">
+            <label class="df-label">Attendance Percentage (%)</label>
+            <div style="display:flex; align-items:center; gap:12px;">
+              <input type="number" name="percentage" id="attPercentageInput"
+                class="df-input" step="0.1" min="0" max="100" required
+                placeholder="0 – 100"
+                style="font-size:1.3rem; font-weight:700; text-align:center; max-width:130px;">
+              <span style="font-size:1.5rem; font-weight:800; color:var(--muted);">%</span>
+            </div>
+            <div id="attStatusBadge" style="margin-top:8px; display:none; padding:6px 14px; border-radius:20px; font-size:12px; font-weight:700; display:inline-block;"></div>
           </div>
 
-          <div class="form-check form-switch" style="padding-left: 2.5em; margin-top: 8px;">
-            <input class="form-check-input" type="checkbox" name="is_present" id="isPresentSwitch" checked style="cursor: pointer; accent-color: var(--primary);">
-            <label class="form-check-label fw-bold text-dark" for="isPresentSwitch" style="cursor: pointer;">Mark Student as Present</label>
+          <div id="attCurrentInfo" style="font-size:11px; color:var(--muted); background:#f8fafc; border-radius:10px; padding:10px 12px; display:none;">
+            Current entry: <strong id="attCurrentValue">—</strong>
+          </div>
+
+          <div style="font-size:11px; color:var(--muted); background:#f8fafc; border-radius:10px; padding:10px 12px; line-height:1.7;">
+            🟢 ≥75% Good &nbsp;•&nbsp; 🟡 60–74% Low &nbsp;•&nbsp; 🔴 &lt;60% Critical
           </div>
         </div>
         
@@ -292,30 +323,139 @@
 {{ mentor_chart_data|json_script:"mentor-chart-data" }}
 <script>
   document.addEventListener('DOMContentLoaded', function () {
-    // Populate modals with dynamic student details
+    // ── Grade auto-calculation helper ──
+    const GRADE_SCALE = [
+      { min: 90, grade: 'A+', points: '10.0' },
+      { min: 80, grade: 'A',  points: '8.0'  },
+      { min: 70, grade: 'B',  points: '7.0'  },
+      { min: 60, grade: 'C',  points: '6.0'  },
+      { min: 50, grade: 'D',  points: '5.0'  },
+      { min: 40, grade: 'P',  points: '4.0'  },
+      { min:  0, grade: 'F',  points: '0.0'  },
+    ];
+    function computeGrade(total) {
+      for (const g of GRADE_SCALE) {
+        if (total >= g.min) return g;
+      }
+      return GRADE_SCALE[GRADE_SCALE.length - 1];
+    }
+
+    // ── Marks Modal ──
     const marksModal = document.getElementById('marksModal');
     if (marksModal) {
+      let currentMarksData = {};
+
       marksModal.addEventListener('show.bs.modal', function (event) {
         const button = event.relatedTarget;
-        const studentId = button.getAttribute('data-student-id');
-        const studentName = button.getAttribute('data-student-name');
-        
-        document.getElementById('marksStudentId').value = studentId;
-        document.getElementById('marksStudentName').textContent = studentName;
+        document.getElementById('marksStudentId').value = button.getAttribute('data-student-id');
+        document.getElementById('marksStudentName').textContent = button.getAttribute('data-student-name');
+        try {
+          currentMarksData = JSON.parse(button.getAttribute('data-marks') || '{}');
+        } catch(e) { currentMarksData = {}; }
+        // Reset fields
+        document.getElementById('marksSubjectSelect').value = '';
+        document.getElementById('marksInternal').value = '';
+        document.getElementById('marksExternal').value = '';
+        document.getElementById('marksGrade').value = '';
+        document.getElementById('gradePoints').textContent = '—';
+      });
+
+      // When subject changes, pre-fill existing marks
+      document.getElementById('marksSubjectSelect').addEventListener('change', function() {
+        const subId = this.value;
+        const existing = currentMarksData[subId];
+        if (existing) {
+          document.getElementById('marksInternal').value = existing.internal;
+          document.getElementById('marksExternal').value = existing.external;
+          document.getElementById('marksGrade').value = existing.grade;
+          const gData = computeGrade(existing.total);
+          document.getElementById('gradePoints').textContent = gData.points;
+        } else {
+          document.getElementById('marksInternal').value = '';
+          document.getElementById('marksExternal').value = '';
+          document.getElementById('marksGrade').value = '';
+          document.getElementById('gradePoints').textContent = '—';
+        }
+      });
+
+      // Auto-calculate grade when marks change
+      function recalcGrade() {
+        const internal = parseFloat(document.getElementById('marksInternal').value) || 0;
+        const external = parseFloat(document.getElementById('marksExternal').value) || 0;
+        const total = internal + external;
+        const gData = computeGrade(total);
+        // Only auto-fill if grade field is empty or was previously auto-set
+        const gradeField = document.getElementById('marksGrade');
+        if (!gradeField.dataset.manuallyEdited) {
+          gradeField.value = gData.grade;
+        }
+        document.getElementById('gradePoints').textContent = total > 0 ? gData.points : '—';
+      }
+      document.getElementById('marksInternal').addEventListener('input', recalcGrade);
+      document.getElementById('marksExternal').addEventListener('input', recalcGrade);
+      document.getElementById('marksGrade').addEventListener('input', function() {
+        this.dataset.manuallyEdited = this.value ? '1' : '';
       });
     }
 
+    // ── Attendance Modal ──
     const attendanceModal = document.getElementById('attendanceModal');
     if (attendanceModal) {
+      let currentAttData = {};
+
       attendanceModal.addEventListener('show.bs.modal', function (event) {
         const button = event.relatedTarget;
-        const studentId = button.getAttribute('data-student-id');
-        const studentName = button.getAttribute('data-student-name');
-        
-        document.getElementById('attendanceStudentId').value = studentId;
-        document.getElementById('attendanceStudentName').textContent = studentName;
+        document.getElementById('attendanceStudentId').value = button.getAttribute('data-student-id');
+        document.getElementById('attendanceStudentName').textContent = button.getAttribute('data-student-name');
+        try {
+          currentAttData = JSON.parse(button.getAttribute('data-attendance') || '{}');
+        } catch(e) { currentAttData = {}; }
+        // Reset fields
+        document.getElementById('attendanceSubjectSelect').value = '';
+        document.getElementById('attPercentageInput').value = '';
+        document.getElementById('attCurrentInfo').style.display = 'none';
+        document.getElementById('attStatusBadge').style.display = 'none';
+      });
+
+      // When subject changes, pre-fill existing attendance %
+      document.getElementById('attendanceSubjectSelect').addEventListener('change', function() {
+        const subId = this.value;
+        const existing = currentAttData[subId];
+        const currentInfo = document.getElementById('attCurrentInfo');
+        if (existing !== undefined) {
+          document.getElementById('attPercentageInput').value = existing;
+          document.getElementById('attCurrentValue').textContent = existing + '%';
+          currentInfo.style.display = 'block';
+          updateAttBadge(existing);
+        } else {
+          document.getElementById('attPercentageInput').value = '';
+          currentInfo.style.display = 'none';
+          document.getElementById('attStatusBadge').style.display = 'none';
+        }
+      });
+
+      function updateAttBadge(pct) {
+        const badge = document.getElementById('attStatusBadge');
+        badge.style.display = 'inline-block';
+        if (pct >= 75) {
+          badge.textContent = '✅ Good Standing';
+          badge.style.cssText += '; background:#d1fae5; color:#065f46;';
+        } else if (pct >= 60) {
+          badge.textContent = '⚠️ Low Attendance';
+          badge.style.cssText += '; background:#fef3c7; color:#92400e;';
+        } else {
+          badge.textContent = '🚨 Critical';
+          badge.style.cssText += '; background:#fee2e2; color:#991b1b;';
+        }
+      }
+
+      document.getElementById('attPercentageInput').addEventListener('input', function() {
+        const val = parseFloat(this.value);
+        if (!isNaN(val)) updateAttBadge(val);
+        else document.getElementById('attStatusBadge').style.display = 'none';
       });
     }
+
 
     // Calculations of average CGPA and alerts count
     let totalCgpa = 0;

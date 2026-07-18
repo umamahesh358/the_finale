@@ -43,6 +43,12 @@
             color: white !important;
             box-shadow: var(--shadow-primary);
         }
+        .student-checkbox-row:hover {
+            background-color: #f1f5f9;
+        }
+        .cursor-pointer {
+            cursor: pointer !important;
+        }
         .btn-maroon:hover {
             opacity: 0.9;
             transform: translateY(-1px);
@@ -474,7 +480,7 @@
                                                             By: {{ lp.uploaded_by.full_name|default:lp.uploaded_by.email }}
                                                         </small>
                                                     </div>
-                                                    <div class="d-flex gap-1">
+                                                    <div class="d-flex gap-1 align-items-center">
                                                         {% if lp.resource_link %}
                                                         <a href="{{ lp.resource_link }}" class="text-secondary hover-text-maroon p-1" target="_blank" title="Resource Link">
                                                             <i data-lucide="link" style="width: 16px;"></i>
@@ -483,6 +489,27 @@
                                                         <a href="{{ lp.file.url }}" class="text-secondary hover-text-maroon p-1" target="_blank" title="Download Document">
                                                             <i data-lucide="download" style="width: 16px;"></i>
                                                         </a>
+                                                        {% if lp.uploaded_by == request.user or request.user.is_superuser %}
+                                                        <button type="button" class="btn btn-icon text-primary p-0 border-0 bg-transparent" 
+                                                                data-bs-toggle="modal" data-bs-target="#editLessonPlanModal"
+                                                                data-id="{{ lp.id }}"
+                                                                data-subject-id="{{ lp.subject.id }}"
+                                                                data-acad-year="{{ lp.academic_year }}"
+                                                                data-target-year="{{ lp.target_year|default:'' }}"
+                                                                data-target-section-id="{{ lp.target_section.id|default:'' }}"
+                                                                data-resource-link="{{ lp.resource_link|default:'' }}"
+                                                                title="Edit Lesson Plan">
+                                                            <i data-lucide="edit-3" style="width: 15px; height: 15px;"></i>
+                                                        </button>
+                                                        <form method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this lesson plan?')">
+                                                            {% csrf_token %}
+                                                            <input type="hidden" name="action" value="delete_lesson_plan">
+                                                            <input type="hidden" name="document_id" value="{{ lp.id }}">
+                                                            <button type="submit" class="btn btn-icon text-danger p-0 border-0 bg-transparent" title="Delete Lesson Plan">
+                                                                <i data-lucide="trash-2" style="width: 15px; height: 15px;"></i>
+                                                            </button>
+                                                        </form>
+                                                        {% endif %}
                                                     </div>
                                                 </div>
                                                 {% empty %}
@@ -516,7 +543,7 @@
                                                         </p>
                                                         <small class="text-muted">Valid: {{ tt.valid_from|default:"-" }}</small>
                                                     </div>
-                                                    <div class="d-flex gap-1">
+                                                    <div class="d-flex gap-1 align-items-center">
                                                         {% if tt.resource_link %}
                                                         <a href="{{ tt.resource_link }}" class="text-secondary hover-text-maroon p-1" target="_blank" title="Resource Link">
                                                             <i data-lucide="link" style="width: 16px;"></i>
@@ -525,6 +552,27 @@
                                                         <a href="{{ tt.file.url }}" class="text-secondary hover-text-maroon p-1" target="_blank" title="Download Document">
                                                             <i data-lucide="download" style="width: 16px;"></i>
                                                         </a>
+                                                        {% if tt.uploaded_by == request.user or request.user.is_superuser %}
+                                                        <button type="button" class="btn btn-icon text-primary p-0 border-0 bg-transparent" 
+                                                                data-bs-toggle="modal" data-bs-target="#editTimetableModal"
+                                                                data-id="{{ tt.id }}"
+                                                                data-semester="{{ tt.semester|default:'' }}"
+                                                                data-target-year="{{ tt.target_year|default:'' }}"
+                                                                data-target-section-id="{{ tt.target_section.id|default:'' }}"
+                                                                data-valid-from="{{ tt.valid_from|date:'Y-m-d'|default:'' }}"
+                                                                data-resource-link="{{ tt.resource_link|default:'' }}"
+                                                                title="Edit Timetable">
+                                                            <i data-lucide="edit-3" style="width: 15px; height: 15px;"></i>
+                                                        </button>
+                                                        <form method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this timetable?')">
+                                                            {% csrf_token %}
+                                                            <input type="hidden" name="action" value="delete_timetable">
+                                                            <input type="hidden" name="document_id" value="{{ tt.id }}">
+                                                            <button type="submit" class="btn btn-icon text-danger p-0 border-0 bg-transparent" title="Delete Timetable">
+                                                                <i data-lucide="trash-2" style="width: 15px; height: 15px;"></i>
+                                                            </button>
+                                                        </form>
+                                                        {% endif %}
                                                     </div>
                                                 </div>
                                                 {% empty %}
@@ -558,7 +606,7 @@
                                                             {% if cal.semester %} (Sem {{ cal.semester }}){% endif %}
                                                         </small>
                                                     </div>
-                                                    <div class="d-flex gap-1">
+                                                    <div class="d-flex gap-1 align-items-center">
                                                         {% if cal.resource_link %}
                                                         <a href="{{ cal.resource_link }}" class="text-secondary hover-text-maroon p-1" target="_blank" title="Resource Link">
                                                             <i data-lucide="link" style="width: 16px;"></i>
@@ -567,6 +615,27 @@
                                                         <a href="{{ cal.file.url }}" class="text-secondary hover-text-maroon p-1" target="_blank" title="Download Document">
                                                             <i data-lucide="download" style="width: 16px;"></i>
                                                         </a>
+                                                        {% if cal.uploaded_by == request.user or request.user.is_superuser %}
+                                                        <button type="button" class="btn btn-icon text-primary p-0 border-0 bg-transparent" 
+                                                                data-bs-toggle="modal" data-bs-target="#editCalendarModal"
+                                                                data-id="{{ cal.id }}"
+                                                                data-title="{{ cal.title|escapejs }}"
+                                                                data-semester="{{ cal.semester|default:'' }}"
+                                                                data-target-year="{{ cal.target_year|default:'' }}"
+                                                                data-target-section-id="{{ cal.target_section.id|default:'' }}"
+                                                                data-resource-link="{{ cal.resource_link|default:'' }}"
+                                                                title="Edit Calendar">
+                                                            <i data-lucide="edit-3" style="width: 15px; height: 15px;"></i>
+                                                        </button>
+                                                        <form method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this calendar?')">
+                                                            {% csrf_token %}
+                                                            <input type="hidden" name="action" value="delete_calendar">
+                                                            <input type="hidden" name="document_id" value="{{ cal.id }}">
+                                                            <button type="submit" class="btn btn-icon text-danger p-0 border-0 bg-transparent" title="Delete Calendar">
+                                                                <i data-lucide="trash-2" style="width: 15px; height: 15px;"></i>
+                                                            </button>
+                                                        </form>
+                                                        {% endif %}
                                                     </div>
                                                 </div>
                                                 {% empty %}
@@ -621,11 +690,34 @@
                                                     <i data-lucide="calendar" class="text-maroon opacity-75" style="width: 16px; height: 16px;"></i> 
                                                     {{ prog.start_date|default:"TBD" }}{% if prog.end_date %} to {{ prog.end_date }}{% endif %}
                                                 </div>
-                                                {% if prog.registration_link %}
-                                                <div class="mt-2">
-                                                    <a href="{{ prog.registration_link }}" target="_blank" class="btn btn-sm btn-outline-maroon w-100 fw-medium">Register for Training</a>
+                                                <div class="d-flex gap-2 mt-3">
+                                                    {% if prog.registration_link %}
+                                                    <a href="{{ prog.registration_link }}" target="_blank" class="btn btn-xs btn-outline-maroon flex-grow-1 fw-semibold py-2 d-inline-flex align-items-center justify-content-center" style="font-size:11px; border-radius: 8px;">Register</a>
+                                                    {% endif %}
+                                                    
+                                                    <button type="button" class="btn btn-xs btn-outline-secondary py-2 px-2 d-inline-flex align-items-center justify-content-center" style="border-radius: 8px;"
+                                                            data-bs-toggle="modal" data-bs-target="#editTrainingModal"
+                                                            data-id="{{ prog.id }}"
+                                                            data-title="{{ prog.title|escapejs }}"
+                                                            data-description="{{ prog.description|escapejs }}"
+                                                            data-start-date="{{ prog.start_date|date:'Y-m-d'|default:'' }}"
+                                                            data-end-date="{{ prog.end_date|date:'Y-m-d'|default:'' }}"
+                                                            data-venue="{{ prog.venue|escapejs }}"
+                                                            data-is-active="{% if prog.is_active %}true{% else %}false{% endif %}"
+                                                            data-registration-link="{{ prog.registration_link|default:'' }}"
+                                                            title="Edit Training">
+                                                        <i data-lucide="edit-3" style="width: 14px; height: 14px;"></i>
+                                                    </button>
+                                                    
+                                                    <form method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this training program?')">
+                                                        {% csrf_token %}
+                                                        <input type="hidden" name="action" value="delete_training">
+                                                        <input type="hidden" name="training_id" value="{{ prog.id }}">
+                                                        <button type="submit" class="btn btn-xs btn-outline-danger py-2 px-2 d-inline-flex align-items-center justify-content-center" style="border-radius: 8px;" title="Delete Training">
+                                                            <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
+                                                        </button>
+                                                    </form>
                                                 </div>
-                                                {% endif %}
                                             </div>
                                         </div>
                                     </div>
@@ -686,14 +778,24 @@
                                                     </td>
                                                     <td>{{ a.academic_year }}</td>
                                                     <td class="text-center">
-                                                        <form method="post" style="display:inline;">
-                                                            {% csrf_token %}
-                                                            <input type="hidden" name="action" value="remove_mentor_assignment">
-                                                            <input type="hidden" name="assignment_id" value="{{ a.id }}">
-                                                            <button type="submit" class="btn btn-icon danger text-danger border-0 bg-transparent" onclick="return confirm('Remove this assignment mapping?')">
-                                                                <i data-lucide="trash-2" style="width: 16px;"></i>
+                                                        <div class="d-flex gap-2 justify-content-center">
+                                                            <button type="button" class="btn btn-icon text-primary border-0 bg-transparent p-0" 
+                                                                    data-bs-toggle="modal" data-bs-target="#editAssignmentModal"
+                                                                    data-assignment-id="{{ a.id }}" 
+                                                                    data-mentor-id="{{ a.mentor.id }}"
+                                                                    data-student-ids="{% for s in a.students.all %}{{ s.id }}{% if not forloop.last %},{% endif %}{% endfor %}"
+                                                                    title="Edit Assignment">
+                                                                <i data-lucide="edit-3" style="width: 16px;"></i>
                                                             </button>
-                                                        </form>
+                                                            <form method="post" style="display:inline;">
+                                                                {% csrf_token %}
+                                                                <input type="hidden" name="action" value="remove_mentor_assignment">
+                                                                <input type="hidden" name="assignment_id" value="{{ a.id }}">
+                                                                <button type="submit" class="btn btn-icon danger text-danger border-0 bg-transparent p-0" onclick="return confirm('Remove this assignment mapping?')">
+                                                                    <i data-lucide="trash-2" style="width: 16px;"></i>
+                                                                </button>
+                                                            </form>
+                                                        </div>
                                                     </td>
                                                 </tr>
                                                 {% empty %}
@@ -715,150 +817,81 @@
                                     <h5 class="fw-bold mb-3 d-flex align-items-center gap-2 text-dark">
                                         <i data-lucide="user-plus" class="text-maroon"></i> Assign Mentors
                                     </h5>
-                                    <style>
-                                        .custom-minimal-tabs { gap: 1rem; align-items: center; border: none !important; }
-                                        .custom-minimal-tabs .nav-link { padding: 0 !important; font-weight: 600; color: #64748b; background: transparent !important; border: none !important; transition: color 0.2s; position: relative; }
-                                        .custom-minimal-tabs .nav-link::before, .custom-minimal-tabs .nav-link::after { display: none !important; }
-                                        .custom-minimal-tabs .nav-link:hover { color: #0f172a !important; background: transparent !important; transform: none !important; }
-                                        .custom-minimal-tabs .nav-link.active { color: #800000 !important; background: transparent !important; transform: none !important; }
-                                        .custom-minimal-tabs .divider { width: 1px; height: 16px; background-color: #cbd5e1; }
-                                    </style>
-                                    <ul class="nav custom-minimal-tabs mb-4" role="tablist">
-                                        <li class="nav-item" role="presentation">
-                                            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-assign-halves" type="button" role="tab">Split Class</button>
-                                        </li>
-                                        <li class="d-flex align-items-center">
-                                            <div class="divider"></div>
-                                        </li>
-                                        <li class="nav-item" role="presentation">
-                                            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-assign-manual" type="button" role="tab">Manual Assign</button>
-                                        </li>
-                                    </ul>
-
-                                    <div class="tab-content">
-                                        <!-- Split Class Tab -->
-                                        <div class="tab-pane fade show active" id="tab-assign-halves" role="tabpanel">
-                                            <p class="text-muted small mb-4" style="line-height: 1.4;">Select Batch & Section to split class, then assign mentors.</p>
-                                            
-                                            <form method="post" id="assign-mentor-halves-form">
+                                    
+                                    <p class="text-muted small mb-4" style="line-height: 1.4;">Manually select students to assign to a specific mentor.</p>
+                                    <form method="post" id="assign-mentor-manual-form">
                                         {% csrf_token %}
-                                        <input type="hidden" name="action" value="assign_mentor_halves">
-
-                                        <!-- Step 1: Batch & Section Selection -->
-                                        <div class="row g-2 mb-3">
-                                            <div class="col-12">
-                                                <label for="id_batch" class="form-label fw-bold small text-secondary">1. Batch</label>
-                                                <select name="batch" id="id_batch" class="form-select form-select-sm" required>
-                                                    <option value="">-- Choose Year/Batch --</option>
-                                                    {% for b in batches %}
-                                                    <option value="{{ b }}">{% for key, val in batch_labels.items %}{% if key == b %}{{ val }}{% endif %}{% endfor %}</option>
-                                                    {% endfor %}
-                                                </select>
-                                            </div>
-                                            <div class="col-12">
-                                                <label for="id_section" class="form-label fw-bold small text-secondary">2. Section</label>
-                                                <select name="section_id" id="id_section" class="form-select form-select-sm" required>
-                                                    <option value="">-- Choose Section --</option>
-                                                    {% for sec in sections %}
-                                                    <option value="{{ sec.id }}">{{ sec.name }}</option>
-                                                    {% endfor %}
-                                                </select>
-                                            </div>
-                                        </div>
-
-                                        <!-- Step 2: Dynamic Split Preview -->
-                                        <div id="split-preview-card" class="mb-3 d-none">
-                                            <div class="p-3 border rounded bg-white shadow-sm">
-                                                <h6 class="fw-bold mb-2 text-maroon d-flex align-items-center gap-1" style="font-size: 0.85rem;">
-                                                    <i data-lucide="split" style="width: 14px; height: 14px;"></i> Class Split Preview
-                                                </h6>
-                                                <p class="text-muted mb-2" style="font-size: 0.8rem;">Total Students: <span id="split-total-count" class="fw-bold text-dark">0</span></p>
-                                                
-                                                <div class="row g-2">
-                                                    <div class="col-6">
-                                                        <div class="p-2 border rounded bg-light" style="font-size: 0.75rem;">
-                                                            <strong class="text-success d-block mb-1">1st Half</strong>
-                                                            <span class="text-secondary d-block text-truncate" id="split-first-half-range" title="">-</span>
-                                                            <small class="text-muted fw-medium" id="split-first-half-count">Count: 0</small>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-6">
-                                                        <div class="p-2 border rounded bg-light" style="font-size: 0.75rem;">
-                                                            <strong class="text-primary d-block mb-1">2nd Half</strong>
-                                                            <span class="text-secondary d-block text-truncate" id="split-second-half-range" title="">-</span>
-                                                            <small class="text-muted fw-medium" id="split-second-half-count">Count: 0</small>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <!-- Step 3: Mentor Selection -->
+                                        <input type="hidden" name="action" value="assign_mentor_manual">
+                                        
                                         <div class="mb-3">
-                                            <label for="mentor_1_id" class="form-label fw-bold small text-secondary">3. Mentor for 1st Half</label>
-                                            <select name="mentor_1_id" id="mentor_1_id" class="form-select form-select-sm mentor-selector" required disabled>
-                                                <option value="">-- Select Batch &amp; Section First --</option>
+                                            <label for="manual_mentor_id" class="form-label fw-bold small text-secondary">Select Mentor</label>
+                                            <select name="mentor_id" id="manual_mentor_id" class="form-select form-select-sm" required>
+                                                <option value="">-- Choose Mentor --</option>
                                                 {% for mentor in mentors %}
-                                                <option value="{{ mentor.id }}" data-mentor-id="{{ mentor.id }}">{{ mentor.full_name|default:mentor.email }}</option>
+                                                <option value="{{ mentor.id }}">{{ mentor.full_name|default:mentor.email }}</option>
                                                 {% endfor %}
                                             </select>
                                         </div>
 
                                         <div class="mb-4">
-                                            <label for="mentor_2_id" class="form-label fw-bold small text-secondary">4. Mentor for 2nd Half</label>
-                                            <select name="mentor_2_id" id="mentor_2_id" class="form-select form-select-sm mentor-selector" required disabled>
-                                                <option value="">-- Select Batch &amp; Section First --</option>
-                                                {% for mentor in mentors %}
-                                                <option value="{{ mentor.id }}" data-mentor-id="{{ mentor.id }}">{{ mentor.full_name|default:mentor.email }}</option>
+                                            <label class="form-label fw-bold small text-secondary">Select Students</label>
+                                            
+                                            <!-- Bulk selection helper controls -->
+                                            <div class="p-3 border rounded bg-white mb-2 shadow-xs" style="font-size: 0.8rem; border-radius: 12px;">
+                                                <div class="fw-bold mb-2 text-secondary d-flex justify-content-between align-items-center">
+                                                    <span>Bulk Selection Helpers</span>
+                                                    <span class="text-maroon fw-bold" id="selected-count-badge" style="font-size: 11px;">Selected: 0</span>
+                                                </div>
+                                                <div class="row g-2 align-items-center mb-2">
+                                                    <div class="col-7">
+                                                        <input type="text" id="manual_search" class="form-control form-control-sm" placeholder="Filter by Name/Roll..." style="border-radius: 8px;">
+                                                    </div>
+                                                    <div class="col-5 text-end d-flex gap-1 justify-content-end">
+                                                        <button type="button" class="btn btn-xs btn-outline-secondary px-2 py-1" onclick="toggleSelectAllManual(true)" style="font-size:11px; border-radius: 6px;">Select All</button>
+                                                        <button type="button" class="btn btn-xs btn-outline-secondary px-2 py-1" onclick="toggleSelectAllManual(false)" style="font-size:11px; border-radius: 6px;">Clear</button>
+                                                    </div>
+                                                </div>
+                                                <div class="row g-2 align-items-center border-top pt-2 mt-2">
+                                                    <div class="col-5">
+                                                        <input type="text" id="range_start" class="form-control form-control-sm" placeholder="Roll From (e.g. 01)" style="border-radius: 8px;">
+                                                    </div>
+                                                    <div class="col-5">
+                                                        <input type="text" id="range_end" class="form-control form-control-sm" placeholder="Roll To (e.g. 70)" style="border-radius: 8px;">
+                                                    </div>
+                                                    <div class="col-2">
+                                                        <button type="button" class="btn btn-xs btn-maroon w-100 py-1" onclick="selectRollRange()" style="font-size:11px; border-radius: 8px;">Select</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Custom Checkbox List Container -->
+                                            <div class="border rounded bg-white p-3" style="max-height: 250px; overflow-y: auto; border-radius: 12px;" id="student-list-container">
+                                                {% for batch_group in manual_students_grouped %}
+                                                    {% for sec_group in batch_group.sections %}
+                                                        <div class="batch-section-group mb-2" data-batch="{{ batch_group.batch }}" data-section="{{ sec_group.name }}">
+                                                            <div class="fw-bold text-secondary mb-2 border-bottom pb-1 mt-3" style="font-size: 0.8rem; letter-spacing: 0.5px;">
+                                                                Batch {{ batch_group.batch_label }} - Section {{ sec_group.name }}
+                                                            </div>
+                                                            <div class="d-flex flex-column gap-2">
+                                                                {% for student in sec_group.students %}
+                                                                <label class="d-flex align-items-center gap-2 p-2 rounded cursor-pointer student-checkbox-row" style="font-size: 0.85rem; margin-bottom: 0; transition: background 0.15s;">
+                                                                    <input type="checkbox" name="student_ids" value="{{ student.id }}" class="student-checkbox-input form-check-input mt-0" style="cursor: pointer; width: 16px; height: 16px; accent-color: var(--primary);" onchange="updateSelectedCount()">
+                                                                    <span class="student-info-text text-dark">
+                                                                        <strong class="text-secondary font-monospace">{{ student.roll_no }}</strong> - {{ student.user.full_name|default:student.user.email }}
+                                                                    </span>
+                                                                </label>
+                                                                {% endfor %}
+                                                            </div>
+                                                        </div>
+                                                    {% endfor %}
                                                 {% endfor %}
-                                            </select>
+                                            </div>
                                         </div>
 
-                                        <button type="submit" id="submit-assignment-btn" class="btn btn-maroon btn-sm w-100 py-2 fw-medium" disabled>Save Assignments</button>
-                                            </form>
-                                        </div>
-
-                                        <!-- Manual Assign Tab -->
-                                        <div class="tab-pane fade" id="tab-assign-manual" role="tabpanel">
-                                            <p class="text-muted small mb-4" style="line-height: 1.4;">Manually select students to assign to a specific mentor.</p>
-                                            <form method="post" id="assign-mentor-manual-form">
-                                                {% csrf_token %}
-                                                <input type="hidden" name="action" value="assign_mentor_manual">
-                                                
-                                                <div class="mb-3">
-                                                    <label for="manual_mentor_id" class="form-label fw-bold small text-secondary">Select Mentor</label>
-                                                    <select name="mentor_id" id="manual_mentor_id" class="form-select form-select-sm" required>
-                                                        <option value="">-- Choose Mentor --</option>
-                                                        {% for mentor in mentors %}
-                                                        <option value="{{ mentor.id }}">{{ mentor.full_name|default:mentor.email }}</option>
-                                                        {% endfor %}
-                                                    </select>
-                                                </div>
-
-                                                <div class="mb-4">
-                                                    <label for="manual_student_ids" class="form-label fw-bold small text-secondary">Select Students</label>
-                                                    <select name="student_ids" id="manual_student_ids" class="form-select form-select-sm" multiple required style="height: 250px;">
-                                                        {% regroup dept_students|dictsort:"section.name"|dictsort:"batch" by batch as batch_list %}
-                                                        {% for batch_group in batch_list %}
-                                                            {% regroup batch_group.list by section.name as section_list %}
-                                                            {% for sec_group in section_list %}
-                                                                <optgroup label="Batch {{ batch_group.grouper }} - Section {{ sec_group.grouper|default:'N/A' }}">
-                                                                    {% for student in sec_group.list|dictsort:"roll_no" %}
-                                                                    <option value="{{ student.id }}">{{ student.roll_no }} - {{ student.user.full_name|default:student.user.email }}</option>
-                                                                    {% endfor %}
-                                                                </optgroup>
-                                                            {% endfor %}
-                                                        {% endfor %}
-                                                    </select>
-                                                    <div class="form-text small mt-1">Hold Ctrl (Windows) or Cmd (Mac) to select multiple students.</div>
-                                                </div>
-
-                                                <button type="submit" class="btn btn-maroon btn-sm w-100 py-2 fw-medium">
-                                                    <i data-lucide="check-circle" style="width: 14px; margin-right: 4px; vertical-align: middle;"></i> Assign Selected Students
-                                                </button>
-                                            </form>
-                                        </div>
-                                    </div>
+                                        <button type="submit" class="btn btn-maroon btn-sm w-100 py-2 fw-medium">
+                                            <i data-lucide="check-circle" style="width: 14px; margin-right: 4px; vertical-align: middle;"></i> Assign Selected Students
+                                        </button>
+                                    </form>
                                 </div>
                             </div>
                         </div>
@@ -920,9 +953,32 @@
                                             </div>
                                             <h6 class="fw-bold mb-1 text-dark">{{ ann.title }}</h6>
                                             <p class="text-secondary small mb-2" style="white-space: pre-wrap;">{{ ann.message }}</p>
-                                            {% if ann.resource_link %}
-                                            <a href="{{ ann.resource_link }}" target="_blank" class="text-secondary hover-text-maroon small fw-medium mt-1 d-inline-flex align-items-center gap-1"><i data-lucide="external-link" class="d-inline" style="width: 14px;"></i> View Resource</a>
-                                            {% endif %}
+                                            
+                                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-2">
+                                                <div>
+                                                    {% if ann.resource_link %}
+                                                    <a href="{{ ann.resource_link }}" target="_blank" class="text-secondary hover-text-maroon small fw-medium d-inline-flex align-items-center gap-1"><i data-lucide="external-link" class="d-inline" style="width: 14px;"></i> View Resource</a>
+                                                    {% endif %}
+                                                </div>
+                                                
+                                                {% if ann.sender == request.user or request.user.is_superuser %}
+                                                <div class="d-flex gap-2">
+                                                    <button type="button" class="btn btn-xs btn-outline-secondary py-1 px-2 d-inline-flex align-items-center gap-1" style="font-size: 11px; border-radius: 6px;" 
+                                                            data-bs-toggle="modal" data-bs-target="#editAnnouncementModal" 
+                                                            data-id="{{ ann.id }}" data-title="{{ ann.title|escapejs }}" data-content="{{ ann.message|escapejs }}" data-resource="{{ ann.resource_link|escapejs }}">
+                                                        <i data-lucide="edit-3" style="width: 12px; height: 12px;"></i> Edit
+                                                    </button>
+                                                    <form method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this announcement?')">
+                                                        {% csrf_token %}
+                                                        <input type="hidden" name="action" value="delete_announcement">
+                                                        <input type="hidden" name="announcement_id" value="{{ ann.id }}">
+                                                        <button type="submit" class="btn btn-xs btn-outline-danger py-1 px-2 d-inline-flex align-items-center gap-1" style="font-size: 11px; border-radius: 6px;">
+                                                            <i data-lucide="trash-2" style="width: 12px; height: 12px;"></i> Delete
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                                {% endif %}
+                                            </div>
                                         </div>
                                         {% empty %}
                                         <div class="py-5 text-center text-muted">
@@ -1367,6 +1423,231 @@
         </div>
     </div>
 
+    <!-- Edit Lesson Plan Modal -->
+    <div class="modal fade" id="editLessonPlanModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius: 16px;">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold">Edit Lesson Plan</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="edit_lesson_plan">
+                        <input type="hidden" name="document_id" id="edit-lp-id">
+                        <div class="mb-3">
+                            <label for="edit-lp-subject" class="form-label fw-bold small text-secondary">Select Subject</label>
+                            <select name="subject_id" id="edit-lp-subject" class="form-select form-select-sm" required>
+                                {% for s in subjects %}
+                                <option value="{{ s.id }}">{{ s.name }} ({{ s.code }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit-lp-year" class="form-label fw-bold small text-secondary">Academic Year</label>
+                            <input type="text" name="academic_year" id="edit-lp-year" class="form-control form-control-sm" required>
+                        </div>
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label for="edit-lp-target-year" class="form-label fw-bold small text-secondary">Target Year (Optional)</label>
+                                <select name="target_year" id="edit-lp-target-year" class="form-select form-select-sm">
+                                    <option value="">-- All Years --</option>
+                                    <option value="1">I Year</option>
+                                    <option value="2">II Year</option>
+                                    <option value="3">III Year</option>
+                                    <option value="4">IV Year</option>
+                                </select>
+                            </div>
+                            <div class="col-6">
+                                <label for="edit-lp-target-section" class="form-label fw-bold small text-secondary">Target Section (Optional)</label>
+                                <select name="target_section" id="edit-lp-target-section" class="form-select form-select-sm">
+                                    <option value="">-- All Sections --</option>
+                                    {% for sec in sections %}
+                                    <option value="{{ sec.id }}">{{ sec.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit-lp-link" class="form-label fw-bold small text-secondary">Resource Link (Optional)</label>
+                            <input type="url" name="resource_link" id="edit-lp-link" class="form-control form-control-sm">
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit-lp-file" class="form-label fw-bold small text-secondary">Change File (Optional - Keep empty to retain existing)</label>
+                            <input type="file" name="file" id="edit-lp-file" class="form-control form-control-sm">
+                        </div>
+                        <button type="submit" class="btn btn-maroon btn-sm w-100">Save Changes</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Timetable Modal -->
+    <div class="modal fade" id="editTimetableModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius: 16px;">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold">Edit Timetable</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="edit_timetable">
+                        <input type="hidden" name="document_id" id="edit-tt-id">
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label for="edit-tt-target-year" class="form-label fw-bold small text-secondary">Target Year (Optional)</label>
+                                <select name="target_year" id="edit-tt-target-year" class="form-select form-select-sm">
+                                    <option value="">-- All Years --</option>
+                                    <option value="1">I Year</option>
+                                    <option value="2">II Year</option>
+                                    <option value="3">III Year</option>
+                                    <option value="4">IV Year</option>
+                                </select>
+                            </div>
+                            <div class="col-6">
+                                <label for="edit-tt-target-section" class="form-label fw-bold small text-secondary">Target Section (Optional)</label>
+                                <select name="target_section" id="edit-tt-target-section" class="form-select form-select-sm">
+                                    <option value="">-- All Sections --</option>
+                                    {% for sec in sections %}
+                                    <option value="{{ sec.id }}">{{ sec.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit-tt-semester" class="form-label fw-bold small text-secondary">Target Semester (Optional)</label>
+                            <input type="number" name="semester" id="edit-tt-semester" class="form-control form-control-sm" min="1" max="8">
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit-tt-valid" class="form-label fw-bold small text-secondary">Valid From</label>
+                            <input type="date" name="valid_from" id="edit-tt-valid" class="form-control form-control-sm" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit-tt-link" class="form-label fw-bold small text-secondary">Resource Link (Optional)</label>
+                            <input type="url" name="resource_link" id="edit-tt-link" class="form-control form-control-sm">
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit-tt-file" class="form-label fw-bold small text-secondary">Change File (Optional - Keep empty to retain existing)</label>
+                            <input type="file" name="file" id="edit-tt-file" class="form-control form-control-sm">
+                        </div>
+                        <button type="submit" class="btn btn-maroon btn-sm w-100">Save Changes</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Academic Calendar Modal -->
+    <div class="modal fade" id="editCalendarModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius: 16px;">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold">Edit Academic Calendar</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="edit_calendar">
+                        <input type="hidden" name="document_id" id="edit-cal-id">
+                        <div class="mb-3">
+                            <label for="edit-cal-title" class="form-label fw-bold small text-secondary">Calendar Title</label>
+                            <input type="text" name="title" id="edit-cal-title" class="form-control form-control-sm" required>
+                        </div>
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label for="edit-cal-target-year" class="form-label fw-bold small text-secondary">Target Year (Optional)</label>
+                                <select name="target_year" id="edit-cal-target-year" class="form-select form-select-sm">
+                                    <option value="">-- All Years --</option>
+                                    <option value="1">I Year</option>
+                                    <option value="2">II Year</option>
+                                    <option value="3">III Year</option>
+                                    <option value="4">IV Year</option>
+                                </select>
+                            </div>
+                            <div class="col-6">
+                                <label for="edit-cal-target-section" class="form-label fw-bold small text-secondary">Target Section (Optional)</label>
+                                <select name="target_section" id="edit-cal-target-section" class="form-select form-select-sm">
+                                    <option value="">-- All Sections --</option>
+                                    {% for sec in sections %}
+                                    <option value="{{ sec.id }}">{{ sec.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit-cal-sem" class="form-label fw-bold small text-secondary">Semester (Optional)</label>
+                            <input type="number" name="semester" id="edit-cal-sem" class="form-control form-control-sm" min="1" max="8">
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit-cal-link" class="form-label fw-bold small text-secondary">Resource Link (Optional)</label>
+                            <input type="url" name="resource_link" id="edit-cal-link" class="form-control form-control-sm">
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit-cal-file" class="form-label fw-bold small text-secondary">Change File (Optional - Keep empty to retain existing)</label>
+                            <input type="file" name="file" id="edit-cal-file" class="form-control form-control-sm">
+                        </div>
+                        <button type="submit" class="btn btn-maroon btn-sm w-100">Save Changes</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Training Modal -->
+    <div class="modal fade" id="editTrainingModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius: 16px;">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold">Edit Training Program</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="update_training">
+                        <input type="hidden" name="training_id" id="edit-trn-id">
+                        <div class="mb-3">
+                            <label for="edit-trn-title" class="form-label fw-bold small text-secondary">Program Title</label>
+                            <input type="text" name="title" id="edit-trn-title" class="form-control form-control-sm" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit-trn-desc" class="form-label fw-bold small text-secondary">Description</label>
+                            <textarea name="description" id="edit-trn-desc" class="form-control form-control-sm" rows="3"></textarea>
+                        </div>
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label for="edit-trn-start" class="form-label fw-bold small text-secondary">Start Date</label>
+                                <input type="date" name="start_date" id="edit-trn-start" class="form-control form-control-sm" required>
+                            </div>
+                            <div class="col-6">
+                                <label for="edit-trn-end" class="form-label fw-bold small text-secondary">End Date</label>
+                                <input type="date" name="end_date" id="edit-trn-end" class="form-control form-control-sm">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit-trn-venue" class="form-label fw-bold small text-secondary">Venue</label>
+                            <input type="text" name="venue" id="edit-trn-venue" class="form-control form-control-sm">
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit-trn-link" class="form-label fw-bold small text-secondary">Registration Link (Optional)</label>
+                            <input type="url" name="registration_link" id="edit-trn-link" class="form-control form-control-sm">
+                        </div>
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" name="is_active" id="edit-trn-active" class="form-check-input">
+                            <label for="edit-trn-active" class="form-check-label small">Mark as Active</label>
+                        </div>
+                        <button type="submit" class="btn btn-maroon btn-sm w-100">Save Changes</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Create Training Modal -->
     <div class="modal fade" id="createTrainingModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
@@ -1412,6 +1693,103 @@
                         <button type="submit" class="btn btn-maroon w-100">Schedule Program</button>
                     </form>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Announcement Modal -->
+    <div class="modal fade" id="editAnnouncementModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius: 16px;">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold">Edit Announcement</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="edit_announcement">
+                    <input type="hidden" name="announcement_id" id="edit-announcement-id">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="edit-announcement-title" class="form-label fw-bold small text-secondary">Announcement Title</label>
+                            <input type="text" name="title" id="edit-announcement-title" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit-announcement-content" class="form-label fw-bold small text-secondary">Message Content</label>
+                            <textarea name="content" id="edit-announcement-content" class="form-control" rows="5" required></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit-announcement-resource" class="form-label fw-bold small text-secondary">Resource Link (Optional)</label>
+                            <input type="url" name="resource_link" id="edit-announcement-resource" class="form-control">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-maroon btn-sm">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Mentor Assignment Modal -->
+    <div class="modal fade" id="editAssignmentModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius: 16px;">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold">Edit Mentor Assignment</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form method="post" id="edit-assignment-form">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="edit_mentor_assignment">
+                    <input type="hidden" name="assignment_id" id="edit-assignment-id">
+                    
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="edit-assignment-mentor" class="form-label fw-bold small text-secondary">Assign to Mentor</label>
+                            <select name="mentor_id" id="edit-assignment-mentor" class="form-select form-select-sm" required>
+                                {% for mentor in mentors %}
+                                <option value="{{ mentor.id }}">{{ mentor.full_name|default:mentor.email }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-secondary">Manage Assigned Students</label>
+                            <div class="p-2 border rounded bg-white mb-2" style="font-size: 0.8rem; border-radius: 8px;">
+                                <input type="text" id="edit_assignment_search" class="form-control form-control-sm" placeholder="Filter student checklist...">
+                            </div>
+                            
+                            <div class="border rounded bg-white p-3" style="max-height: 250px; overflow-y: auto; border-radius: 12px;" id="edit-assignment-students-list">
+                                {% for batch_group in manual_students_grouped %}
+                                    {% for sec_group in batch_group.sections %}
+                                        <div class="edit-batch-section-group mb-2">
+                                            <div class="fw-bold text-secondary mb-2 border-bottom pb-1 mt-2" style="font-size: 0.8rem;">
+                                                Batch {{ batch_group.batch_label }} - Section {{ sec_group.name }}
+                                            </div>
+                                            <div class="d-flex flex-column gap-2">
+                                                {% for student in sec_group.students %}
+                                                <label class="d-flex align-items-center gap-2 p-2 rounded cursor-pointer edit-student-checkbox-row" style="font-size: 0.85rem; margin-bottom: 0; transition: background 0.15s;">
+                                                    <input type="checkbox" name="student_ids" value="{{ student.id }}" class="edit-student-checkbox-input form-check-input mt-0" style="cursor: pointer; width: 16px; height: 16px; accent-color: var(--primary);">
+                                                    <span class="edit-student-info-text text-dark">
+                                                        <strong class="text-secondary font-monospace">{{ student.roll_no }}</strong> - {{ student.user.full_name|default:student.user.email }}
+                                                    </span>
+                                                </label>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-maroon btn-sm">Save Changes</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
@@ -1509,128 +1887,7 @@
 
         // ── Tab Switching Logic ────────────────────────────────────
         document.addEventListener('DOMContentLoaded', () => {
-            // ── Mentor Assignment Class Splitting & Validation Logic ──
-            const deptStudents = [
-                {% for student in dept_students %}
-                {
-                    id: "{{ student.id }}",
-                    name: "{{ student.user.full_name|default:student.user.email|escapejs }}",
-                    roll_no: "{{ student.roll_no|escapejs }}",
-                    batch: "{{ student.batch|escapejs }}",
-                    section_id: "{{ student.section.id|default:'' }}"
-                },
-                {% endfor %}
-            ];
 
-            const assignedMentorsInfo = {
-                {% for m_id, info in assigned_mentors_info.items %}
-                "{{ m_id }}": {
-                    batch: "{{ info.batch|escapejs }}",
-                    section: "{{ info.section|escapejs }}",
-                    half: "{{ info.half|escapejs }}"
-                },
-                {% endfor %}
-            };
-
-            const batchSelect = document.getElementById('id_batch');
-            const sectionSelect = document.getElementById('id_section');
-            const splitPreviewCard = document.getElementById('split-preview-card');
-            const splitTotalCount = document.getElementById('split-total-count');
-            const splitFirstHalfRange = document.getElementById('split-first-half-range');
-            const splitFirstHalfCount = document.getElementById('split-first-half-count');
-            const splitSecondHalfRange = document.getElementById('split-second-half-range');
-            const splitSecondHalfCount = document.getElementById('split-second-half-count');
-            const mentorSelectors = document.querySelectorAll('.mentor-selector');
-            const submitBtn = document.getElementById('submit-assignment-btn');
-
-            function updateMentorOptions(selectedBatch, selectedSectionId) {
-                let sectionOpt = sectionSelect.querySelector(`option[value="${selectedSectionId}"]`);
-                let sectionName = sectionOpt ? sectionOpt.textContent.trim() : "";
-
-                mentorSelectors.forEach(select => {
-                    select.disabled = false;
-                    const options = select.querySelectorAll('option');
-                    options[0].textContent = select.id === 'mentor_1_id' ? '-- Choose 1st Half Mentor --' : '-- Choose 2nd Half Mentor --';
-                    
-                    options.forEach((opt, idx) => {
-                        if (idx === 0) return;
-                        const mentorId = opt.getAttribute('data-mentor-id');
-                        const info = assignedMentorsInfo[mentorId];
-                        
-                        if (info) {
-                            if (info.batch === selectedBatch && info.section === sectionName) {
-                                opt.disabled = false;
-                                opt.textContent = `${opt.text.split(' [')[0]} [Currently Assigned: ${info.half}]`;
-                            } else {
-                                opt.disabled = true;
-                                opt.textContent = `${opt.text.split(' [')[0]} [Already Assigned: ${info.batch} - Sec ${info.section} - ${info.half}]`;
-                            }
-                        } else {
-                            opt.disabled = false;
-                            opt.textContent = opt.text.split(' [')[0];
-                        }
-                    });
-                });
-            }
-
-            function handleClassSelectionChange() {
-                const batch = batchSelect.value;
-                const sectionId = sectionSelect.value;
-
-                if (!batch || !sectionId) {
-                    splitPreviewCard.classList.add('d-none');
-                    mentorSelectors.forEach(select => {
-                        select.disabled = true;
-                        select.value = "";
-                        select.querySelector('option').textContent = '-- Select Batch & Section First --';
-                    });
-                    submitBtn.disabled = true;
-                    return;
-                }
-
-                const filtered = deptStudents.filter(s => s.batch === batch && s.section_id === sectionId);
-                filtered.sort((a, b) => a.roll_no.localeCompare(b.roll_no));
-
-                const total = filtered.length;
-                splitTotalCount.textContent = total;
-
-                if (total > 0) {
-                    const mid = Math.floor((total + 1) / 2);
-                    const firstHalf = filtered.slice(0, mid);
-                    const secondHalf = filtered.slice(mid);
-
-                    const firstRange = firstHalf.length > 0 ? `${firstHalf[0].roll_no} - ${firstHalf[firstHalf.length - 1].roll_no}` : 'N/A';
-                    const secondRange = secondHalf.length > 0 ? `${secondHalf[0].roll_no} - ${secondHalf[secondHalf.length - 1].roll_no}` : 'N/A';
-
-                    splitFirstHalfRange.textContent = firstRange;
-                    splitFirstHalfRange.title = firstHalf.map(s => `${s.name} (${s.roll_no})`).join(', ');
-                    splitFirstHalfCount.textContent = `Count: ${firstHalf.length}`;
-
-                    splitSecondHalfRange.textContent = secondRange;
-                    splitSecondHalfRange.title = secondHalf.map(s => `${s.name} (${s.roll_no})`).join(', ');
-                    splitSecondHalfCount.textContent = `Count: ${secondHalf.length}`;
-
-                    splitPreviewCard.classList.remove('d-none');
-                    updateMentorOptions(batch, sectionId);
-                    submitBtn.disabled = false;
-                } else {
-                    splitFirstHalfRange.textContent = 'No students found';
-                    splitFirstHalfCount.textContent = 'Count: 0';
-                    splitSecondHalfRange.textContent = 'No students found';
-                    splitSecondHalfCount.textContent = 'Count: 0';
-                    splitPreviewCard.classList.remove('d-none');
-                    mentorSelectors.forEach(select => {
-                        select.disabled = true;
-                        select.value = "";
-                    });
-                    submitBtn.disabled = true;
-                }
-            }
-
-            if (batchSelect && sectionSelect) {
-                batchSelect.addEventListener('change', handleClassSelectionChange);
-                sectionSelect.addEventListener('change', handleClassSelectionChange);
-            }
 
             const navLinks = document.querySelectorAll('.sidebar .nav-link[data-tab], .bottom-nav .nav-item[data-tab]');
             const dropdownLinks = document.querySelectorAll('[data-tab-trigger]');
@@ -1674,6 +1931,91 @@
                     activateTab(targetTab);
                 });
             });
+
+            // ── Bulk Selection Helper Functions ─────────────────────────
+            window.updateSelectedCount = function() {
+                const checkedCount = document.querySelectorAll('.student-checkbox-input:checked').length;
+                const badge = document.getElementById('selected-count-badge');
+                if (badge) {
+                    badge.textContent = `Selected: ${checkedCount}`;
+                }
+            };
+
+            window.toggleSelectAllManual = function(select) {
+                const rows = document.querySelectorAll('.student-checkbox-row');
+                rows.forEach(row => {
+                    if (row.style.display !== 'none') {
+                        const cb = row.querySelector('.student-checkbox-input');
+                        if (cb) {
+                            cb.checked = select;
+                        }
+                    }
+                });
+                updateSelectedCount();
+            };
+
+            window.selectRollRange = function() {
+                const startVal = document.getElementById('range_start').value.trim().toLowerCase();
+                const endVal = document.getElementById('range_end').value.trim().toLowerCase();
+                if (!startVal || !endVal) return;
+
+                const rows = document.querySelectorAll('.student-checkbox-row');
+                rows.forEach(row => {
+                    if (row.style.display !== 'none') {
+                        const rollTextEl = row.querySelector('.student-info-text strong');
+                        if (rollTextEl) {
+                            const roll = rollTextEl.textContent.trim().toLowerCase();
+                            if (roll >= startVal && roll <= endVal) {
+                                const cb = row.querySelector('.student-checkbox-input');
+                                if (cb) {
+                                    cb.checked = true;
+                                }
+                            }
+                        }
+                    }
+                });
+                updateSelectedCount();
+            };
+
+            const searchInput = document.getElementById('manual_search');
+            if (searchInput) {
+                searchInput.addEventListener('input', function(e) {
+                    const term = e.target.value.toLowerCase().trim();
+                    const groups = document.querySelectorAll('.batch-section-group');
+                    
+                    groups.forEach(group => {
+                        let visibleInGroup = 0;
+                        const rows = group.querySelectorAll('.student-checkbox-row');
+                        
+                        rows.forEach(row => {
+                            const text = row.querySelector('.student-info-text').textContent.toLowerCase();
+                            if (text.includes(term)) {
+                                row.style.setProperty('display', 'flex', 'important');
+                                visibleInGroup++;
+                            } else {
+                                row.style.setProperty('display', 'none', 'important');
+                            }
+                        });
+                        
+                        if (visibleInGroup === 0) {
+                            group.style.setProperty('display', 'none', 'important');
+                        } else {
+                            group.style.setProperty('display', 'block', 'important');
+                        }
+                    });
+                });
+            }
+
+            const manualForm = document.getElementById('assign-mentor-manual-form');
+            if (manualForm) {
+                manualForm.addEventListener('submit', function(e) {
+                    const checkedCount = document.querySelectorAll('.student-checkbox-input:checked').length;
+                    if (checkedCount === 0) {
+                        e.preventDefault();
+                        alert('Please select at least one student before assigning.');
+                    }
+                });
+            }
 
             // Restore state
             const savedTab = localStorage.getItem('hodActiveTab');
@@ -1945,6 +2287,154 @@
         }
 
 
+
+        // Populate Edit Announcement Modal
+        const editAnnouncementModal = document.getElementById('editAnnouncementModal');
+        if (editAnnouncementModal) {
+            editAnnouncementModal.addEventListener('show.bs.modal', function(event) {
+                const button = event.relatedTarget;
+                const id = button.getAttribute('data-id');
+                const title = button.getAttribute('data-title');
+                const content = button.getAttribute('data-content');
+                const resource = button.getAttribute('data-resource');
+
+                document.getElementById('edit-announcement-id').value = id;
+                document.getElementById('edit-announcement-title').value = title;
+                document.getElementById('edit-announcement-content').value = content;
+                document.getElementById('edit-announcement-resource').value = resource || '';
+            });
+        }
+
+        // Populate Edit Assignment Modal
+        const editAssignmentModal = document.getElementById('editAssignmentModal');
+        if (editAssignmentModal) {
+            editAssignmentModal.addEventListener('show.bs.modal', function(event) {
+                const button = event.relatedTarget;
+                const assignmentId = button.getAttribute('data-assignment-id');
+                const mentorId = button.getAttribute('data-mentor-id');
+                const studentIdsStr = button.getAttribute('data-student-ids') || '';
+                const assignedStudentIds = studentIdsStr ? studentIdsStr.split(',') : [];
+
+                document.getElementById('edit-assignment-id').value = assignmentId;
+                document.getElementById('edit-assignment-mentor').value = mentorId;
+
+                // Reset checklist search term and trigger input
+                const editSearchInput = document.getElementById('edit_assignment_search');
+                if (editSearchInput) {
+                    editSearchInput.value = '';
+                    editSearchInput.dispatchEvent(new Event('input'));
+                }
+
+                // Check active student checkboxes
+                const checkboxes = editAssignmentModal.querySelectorAll('.edit-student-checkbox-input');
+                checkboxes.forEach(cb => {
+                    cb.checked = assignedStudentIds.includes(cb.value);
+                });
+            });
+        }
+
+        // Live search for Edit Assignment Modal student list
+        const editSearchInput = document.getElementById('edit_assignment_search');
+        if (editSearchInput) {
+            editSearchInput.addEventListener('input', function(e) {
+                const term = e.target.value.toLowerCase().trim();
+                const groups = editAssignmentModal.querySelectorAll('.edit-batch-section-group');
+                
+                groups.forEach(group => {
+                    let visibleInGroup = 0;
+                    const rows = group.querySelectorAll('.edit-student-checkbox-row');
+                    
+                    rows.forEach(row => {
+                        const text = row.querySelector('.edit-student-info-text').textContent.toLowerCase();
+                        if (text.includes(term)) {
+                            row.style.setProperty('display', 'flex', 'important');
+                            visibleInGroup++;
+                        } else {
+                            row.style.setProperty('display', 'none', 'important');
+                        }
+                    });
+                    
+                    if (visibleInGroup === 0) {
+                        group.style.setProperty('display', 'none', 'important');
+                    } else {
+                        group.style.setProperty('display', 'block', 'important');
+                    }
+                });
+            });
+        }
+
+        // Validation for Edit Assignment Modal submission
+        const editAssignmentForm = document.getElementById('edit-assignment-form');
+        if (editAssignmentForm) {
+            editAssignmentForm.addEventListener('submit', function(e) {
+                const checkedCount = editAssignmentModal.querySelectorAll('.edit-student-checkbox-input:checked').length;
+                if (checkedCount === 0) {
+                    e.preventDefault();
+                    alert('Please select at least one student before saving.');
+                }
+            });
+        }
+
+        // Populate Edit Lesson Plan Modal
+        const editLessonPlanModal = document.getElementById('editLessonPlanModal');
+        if (editLessonPlanModal) {
+            editLessonPlanModal.addEventListener('show.bs.modal', function(event) {
+                const button = event.relatedTarget;
+                document.getElementById('edit-lp-id').value = button.getAttribute('data-id');
+                document.getElementById('edit-lp-subject').value = button.getAttribute('data-subject-id');
+                document.getElementById('edit-lp-year').value = button.getAttribute('data-acad-year');
+                document.getElementById('edit-lp-target-year').value = button.getAttribute('data-target-year');
+                document.getElementById('edit-lp-target-section').value = button.getAttribute('data-target-section-id');
+                document.getElementById('edit-lp-link').value = button.getAttribute('data-resource-link') || '';
+                document.getElementById('edit-lp-file').value = ''; // Reset file input
+            });
+        }
+
+        // Populate Edit Timetable Modal
+        const editTimetableModal = document.getElementById('editTimetableModal');
+        if (editTimetableModal) {
+            editTimetableModal.addEventListener('show.bs.modal', function(event) {
+                const button = event.relatedTarget;
+                document.getElementById('edit-tt-id').value = button.getAttribute('data-id');
+                document.getElementById('edit-tt-semester').value = button.getAttribute('data-semester') || '';
+                document.getElementById('edit-tt-target-year').value = button.getAttribute('data-target-year');
+                document.getElementById('edit-tt-target-section').value = button.getAttribute('data-target-section-id');
+                document.getElementById('edit-tt-valid').value = button.getAttribute('data-valid-from') || '';
+                document.getElementById('edit-tt-link').value = button.getAttribute('data-resource-link') || '';
+                document.getElementById('edit-tt-file').value = ''; // Reset file input
+            });
+        }
+
+        // Populate Edit Calendar Modal
+        const editCalendarModal = document.getElementById('editCalendarModal');
+        if (editCalendarModal) {
+            editCalendarModal.addEventListener('show.bs.modal', function(event) {
+                const button = event.relatedTarget;
+                document.getElementById('edit-cal-id').value = button.getAttribute('data-id');
+                document.getElementById('edit-cal-title').value = button.getAttribute('data-title');
+                document.getElementById('edit-cal-sem').value = button.getAttribute('data-semester') || '';
+                document.getElementById('edit-cal-target-year').value = button.getAttribute('data-target-year');
+                document.getElementById('edit-cal-target-section').value = button.getAttribute('data-target-section-id');
+                document.getElementById('edit-cal-link').value = button.getAttribute('data-resource-link') || '';
+                document.getElementById('edit-cal-file').value = ''; // Reset file input
+            });
+        }
+
+        // Populate Edit Training Modal
+        const editTrainingModal = document.getElementById('editTrainingModal');
+        if (editTrainingModal) {
+            editTrainingModal.addEventListener('show.bs.modal', function(event) {
+                const button = event.relatedTarget;
+                document.getElementById('edit-trn-id').value = button.getAttribute('data-id');
+                document.getElementById('edit-trn-title').value = button.getAttribute('data-title');
+                document.getElementById('edit-trn-desc').value = button.getAttribute('data-description') || '';
+                document.getElementById('edit-trn-start').value = button.getAttribute('data-start-date') || '';
+                document.getElementById('edit-trn-end').value = button.getAttribute('data-end-date') || '';
+                document.getElementById('edit-trn-venue').value = button.getAttribute('data-venue') || '';
+                document.getElementById('edit-trn-link').value = button.getAttribute('data-registration-link') || '';
+                document.getElementById('edit-trn-active').checked = button.getAttribute('data-is-active') === 'true';
+            });
+        }
 
         loadProfile();
     </script>

@@ -70,3 +70,24 @@ class Attendance(BaseModel):
 
     def __str__(self):
         return f"{self.student.roll_no} - {self.subject.code} - {self.date}"
+
+
+class AttendanceSummary(BaseModel):
+    """Mentor-entered direct attendance percentage per student per subject."""
+    student = models.ForeignKey(
+        'students.StudentProfile', on_delete=models.CASCADE,
+        related_name='attendance_summaries'
+    )
+    subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
+    percentage = models.DecimalField(max_digits=5, decimal_places=2)   # 0.00 – 100.00
+    academic_year = models.CharField(max_length=15)
+    recorded_by = models.ForeignKey(
+        'accounts.User', on_delete=models.SET_NULL, null=True, blank=True
+    )
+
+    class Meta:
+        verbose_name_plural = "Attendance Summaries"
+        unique_together = ('student', 'subject', 'academic_year')
+
+    def __str__(self):
+        return f"{self.student.roll_no} - {self.subject.code}: {self.percentage}%"

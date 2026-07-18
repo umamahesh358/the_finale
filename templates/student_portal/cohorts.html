@@ -3,6 +3,35 @@
 {% block portal_title %}Cohorts{% endblock %}
 {% block portal_tab_title %}Cohorts{% endblock %}
 
+{% block extra_head %}
+<style>
+  /* Fix Bootstrap modal backdrop dark overlay */
+  .modal-backdrop { display: none !important; }
+  .modal         { background: rgba(0, 0, 0, 0.45) !important; }
+  
+  /* Additional Cohorts styling */
+  .cohort-detail-section {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .cohort-detail-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 6px;
+    display: block;
+  }
+</style>
+<script>
+  /* Remove right-click blocking on this page immediately */
+  window.__CIET_NO_CONTEXT_MENU__ = true;
+  document.addEventListener('contextmenu', function(e) { e.stopImmediatePropagation(); }, true);
+</script>
+{% endblock %}
+
 {% block portal_content %}
 <div class="flex-between" style="margin-bottom:24px;">
   <div>
@@ -17,7 +46,7 @@
 
 <div id="student-cohorts-container">
   {% if cohorts %}
-  <div class="two-col-grid" id="student-cohorts-grid" style="margin-bottom:24px;">
+  <div class="two-col-grid" id="student-cohorts-grid" style="margin-bottom:24px; align-items: start;">
     {% for cohort in cohorts %}
     <div class="card project-card" data-db-cohort-id="{{ cohort.id }}" style="padding:24px;background:var(--bg);border-radius:12px;border:1px solid var(--border);position:relative;display:flex;flex-direction:column;gap:12px;">
       <div style="display:flex;align-items:center;gap:16px;">
@@ -36,6 +65,37 @@
       <div style="padding-top:12px;border-top:1px dashed var(--border);margin-top:auto;">
         <p class="cohort-desc" style="font-size:14px;color:#475569;line-height:1.6;margin:0;">{{ cohort.description|default:"No description provided." }}</p>
       </div>
+
+      <!-- Toggle Expand Button -->
+      <div style="display:flex;gap:8px;margin-top:8px;border-top:1px solid var(--border);padding-top:12px;">
+        <button class="btn-ghost" style="font-size:12px;flex:1;padding:8px;" data-bs-toggle="collapse" data-bs-target="#cohortDetails-{{ cohort.id }}">
+          View Group Details &darr;
+        </button>
+      </div>
+
+      <!-- Collapsible details -->
+      <div class="collapse" id="cohortDetails-{{ cohort.id }}" style="margin-top:12px;padding-top:12px;border-top:1px dashed var(--border);">
+        <div style="display:grid;grid-template-columns:1fr;gap:16px;">
+          <div>
+            <h2 class="cohort-detail-title">📚 Study Materials</h2>
+            <div id="cohort-materials-{{ cohort.id }}" style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px;">
+              <span style="font-size:11px;color:var(--muted);font-style:italic;">No materials uploaded yet.</span>
+            </div>
+            
+            <h2 class="cohort-detail-title" style="border-top:1px solid #f1f5f9;padding-top:8px;margin-top:8px;">🔗 Reference Links</h2>
+            <div id="cohort-links-{{ cohort.id }}" style="display:flex;flex-direction:column;gap:6px;">
+              <span style="font-size:11px;color:var(--muted);font-style:italic;">No reference links posted.</span>
+            </div>
+          </div>
+          <div style="border-top:1px solid #f1f5f9;padding-top:12px;">
+            <h2 class="cohort-detail-title">🏆 My Assigned Grade</h2>
+            <div id="cohort-grade-{{ cohort.id }}">
+              <span style="font-size:11px;color:var(--muted);font-style:italic;">Not graded yet.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>
     {% endfor %}
   </div>
@@ -45,6 +105,26 @@
     <div style="font-size:12px;color:var(--muted);margin-top:8px;">Cohorts are assigned by your mentors or department heads.</div>
   </div>
   {% endif %}
+</div>
+
+<!-- Disclaimer Modal -->
+<div class="modal fade" id="disclaimerModal" tabindex="-1" aria-hidden="true" style="z-index: 1100;">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" style="border:none;border-radius:16px;overflow:hidden;box-shadow:0 20px 40px rgba(0,0,0,0.15);">
+      <div style="padding:24px;border-bottom:1px solid var(--border);background:#f8fafc;">
+        <h2 style="margin:0;font-size:18px;font-weight:800;color:#AF0C3E;">⚠️ External Link Disclaimer</h2>
+      </div>
+      <div style="padding:24px;font-size:14px;color:#475569;line-height:1.6;">
+        You are leaving the CIET Student Portal to visit an external website:
+        <div id="disclaimerUrl" style="margin-top:8px;padding:10px;background:#f1f5f9;border-radius:8px;word-break:break-all;font-family:monospace;font-size:12px;color:var(--text);"></div>
+        <p style="margin-top:14px;margin-bottom:0;">Please verify the destination URL. Do you wish to continue?</p>
+      </div>
+      <div style="padding:20px 24px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:12px;background:#f8fafc;">
+        <button type="button" class="btn-ghost" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn-primary" id="disclaimerConfirmBtn">Proceed</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -84,6 +164,7 @@
         grid.id = 'student-cohorts-grid';
         grid.className = 'two-col-grid';
         grid.style.marginBottom = '24px';
+        grid.style.alignItems = 'start';
         container.appendChild(grid);
       }
 
@@ -114,12 +195,136 @@
             <div style="padding-top:12px;border-top:1px dashed var(--border);margin-top:auto;">
               <p class="cohort-desc" style="font-size:14px;color:#475569;line-height:1.6;margin:0;">${c.description || "No description provided."}</p>
             </div>
+
+            <!-- Toggle Expand Button -->
+            <div style="display:flex;gap:8px;margin-top:8px;border-top:1px solid var(--border);padding-top:12px;">
+              <button class="btn-ghost" style="font-size:12px;flex:1;padding:8px;" data-bs-toggle="collapse" data-bs-target="#cohortDetails-${c.id}">
+                View Group Details &darr;
+              </button>
+            </div>
+
+            <!-- Collapsible details -->
+            <div class="collapse" id="cohortDetails-${c.id}" style="margin-top:12px;padding-top:12px;border-top:1px dashed var(--border);">
+              <div style="display:grid;grid-template-columns:1fr;gap:16px;">
+                <div>
+                  <h4 class="cohort-detail-title">📚 Study Materials</h4>
+                  <div id="cohort-materials-${c.id}" style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px;">
+                    <span style="font-size:11px;color:var(--muted);font-style:italic;">No materials uploaded yet.</span>
+                  </div>
+                  
+                  <h4 class="cohort-detail-title" style="border-top:1px solid #f1f5f9;padding-top:8px;margin-top:8px;">🔗 Reference Links</h4>
+                  <div id="cohort-links-${c.id}" style="display:flex;flex-direction:column;gap:6px;">
+                    <span style="font-size:11px;color:var(--muted);font-style:italic;">No reference links posted.</span>
+                  </div>
+                </div>
+                <div style="border-top:1px solid #f1f5f9;padding-top:12px;">
+                  <h4 class="cohort-detail-title">🏆 My Assigned Grade</h4>
+                  <div id="cohort-grade-${c.id}">
+                    <span style="font-size:11px;color:var(--muted);font-style:italic;">Not graded yet.</span>
+                  </div>
+                </div>
+              </div>
+            </div>
           `;
           grid.appendChild(card);
         });
       }
     }
+
+    // Dynamic Loader for Cohort Details
+    function loadCohortDetails(cohortId) {
+      // 1. Load Materials
+      const matsContainer = document.getElementById('cohort-materials-' + cohortId);
+      if (matsContainer) {
+        const mats = JSON.parse(localStorage.getItem('cohort_materials_' + cohortId) || '[]');
+        if (mats.length === 0) {
+          matsContainer.innerHTML = '<span style="font-size:11px;color:var(--muted);font-style:italic;">No materials uploaded yet.</span>';
+        } else {
+          matsContainer.innerHTML = mats.map(mat => `
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:#f8fafc;border-radius:6px;border:1px solid var(--border);font-size:11px;">
+              <span style="font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:180px;">📄 ${mat.title}</span>
+              <a href="${mat.fileData}" target="_blank" download="${mat.fileName || 'file'}" class="btn-ghost" style="font-size:10px;padding:2px 8px;text-decoration:none;">Download</a>
+            </div>
+          `).join('');
+        }
+      }
+
+      // 2. Load Reference Links
+      const linksContainer = document.getElementById('cohort-links-' + cohortId);
+      if (linksContainer) {
+        const links = JSON.parse(localStorage.getItem('cohort_links_' + cohortId) || '[]');
+        if (links.length === 0) {
+          linksContainer.innerHTML = '<span style="font-size:11px;color:var(--muted);font-style:italic;">No reference links posted.</span>';
+        } else {
+          linksContainer.innerHTML = links.map(link => `
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:#f8fafc;border-radius:6px;border:1px solid var(--border);font-size:11px;">
+              <span style="font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:180px;">🔗 ${link.title}</span>
+              <button type="button" class="btn-ghost" style="font-size:10px;padding:2px 8px;text-decoration:none;" onclick="triggerDisclaimer('${link.url.replace(/'/g, "\\'")}')">Visit Link</button>
+            </div>
+          `).join('');
+        }
+      }
+
+      // 3. Load Grades
+      const gradeContainer = document.getElementById('cohort-grade-' + cohortId);
+      if (gradeContainer) {
+        const grades = JSON.parse(localStorage.getItem('cohort_grades_' + cohortId) || '{}');
+        const studentGrade = grades[studentId];
+        if (studentGrade && studentGrade.grade && studentGrade.points) {
+          const points = parseFloat(studentGrade.points);
+          const pct = points * 10;
+          let pillClass = 'tag-green';
+          if (points < 5.0) {
+            pillClass = 'tag-primary';
+          } else if (points < 8.0) {
+            pillClass = 'tag-amber';
+          }
+          
+          gradeContainer.innerHTML = `
+            <div style="display:flex;align-items:center;gap:12px;margin-top:4px;">
+              <span class="tag ${pillClass}" style="font-size:13px;padding:5px 12px;font-weight:800;border-radius:12px;border:none;">
+                Grade: ${studentGrade.grade} (${pct.toFixed(1)}%)
+              </span>
+              <span style="font-size:12.5px;color:var(--muted);font-weight:600;">${studentGrade.points} / 10 Points</span>
+            </div>
+          `;
+        } else {
+          gradeContainer.innerHTML = '<span style="font-size:11px;color:var(--muted);font-style:italic;">Not graded yet.</span>';
+        }
+      }
+    }
+
+    // Listen to collapse events on document to trigger detail loads
+    document.addEventListener('shown.bs.collapse', function(e) {
+      if (e.target.id && e.target.id.startsWith('cohortDetails-')) {
+        const id = e.target.id.split('-').pop();
+        loadCohortDetails(id);
+      }
+    });
+
+    // Link Disclaimer Handler
+    let activeTargetUrl = '';
+    window.triggerDisclaimer = function(url) {
+      activeTargetUrl = url;
+      const modalUrlDiv = document.getElementById('disclaimerUrl');
+      if (modalUrlDiv) {
+        modalUrlDiv.textContent = url;
+      }
+      const modal = new bootstrap.Modal(document.getElementById('disclaimerModal'));
+      modal.show();
+    };
+
+    document.getElementById('disclaimerConfirmBtn')?.addEventListener('click', () => {
+      if (activeTargetUrl) {
+        window.open(activeTargetUrl, '_blank');
+      }
+      const modalEl = document.getElementById('disclaimerModal');
+      const modalInstance = bootstrap.Modal.getInstance(modalEl);
+      if (modalInstance) {
+        modalInstance.hide();
+      }
+    });
+
   });
 </script>
-
 {% endblock %}

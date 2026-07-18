@@ -3,6 +3,55 @@
 {% block portal_title %}Education{% endblock %}
 {% block portal_tab_title %}Education{% endblock %}
 
+{% block extra_head %}
+<style>
+  /* Fix Bootstrap modal backdrop dark overlay */
+  .modal-backdrop { display: none !important; }
+  .modal         { background: rgba(0, 0, 0, 0.45) !important; }
+  .df-group {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 6px !important;
+    margin-bottom: 14px !important;
+    width: 100% !important;
+  }
+  .df-label {
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    color: #475569 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.08em !important;
+    margin-bottom: 4px !important;
+  }
+  .df-input {
+    width: 100% !important;
+    height: 42px !important;
+    padding: 10px 14px !important;
+    border: 1.5px solid #cbd5e1 !important;
+    border-radius: 24px !important;
+    font-size: 13px !important;
+    color: #1e293b !important;
+    background: #ffffff !important;
+    outline: none !important;
+    transition: border-color 0.2s, box-shadow 0.2s !important;
+    box-sizing: border-box !important;
+  }
+  select.df-input {
+    height: 42px !important;
+    appearance: auto !important;
+  }
+  .df-input:focus {
+    border-color: #AF0C3E !important;
+    box-shadow: 0 0 0 3px rgba(175, 12, 62, 0.15) !important;
+  }
+</style>
+<script>
+  /* Remove right-click blocking on this page immediately */
+  window.__CIET_NO_CONTEXT_MENU__ = true;
+  document.addEventListener('contextmenu', function(e) { e.stopImmediatePropagation(); }, true);
+</script>
+{% endblock %}
+
 {% block portal_content %}
 <div class="flex-between" style="margin-bottom:24px;">
   <div>

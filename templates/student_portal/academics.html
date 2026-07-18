@@ -6,8 +6,8 @@
 {% block portal_content %}
 <div class="flex-between" style="margin-bottom:24px;">
   <div>
-    <h1 class="section-title">Transcript & Progress</h1>
-    <p class="section-sub">Official marks published by the Exam Cell.</p>
+    <h1 class="section-title">Transcript &amp; Progress</h1>
+    <p class="section-sub">Official marks and attendance published by your mentor.</p>
   </div>
 </div>
 
@@ -31,6 +31,22 @@
       <div style="font-size:22px;font-weight:800;color:var(--text);">{{ subject_stats|length }}</div>
     </div>
   </div>
+  {% if overall_attendance is not None %}
+  <div class="card" style="padding:20px;display:flex;align-items:center;gap:16px;">
+    <div style="width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;
+      {% if overall_attendance >= 75 %}background:#d1fae5;{% elif overall_attendance >= 60 %}background:#fef3c7;{% else %}background:#fee2e2;{% endif %}">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+        stroke="{% if overall_attendance >= 75 %}#065f46{% elif overall_attendance >= 60 %}#92400e{% else %}#991b1b{% endif %}"
+        stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    </div>
+    <div>
+      <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;">Attendance</div>
+      <div style="font-size:22px;font-weight:800;color:{% if overall_attendance >= 75 %}#065f46{% elif overall_attendance >= 60 %}#92400e{% else %}#991b1b{% endif %};">
+        {{ overall_attendance }}%
+      </div>
+    </div>
+  </div>
+  {% endif %}
 </div>
 
 <!-- Marks Table -->
@@ -106,6 +122,64 @@
         {% endfor %}
       </tbody>
     </table>
+  </div>
+</div>
+{% endif %}
+
+<!-- Subject-wise Attendance Breakdown -->
+{% if attendance_by_subject %}
+<div class="card" style="margin-top:20px;">
+  <div class="card-header-custom">
+    <h2 style="font-size:14px;font-weight:700;">Attendance Breakdown by Subject</h2>
+    <span style="font-size:11px;font-weight:600;color:var(--muted);">Updated by your mentor · {{ current_year|default:"Current Year" }}</span>
+  </div>
+  <div style="padding:0 20px 20px;">
+    {% for att in attendance_by_subject %}
+    <div style="padding:14px 0; border-bottom:1px solid var(--border);">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <div>
+          <div style="font-size:13px;font-weight:700;color:var(--text);">{{ att.subject_name }}</div>
+          <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">{{ att.subject_code }}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span style="font-size:18px;font-weight:800;
+            color:{% if att.color_class == 'att-good' %}#065f46{% elif att.color_class == 'att-warning' %}#92400e{% else %}#991b1b{% endif %};">
+            {{ att.percentage }}%
+          </span>
+          <span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;
+            {% if att.color_class == 'att-good' %}background:#d1fae5;color:#065f46;
+            {% elif att.color_class == 'att-warning' %}background:#fef3c7;color:#92400e;
+            {% else %}background:#fee2e2;color:#991b1b;{% endif %}">
+            {{ att.status_label }}
+          </span>
+        </div>
+      </div>
+      <!-- Progress bar -->
+      <div style="background:#f1f5f9;border-radius:6px;height:8px;overflow:hidden;">
+        <div style="height:100%;border-radius:6px;width:{{ att.percentage }}%;
+          background:{% if att.color_class == 'att-good' %}linear-gradient(90deg,#34d399,#059669)
+          {% elif att.color_class == 'att-warning' %}linear-gradient(90deg,#fbbf24,#d97706)
+          {% else %}linear-gradient(90deg,#f87171,#dc2626){% endif %};
+          transition:width 0.6s ease;">
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+    {% if overall_attendance is not None %}
+    <div style="margin-top:16px;padding:14px 16px;border-radius:12px;background:#f8fafc;display:flex;justify-content:space-between;align-items:center;">
+      <span style="font-size:13px;font-weight:700;color:var(--text);">Overall Average Attendance</span>
+      <span style="font-size:20px;font-weight:800;
+        color:{% if overall_attendance >= 75 %}#065f46{% elif overall_attendance >= 60 %}#92400e{% else %}#991b1b{% endif %};">
+        {{ overall_attendance }}%
+      </span>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% elif not attendance_by_subject %}
+<div class="card" style="margin-top:20px;">
+  <div style="padding:48px;text-align:center;color:var(--muted);font-size:13px;">
+    No attendance data entered by your mentor yet.
   </div>
 </div>
 {% endif %}

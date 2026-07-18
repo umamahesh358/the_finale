@@ -39,3 +39,30 @@ class TestServices:
         
         cert.refresh_from_db()
         assert cert.is_verified is True
+
+    def test_student_photo_upload(self):
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        from django.urls import reverse
+        from django.test import Client
+
+        dept = Department.objects.create(name="CS", code="CS")
+        user = User.objects.create(email="student_profile@test.com", role="Student")
+        profile = StudentProfile.objects.create(user=user, roll_no="R002", department=dept)
+
+        client = Client()
+        client.force_login(user)
+
+        dummy_img = SimpleUploadedFile("avatar.jpg", b"file_content", content_type="image/jpeg")
+        url = reverse('student-profile-edit')
+        
+        response = client.post(url, {
+            'first_name': 'New',
+            'last_name': 'Name',
+            'photo': dummy_img
+        })
+
+        assert response.status_code == 302
+        profile.refresh_from_db()
+        assert profile.photo.name is not None
+        assert profile.photo.name != ""
+        assert profile.user.full_name == "New Name"

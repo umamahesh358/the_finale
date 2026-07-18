@@ -11,7 +11,7 @@ from django.http import HttpResponse, JsonResponse
 from django.contrib import messages
 
 from apps.accounts.models import User
-from apps.academics.models import Department, Section, Subject, Marks, Attendance
+from apps.academics.models import Department, Section, Subject, Marks, Attendance, AttendanceSummary
 from apps.students.models import StudentProfile
 from apps.faculty.models import (
     StudentMentorAssignment, LessonPlan, Timetable, AcademicCalendar,
@@ -427,6 +427,28 @@ class HODDashboardView(RoleRequiredMixin, View):
             student.year_num = _student_year_from_batch(student.batch)
             student.year_roman = ROMAN_YEARS.get(student.year_num, 'I')
 
+        # Build batch-grouped student list for manual assignment dropdown safely
+        from collections import defaultdict
+        grouped_students = defaultdict(lambda: defaultdict(list))
+        for student in sorted(dept_students, key=lambda s: (s.batch or '', s.section.name if s.section else 'N/A', s.roll_no or '')):
+            sec_name = student.section.name if student.section else 'N/A'
+            grouped_students[student.batch][sec_name].append(student)
+
+        manual_students_grouped = []
+        for batch_val in sorted(grouped_students.keys()):
+            sec_dict = grouped_students[batch_val]
+            sec_list = []
+            for sec_name in sorted(sec_dict.keys()):
+                sec_list.append({
+                    'name': sec_name,
+                    'students': sorted(sec_dict[sec_name], key=lambda s: s.roll_no or '')
+                })
+            manual_students_grouped.append({
+                'batch': batch_val,
+                'batch_label': _batch_display_label(batch_val),
+                'sections': sec_list
+            })
+
         # Build assigned mentors information
         assigned_mentors_info = {}
         for assignment in direct_assignments:
@@ -565,6 +587,7 @@ class HODDashboardView(RoleRequiredMixin, View):
             'perf_values':        perf_values,
             'principal_labels':   principal_labels,
             'principal_values':   principal_values,
+            'manual_students_grouped': manual_students_grouped,
         })
 
     def post(self, request):
@@ -698,6 +721,46 @@ class HODDashboardView(RoleRequiredMixin, View):
                 StudentMentorAssignment.objects.filter(id=assignment_id).delete()
                 messages.success(request, 'Mentor assignment removed.')
 
+        elif action == 'edit_mentor_assignment':
+            assignment_id = request.POST.get('assignment_id')
+            mentor_id = request.POST.get('mentor_id')
+            student_ids = request.POST.getlist('student_ids')
+
+            if assignment_id and mentor_id:
+                assignment = get_object_or_404(StudentMentorAssignment, id=assignment_id)
+                new_mentor = get_object_or_404(User, id=mentor_id, role__in=['Faculty', 'Mentor'])
+                
+                # Check if this new mentor already has a DIFFERENT assignment in this academic year
+                existing_assignment = StudentMentorAssignment.objects.filter(
+                    mentor=new_mentor, academic_year=current_year
+                ).exclude(id=assignment_id).first()
+                
+                if existing_assignment:
+                    messages.error(request, f"{new_mentor.full_name or new_mentor.email} already has a mentor assignment. Please edit that assignment directly or choose a different mentor.")
+                    return redirect('hod-dashboard')
+                
+                assignment.mentor = new_mentor
+                assignment.save()
+
+                students = list(StudentProfile.objects.filter(id__in=student_ids, department=dept, is_deleted=False))
+                
+                other_assignments = StudentMentorAssignment.objects.filter(
+                    academic_year=current_year
+                ).exclude(id=assignment.id)
+                for oa in other_assignments:
+                    oa.students.remove(*students)
+                
+                assignment.students.set(students)
+                
+                # Clean up empty assignments
+                StudentMentorAssignment.objects.filter(
+                    academic_year=current_year,
+                    students__isnull=True
+                ).delete()
+
+                messages.success(request, 'Mentor assignment updated successfully.')
+                return redirect('hod-dashboard')
+
         elif action == 'upload_lesson_plan':
             subject_id = request.POST.get('subject_id')
             acad_year  = request.POST.get('academic_year', current_year)
@@ -773,6 +836,7 @@ class HODDashboardView(RoleRequiredMixin, View):
             end_date = request.POST.get('end_date') or None
             venue = request.POST.get('venue', '').strip()
             is_active = request.POST.get('is_active') == 'on'
+            registration_link = request.POST.get('registration_link', '').strip()
             if training_id and title and start_date:
                 training = get_object_or_404(TrainingProgram, id=training_id, is_deleted=False)
                 if training.department == dept:
@@ -782,10 +846,108 @@ class HODDashboardView(RoleRequiredMixin, View):
                     training.end_date = end_date
                     training.venue = venue
                     training.is_active = is_active
-                    training.save(update_fields=[
-                        'title', 'description', 'start_date', 'end_date',
-                        'venue', 'is_active', 'updated_at'
-                    ])
+                    training.registration_link = registration_link
+                    training.save()
+                    messages.success(request, 'Training program updated successfully.')
+
+        elif action == 'delete_training':
+            training_id = request.POST.get('training_id')
+            if training_id:
+                training = get_object_or_404(TrainingProgram, id=training_id, is_deleted=False)
+                if training.department == dept:
+                    training.is_deleted = True
+                    training.save()
+                    messages.success(request, 'Training program deleted successfully.')
+
+        elif action == 'edit_lesson_plan':
+            doc_id = request.POST.get('document_id')
+            subject_id = request.POST.get('subject_id')
+            acad_year = request.POST.get('academic_year', current_year)
+            target_year = request.POST.get('target_year') or None
+            target_section_id = request.POST.get('target_section') or None
+            resource_link = request.POST.get('resource_link', '').strip()
+            f = request.FILES.get('file')
+
+            if doc_id and subject_id:
+                lp = get_object_or_404(LessonPlan, id=doc_id)
+                if lp.uploaded_by == request.user or request.user.is_superuser:
+                    lp.subject_id = subject_id
+                    lp.academic_year = acad_year
+                    lp.target_year = target_year
+                    lp.target_section_id = target_section_id
+                    lp.resource_link = resource_link
+                    if f:
+                        lp.file = f
+                    lp.save()
+                    messages.success(request, 'Lesson plan updated successfully.')
+
+        elif action == 'delete_lesson_plan':
+            doc_id = request.POST.get('document_id')
+            if doc_id:
+                lp = get_object_or_404(LessonPlan, id=doc_id)
+                if lp.uploaded_by == request.user or request.user.is_superuser:
+                    lp.delete()
+                    messages.success(request, 'Lesson plan deleted successfully.')
+
+        elif action == 'edit_timetable':
+            doc_id = request.POST.get('document_id')
+            semester = request.POST.get('semester')
+            target_year = request.POST.get('target_year') or None
+            target_section_id = request.POST.get('target_section') or None
+            valid_from = request.POST.get('valid_from')
+            resource_link = request.POST.get('resource_link', '').strip()
+            f = request.FILES.get('file')
+
+            if doc_id and valid_from:
+                tt = get_object_or_404(Timetable, id=doc_id)
+                if tt.uploaded_by == request.user or request.user.is_superuser:
+                    tt.semester = semester or None
+                    tt.target_year = target_year
+                    tt.target_section_id = target_section_id
+                    tt.valid_from = valid_from
+                    tt.resource_link = resource_link
+                    if f:
+                        tt.file = f
+                    tt.save()
+                    messages.success(request, 'Timetable updated successfully.')
+
+        elif action == 'delete_timetable':
+            doc_id = request.POST.get('document_id')
+            if doc_id:
+                tt = get_object_or_404(Timetable, id=doc_id)
+                if tt.uploaded_by == request.user or request.user.is_superuser:
+                    tt.delete()
+                    messages.success(request, 'Timetable deleted successfully.')
+
+        elif action == 'edit_calendar':
+            doc_id = request.POST.get('document_id')
+            title = request.POST.get('title')
+            semester = request.POST.get('semester')
+            target_year = request.POST.get('target_year') or None
+            target_section_id = request.POST.get('target_section') or None
+            resource_link = request.POST.get('resource_link', '').strip()
+            f = request.FILES.get('file')
+
+            if doc_id and title:
+                cal = get_object_or_404(AcademicCalendar, id=doc_id)
+                if cal.uploaded_by == request.user or request.user.is_superuser:
+                    cal.title = title
+                    cal.semester = semester or None
+                    cal.target_year = target_year
+                    cal.target_section_id = target_section_id
+                    cal.resource_link = resource_link
+                    if f:
+                        cal.file = f
+                    cal.save()
+                    messages.success(request, 'Academic calendar updated successfully.')
+
+        elif action == 'delete_calendar':
+            doc_id = request.POST.get('document_id')
+            if doc_id:
+                cal = get_object_or_404(AcademicCalendar, id=doc_id)
+                if cal.uploaded_by == request.user or request.user.is_superuser:
+                    cal.delete()
+                    messages.success(request, 'Academic calendar deleted successfully.')
 
         elif action == 'create_announcement':
             title = request.POST.get('title', '').strip()
@@ -801,6 +963,28 @@ class HODDashboardView(RoleRequiredMixin, View):
                     target_department=dept,
                     is_global=False
                 )
+
+        elif action == 'delete_announcement':
+            ann_id = request.POST.get('announcement_id')
+            if ann_id:
+                ann = get_object_or_404(Notification, id=ann_id)
+                if ann.sender == request.user or request.user.is_superuser:
+                    ann.delete()
+                    messages.success(request, 'Announcement deleted successfully.')
+
+        elif action == 'edit_announcement':
+            ann_id = request.POST.get('announcement_id')
+            title = request.POST.get('title', '').strip()
+            content = request.POST.get('content', '').strip()
+            resource_link = request.POST.get('resource_link', '').strip()
+            if ann_id and title and content:
+                ann = get_object_or_404(Notification, id=ann_id)
+                if ann.sender == request.user or request.user.is_superuser:
+                    ann.title = title
+                    ann.message = content
+                    ann.resource_link = resource_link
+                    ann.save()
+                    messages.success(request, 'Announcement updated successfully.')
 
         return redirect('hod-dashboard')
 
@@ -832,14 +1016,39 @@ class FacultyHubMentoringView(RoleRequiredMixin, View):
         student_stats = []
         for s in students:
             avg_marks = Marks.objects.filter(student=s).aggregate(avg=Avg('total'))['avg'] or 0
-            total_att = Attendance.objects.filter(student=s).count()
-            present   = Attendance.objects.filter(student=s, is_present=True).count()
-            att_pct   = round((present / total_att * 100) if total_att else 0)
+            # Attendance from AttendanceSummary (percentage-based)
+            att_summaries = AttendanceSummary.objects.filter(student=s, academic_year=current_year)
+            if att_summaries.exists():
+                att_pct = round(float(att_summaries.aggregate(avg=Avg('percentage'))['avg'] or 0))
+            else:
+                # Fall back to date-by-date records for legacy data
+                total_att = Attendance.objects.filter(student=s).count()
+                present   = Attendance.objects.filter(student=s, is_present=True).count()
+                att_pct   = round((present / total_att * 100) if total_att else 0)
+
+            # Build per-subject attendance dict for template {subject_id: pct}
+            att_by_subject = {
+                str(a.subject_id): float(a.percentage)
+                for a in att_summaries
+            }
+
+            # Build per-subject marks dict for template {subject_id: {internal, external, grade}}
+            marks_by_subject = {}
+            for m in Marks.objects.filter(student=s).select_related('subject'):
+                marks_by_subject[str(m.subject_id)] = {
+                    'internal': float(m.internal),
+                    'external': float(m.external),
+                    'total': float(m.total),
+                    'grade': m.grade,
+                }
+
             student_stats.append({
-                'student':    s,
-                'avg_marks':  round(float(avg_marks), 1),
-                'att_pct':    att_pct,
-                'cgpa':       s.cgpa,
+                'student':         s,
+                'avg_marks':       round(float(avg_marks), 1),
+                'att_pct':         att_pct,
+                'cgpa':            s.cgpa,
+                'att_by_subject':  att_by_subject,
+                'marks_by_subject': marks_by_subject,
             })
             
         mentor_chart_data = [
@@ -901,29 +1110,49 @@ class FacultyHubMentoringView(RoleRequiredMixin, View):
         if action == 'upload_marks':
             student_id = request.POST.get('student_id')
             subject_id = request.POST.get('subject_id')
-            internal   = request.POST.get('internal', 0)
-            external   = request.POST.get('external', 0)
-            total      = float(internal) + float(external)
-            grade      = request.POST.get('grade', '')
+            try:
+                internal_val = float(request.POST.get('internal', 0) or 0)
+                external_val = float(request.POST.get('external', 0) or 0)
+            except ValueError:
+                messages.error(request, "Invalid marks format entered.")
+                return redirect('faculty-mentor')
+            total = internal_val + external_val
+            # Auto-calculate grade from total; mentor-supplied grade overrides
+            grade = request.POST.get('grade', '').strip()
+            if not grade:
+                if total >= 90:   grade = 'A+'
+                elif total >= 80: grade = 'A'
+                elif total >= 70: grade = 'B'
+                elif total >= 60: grade = 'C'
+                elif total >= 50: grade = 'D'
+                elif total >= 40: grade = 'P'
+                else:             grade = 'F'
             if student_id and subject_id:
                 Marks.objects.update_or_create(
                     student_id=student_id, subject_id=subject_id,
-                    defaults={'internal': internal, 'external': external,
+                    defaults={'internal': internal_val, 'external': external_val,
                               'total': total, 'grade': grade}
                 )
-                messages.success(request, "Marks uploaded successfully.")
+                messages.success(request, "Marks updated successfully.")
 
         elif action == 'upload_attendance':
-            student_id  = request.POST.get('student_id')
-            subject_id  = request.POST.get('subject_id')
-            date_str    = request.POST.get('date')
-            is_present  = request.POST.get('is_present') == 'on'
-            if student_id and subject_id and date_str:
-                Attendance.objects.get_or_create(
-                    student_id=student_id, subject_id=subject_id, date=date_str,
-                    defaults={'is_present': is_present, 'recorded_by': request.user}
-                )
-                messages.success(request, "Attendance uploaded successfully.")
+            student_id    = request.POST.get('student_id')
+            subject_id    = request.POST.get('subject_id')
+            percentage_str = request.POST.get('percentage', '').strip()
+            acad_year     = request.POST.get('academic_year', f"{now().year}-{now().year + 1}")
+            if student_id and subject_id and percentage_str:
+                try:
+                    pct = float(percentage_str)
+                    pct = max(0.0, min(100.0, pct))   # clamp 0–100
+                    AttendanceSummary.objects.update_or_create(
+                        student_id=student_id,
+                        subject_id=subject_id,
+                        academic_year=acad_year,
+                        defaults={'percentage': pct, 'recorded_by': request.user}
+                    )
+                    messages.success(request, "Attendance updated successfully.")
+                except ValueError:
+                    messages.error(request, "Invalid percentage value.")
 
         return redirect('faculty-mentor')
 

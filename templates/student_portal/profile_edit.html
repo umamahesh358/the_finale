@@ -19,18 +19,23 @@
 </div>
 
 {% if profile.is_public %}
-<script>document.getElementById('togglePublicBtn').style.background='#16a34a';</script>
+<script>document.getElementById('togglePublicBtn').style.background = '#16a34a';</script>
 <div class="card" style="margin-bottom:24px;padding:20px;background:var(--primary);color:#fff;border:none;">
-  <div style="font-size:11px;font-weight:700;color:#a5b4fc;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:4px;">Your Public Portfolio is Live</div>
-  <div style="font-size:14px;font-weight:700;margin-bottom:10px;">Share your profile with recruiters and employers:</div>
+  <div
+    style="font-size:11px;font-weight:700;color:#a5b4fc;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:4px;">
+    Your Public Portfolio is Live</div>
+  <div style="font-size:14px;font-weight:700;margin-bottom:10px;">Share your profile with recruiters and employers:
+  </div>
   <div style="display:flex;align-items:center;gap:12px;">
-    <code id="publicLink" style="font-size:12px;color:#c7d2fe;background:rgba(255,255,255,0.1);padding:8px 14px;border-radius:8px;flex:1;">
+    <code id="publicLink"
+      style="font-size:12px;color:#c7d2fe;background:rgba(255,255,255,0.1);padding:8px 14px;border-radius:8px;flex:1;">
       {{ request.scheme }}://{{ request.get_host }}{% url 'student-public-profile' profile.slug %}
     </code>
     <button type="button" onclick="copyProfileLink()" class="btn-primary" style="background:#6366f1;border:none;">
       <span id="copyText">Copy Link</span>
     </button>
-    <a href="{% url 'student-public-profile' profile.slug %}" target="_blank" class="btn-ghost" style="color:#fff;border-color:rgba(255,255,255,0.3);">Preview →</a>
+    <a href="{% url 'student-public-profile' profile.slug %}" target="_blank" class="btn-ghost"
+      style="color:#fff;border-color:rgba(255,255,255,0.3);">Preview →</a>
   </div>
 </div>
 {% endif %}
@@ -44,14 +49,18 @@
       <div class="card" style="padding:24px;text-align:center;">
         <!-- Avatar -->
         <div style="position:relative;width:100px;height:100px;margin:0 auto 16px;">
-          <div style="width:100px;height:100px;border-radius:50%;background:var(--primary-light);display:flex;align-items:center;justify-content:center;overflow:hidden;border:3px solid var(--border);">
+          <div
+            style="width:100px;height:100px;border-radius:50%;background:var(--primary-light);display:flex;align-items:center;justify-content:center;overflow:hidden;border:3px solid var(--border);">
             {% if profile.photo %}
             <img src="{{ profile.photo.url }}" style="width:100%;height:100%;object-fit:cover;" alt="Photo">
             {% else %}
-            <span style="font-size:36px;font-weight:800;color:var(--primary);">{{ profile.user.full_name|first|upper }}</span>
+            <span style="font-size:36px;font-weight:800;color:var(--primary);">{{ profile.user.full_name|first|upper
+              }}</span>
             {% endif %}
           </div>
-          <label style="position:absolute;bottom:0;right:0;width:28px;height:28px;background:var(--primary);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#fff;font-size:13px;" title="Change photo">
+          <label
+            style="position:absolute;bottom:0;right:0;width:28px;height:28px;background:var(--primary);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#fff;font-size:13px;"
+            title="Change photo">
             📷<input type="file" name="photo" style="display:none;" accept="image/*">
           </label>
         </div>
@@ -62,19 +71,30 @@
           {{ profile.roll_no }} · {{ profile.department.code }}
         </div>
         <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);">
-          <a href="{% url 'student-public-profile' profile.slug %}" target="_blank" class="btn-primary" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:10px;background:var(--primary);color:#fff;border-radius:8px;font-size:13px;font-weight:700;text-decoration:none;margin-bottom:16px;">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+          <a href="{% url 'student-public-profile' profile.slug %}" target="_blank" class="btn-primary"
+            style="display:flex;align-items:center;justify-content:center;gap:8px;padding:10px;background:var(--primary);color:#fff;border-radius:8px;font-size:13px;font-weight:700;text-decoration:none;margin-bottom:16px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+              <polyline points="15 3 21 3 21 9"></polyline>
+              <line x1="10" y1="14" x2="21" y2="3"></line>
+            </svg>
             View Public Page
           </a>
-          <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;">Resume / CV</div>
+          <div
+            style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;">
+            Resume / CV</div>
           {% if profile.resume %}
-          <a href="{{ profile.resume.url }}" target="_blank" class="btn-ghost" style="font-size:12px;display:block;margin-bottom:8px;text-decoration:none;">📄 View Current CV</a>
+          <a href="{{ profile.resume.url }}" target="_blank" class="btn-ghost"
+            style="font-size:12px;display:block;margin-bottom:8px;text-decoration:none;">📄 View Current CV</a>
           {% endif %}
-          <label style="display:block;padding:8px 16px;background:#1e293b;color:#fff;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;text-align:center;">
+          <label
+            style="display:block;padding:8px 16px;background:#1e293b;color:#fff;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;text-align:center;">
             Upload New PDF<input type="file" name="resume" style="display:none;" accept=".pdf">
           </label>
           <label style="display:flex;align-items:center;gap:8px;font-size:12px;margin-top:10px;cursor:pointer;">
-            <input type="checkbox" name="show_resume_on_profile" {% if profile.show_resume_on_profile %}checked{% endif %}>
+            <input type="checkbox" name="show_resume_on_profile" {% if profile.show_resume_on_profile %}checked{% endif
+              %}>
             Show on public profile
           </label>
         </div>
@@ -82,7 +102,9 @@
 
       <!-- Academic Info (read-only) -->
       <div class="card" style="padding:20px;">
-        <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:12px;">Academic Identity</div>
+        <div
+          style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:12px;">
+          Academic Identity</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
           <div style="padding:12px;background:var(--bg);border-radius:8px;border:1px solid var(--border);">
             <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;">Batch</div>
@@ -90,11 +112,14 @@
           </div>
           <div style="padding:12px;background:var(--bg);border-radius:8px;border:1px solid var(--border);">
             <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;">Section</div>
-            <div style="font-size:13px;font-weight:700;color:var(--text);margin-top:2px;">{{ profile.section.name|default:"A" }}</div>
+            <div style="font-size:13px;font-weight:700;color:var(--text);margin-top:2px;">{{
+              profile.section.name|default:"A" }}</div>
           </div>
-          <div style="padding:12px;background:var(--bg);border-radius:8px;border:1px solid var(--border);grid-column:span 2;">
+          <div
+            style="padding:12px;background:var(--bg);border-radius:8px;border:1px solid var(--border);grid-column:span 2;">
             <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;">CGPA</div>
-            <div style="font-size:13px;font-weight:700;color:var(--text);margin-top:2px;">{{ profile.cgpa|default:"—" }}</div>
+            <div style="font-size:13px;font-weight:700;color:var(--text);margin-top:2px;">{{ profile.cgpa|default:"—" }}
+            </div>
           </div>
         </div>
       </div>
@@ -117,7 +142,8 @@
           </div>
           <div class="df-group" style="grid-column:span 2;">
             <label class="df-label">College Roll No (Read-only)</label>
-            <input type="text" class="df-input" value="{{ profile.roll_no }}" readonly style="background:#f1f5f9;cursor:not-allowed;">
+            <input type="text" class="df-input" value="{{ profile.roll_no }}" readonly
+              style="background:#f1f5f9;cursor:not-allowed;">
           </div>
         </div>
       </div>
@@ -135,19 +161,25 @@
               <span style="color:#d97706;font-size:11px;"> ⚠ Not Verified</span>
               {% endif %}
             </label>
-            <input type="email" name="personal_email" id="personalEmailInput" class="df-input" value="{{ profile.personal_email }}" placeholder="your@email.com">
+            <input type="email" name="personal_email" id="personalEmailInput" class="df-input"
+              value="{{ profile.personal_email }}" placeholder="your@email.com">
             <div style="display:flex;gap:8px;margin-top:8px;">
-              <input type="text" id="emailOtp" maxlength="6" placeholder="Enter OTP" class="df-input" style="width:120px;padding:8px;">
-              <button type="button" onclick="sendOtp('email')" class="btn-primary" style="font-size:12px;padding:8px 14px;">Send OTP</button>
-              <button type="button" onclick="verifyOtp('email')" class="btn-primary" style="font-size:12px;padding:8px 14px;background:#16a34a;">Verify</button>
+              <input type="text" id="emailOtp" maxlength="6" placeholder="Enter OTP" class="df-input"
+                style="width:120px;padding:8px;">
+              <button type="button" onclick="sendOtp('email')" class="btn-primary"
+                style="font-size:12px;padding:8px 14px;">Send OTP</button>
+              <button type="button" onclick="verifyOtp('email')" class="btn-primary"
+                style="font-size:12px;padding:8px 14px;background:#16a34a;">Verify</button>
             </div>
             <label style="display:flex;align-items:center;gap:6px;font-size:12px;margin-top:8px;cursor:pointer;">
-              <input type="checkbox" name="show_email_on_profile" {% if profile.show_email_on_profile %}checked{% endif %}> Show on public profile
+              <input type="checkbox" name="show_email_on_profile" {% if profile.show_email_on_profile %}checked{% endif
+                %}> Show on public profile
             </label>
           </div>
           <div class="df-group">
             <label class="df-label">Personal Phone</label>
-            <input type="text" name="personal_phone" class="df-input" value="{{ profile.personal_phone }}" placeholder="10-digit mobile">
+            <input type="text" name="personal_phone" class="df-input" value="{{ profile.personal_phone }}"
+              placeholder="10-digit mobile">
             <p style="font-size:11px;color:var(--muted);margin-top:4px;">SMS verification is disabled.</p>
           </div>
         </div>
@@ -160,44 +192,56 @@
           {% comment %}Links are hardcoded below{% endcomment %}
           <div class="df-group">
             <label class="df-label">LinkedIn</label>
-            <input type="url" name="linkedin_url" class="df-input" value="{{ profile.linkedin_url }}" placeholder="https://linkedin.com/in/...">
+            <input type="url" name="linkedin_url" class="df-input" value="{{ profile.linkedin_url }}"
+              placeholder="https://linkedin.com/in/...">
             <label style="display:flex;align-items:center;gap:6px;font-size:12px;margin-top:6px;cursor:pointer;">
-              <input type="checkbox" name="show_linkedin_on_profile" {% if profile.show_linkedin_on_profile %}checked{% endif %}> Show on profile
+              <input type="checkbox" name="show_linkedin_on_profile" {% if profile.show_linkedin_on_profile %}checked{%
+                endif %}> Show on profile
             </label>
           </div>
           <div class="df-group">
             <label class="df-label">GitHub</label>
-            <input type="url" name="github_url" class="df-input" value="{{ profile.github_url }}" placeholder="https://github.com/...">
+            <input type="url" name="github_url" class="df-input" value="{{ profile.github_url }}"
+              placeholder="https://github.com/...">
             <label style="display:flex;align-items:center;gap:6px;font-size:12px;margin-top:6px;cursor:pointer;">
-              <input type="checkbox" name="show_github_on_profile" {% if profile.show_github_on_profile %}checked{% endif %}> Show on profile
+              <input type="checkbox" name="show_github_on_profile" {% if profile.show_github_on_profile %}checked{%
+                endif %}> Show on profile
             </label>
           </div>
           <div class="df-group">
             <label class="df-label">LeetCode</label>
-            <input type="url" name="leetcode_url" class="df-input" value="{{ profile.leetcode_url }}" placeholder="https://leetcode.com/...">
+            <input type="url" name="leetcode_url" class="df-input" value="{{ profile.leetcode_url }}"
+              placeholder="https://leetcode.com/...">
             <label style="display:flex;align-items:center;gap:6px;font-size:12px;margin-top:6px;cursor:pointer;">
-              <input type="checkbox" name="show_leetcode_on_profile" {% if profile.show_leetcode_on_profile %}checked{% endif %}> Show on profile
+              <input type="checkbox" name="show_leetcode_on_profile" {% if profile.show_leetcode_on_profile %}checked{%
+                endif %}> Show on profile
             </label>
           </div>
           <div class="df-group">
             <label class="df-label">HackerRank</label>
-            <input type="url" name="hackerrank_url" class="df-input" value="{{ profile.hackerrank_url }}" placeholder="https://hackerrank.com/...">
+            <input type="url" name="hackerrank_url" class="df-input" value="{{ profile.hackerrank_url }}"
+              placeholder="https://hackerrank.com/...">
             <label style="display:flex;align-items:center;gap:6px;font-size:12px;margin-top:6px;cursor:pointer;">
-              <input type="checkbox" name="show_hackerrank_on_profile" {% if profile.show_hackerrank_on_profile %}checked{% endif %}> Show on profile
+              <input type="checkbox" name="show_hackerrank_on_profile" {% if profile.show_hackerrank_on_profile
+                %}checked{% endif %}> Show on profile
             </label>
           </div>
           <div class="df-group">
             <label class="df-label">CodeChef</label>
-            <input type="url" name="codechef_url" class="df-input" value="{{ profile.codechef_url }}" placeholder="https://codechef.com/...">
+            <input type="url" name="codechef_url" class="df-input" value="{{ profile.codechef_url }}"
+              placeholder="https://codechef.com/...">
             <label style="display:flex;align-items:center;gap:6px;font-size:12px;margin-top:6px;cursor:pointer;">
-              <input type="checkbox" name="show_codechef_on_profile" {% if profile.show_codechef_on_profile %}checked{% endif %}> Show on profile
+              <input type="checkbox" name="show_codechef_on_profile" {% if profile.show_codechef_on_profile %}checked{%
+                endif %}> Show on profile
             </label>
           </div>
           <div class="df-group">
             <label class="df-label">Codeforces</label>
-            <input type="url" name="codeforces_url" class="df-input" value="{{ profile.codeforces_url }}" placeholder="https://codeforces.com/...">
+            <input type="url" name="codeforces_url" class="df-input" value="{{ profile.codeforces_url }}"
+              placeholder="https://codeforces.com/...">
             <label style="display:flex;align-items:center;gap:6px;font-size:12px;margin-top:6px;cursor:pointer;">
-              <input type="checkbox" name="show_codeforces_on_profile" {% if profile.show_codeforces_on_profile %}checked{% endif %}> Show on profile
+              <input type="checkbox" name="show_codeforces_on_profile" {% if profile.show_codeforces_on_profile
+                %}checked{% endif %}> Show on profile
             </label>
           </div>
         </div>
@@ -206,7 +250,8 @@
       <!-- Save -->
       <div style="display:flex;gap:12px;padding-bottom:12px;">
         <button type="submit" class="btn-primary" style="padding:12px 32px;font-size:14px;">Save Changes</button>
-        <a href="{% url 'student-portal' %}" class="btn-ghost" style="padding:12px 32px;font-size:14px;text-decoration:none;">Discard</a>
+        <a href="{% url 'student-portal' %}" class="btn-ghost"
+          style="padding:12px 32px;font-size:14px;text-decoration:none;">Discard</a>
       </div>
 
     </div>
@@ -216,47 +261,47 @@
 
 {% block extra_js %}
 <script>
-function getCookie(name) {
-  const value = `; ${document.cookie}`;
-  const parts = value.split(`; ${name}=`);
-  if (parts.length === 2) return parts.pop().split(';').shift();
-}
-async function sendOtp(target) {
-  const destination = (document.getElementById('personalEmailInput')?.value || '').trim();
-  const data = new URLSearchParams();
-  data.append('target', target);
-  data.append('otp_action', 'send');
-  data.append('destination', destination);
-  const res = await fetch("{% url 'student-contact-otp' %}", {
-    method: 'POST',
-    headers: { 'X-CSRFToken': getCookie('csrftoken') || '' },
-    body: data
-  });
-  const out = await res.json();
-  alert(out.message || out.error || 'Done');
-}
-async function verifyOtp(target) {
-  const otp = document.getElementById(target + 'Otp').value.trim();
-  const data = new URLSearchParams();
-  data.append('target', target);
-  data.append('otp_action', 'verify');
-  data.append('otp', otp);
-  const res = await fetch("{% url 'student-contact-otp' %}", {
-    method: 'POST',
-    headers: { 'X-CSRFToken': getCookie('csrftoken') || '' },
-    body: data
-  });
-  const out = await res.json();
-  alert(out.message || out.error || 'Done');
-  if (out.ok) window.location.reload();
-}
-function copyProfileLink() {
-  const link = document.getElementById('publicLink').textContent.trim();
-  navigator.clipboard.writeText(link).then(() => {
-    const btn = document.getElementById('copyText');
-    btn.textContent = 'Copied!';
-    setTimeout(() => btn.textContent = 'Copy Link', 2000);
-  });
-}
+  function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+  }
+  async function sendOtp(target) {
+    const destination = (document.getElementById('personalEmailInput')?.value || '').trim();
+    const data = new URLSearchParams();
+    data.append('target', target);
+    data.append('otp_action', 'send');
+    data.append('destination', destination);
+    const res = await fetch("{% url 'student-contact-otp' %}", {
+      method: 'POST',
+      headers: { 'X-CSRFToken': getCookie('csrftoken') || '' },
+      body: data
+    });
+    const out = await res.json();
+    alert(out.message || out.error || 'Done');
+  }
+  async function verifyOtp(target) {
+    const otp = document.getElementById(target + 'Otp').value.trim();
+    const data = new URLSearchParams();
+    data.append('target', target);
+    data.append('otp_action', 'verify');
+    data.append('otp', otp);
+    const res = await fetch("{% url 'student-contact-otp' %}", {
+      method: 'POST',
+      headers: { 'X-CSRFToken': getCookie('csrftoken') || '' },
+      body: data
+    });
+    const out = await res.json();
+    alert(out.message || out.error || 'Done');
+    if (out.ok) window.location.reload();
+  }
+  function copyProfileLink() {
+    const link = document.getElementById('publicLink').textContent.trim();
+    navigator.clipboard.writeText(link).then(() => {
+      const btn = document.getElementById('copyText');
+      btn.textContent = 'Copied!';
+      setTimeout(() => btn.textContent = 'Copy Link', 2000);
+    });
+  }
 </script>
 {% endblock %}
